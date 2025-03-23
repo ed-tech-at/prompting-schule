@@ -127,7 +127,7 @@ textAreas[0].dispatchEvent(new Event('input'));
 
 <QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
 
-<pre>Lektion ID {data.lesson.id}</pre>
+<!-- <pre>Lektion ID {data.lesson.id}</pre> -->
 
 
 </main>

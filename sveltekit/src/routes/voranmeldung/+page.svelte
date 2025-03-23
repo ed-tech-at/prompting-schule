@@ -49,7 +49,13 @@
 
           const data = await response.json();
           if (response.ok) {
-              console.log("User registered successfully:", data.newUser);
+            //   console.log("User registered successfully:", data.user);
+              console.log("User ID:", data);
+
+              localStorage.setItem("userId", data.user.id);
+              localStorage.setItem("userEmail", data.user.email);
+
+              window.location.href = "/profil";
               // navigate("/en/login");
           } else {
               error = data.error || "Failed to register. Please try again.";

@@ -29,7 +29,7 @@
     <h1>Profil</h1>
     <p>E-Mail: {email}</p>
 
-    <a href="/dashboard" style="display: inline-block; color: var(--color-black); background: var(--color-secondary); padding: 1em 2em; border-radius: 15px; margin-bottom: 3em;">Zurück zum Dashboard</a>
+    <a href="/dashboard" style="display: inline-block; color: var(--color-black); background: var(--color-secondary); padding: 1em 2em; border-radius: 15px; margin-bottom: 3em;">Zum Kurse - Dashboard</a>
     <br>
 
     <a href="/logout">Logout</a>
