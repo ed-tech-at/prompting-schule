@@ -1,0 +1,27 @@
+services:
+  prompting-schule-release:
+    container_name: prompting-schule-release
+    build:
+      context: .
+      dockerfile: Dockerfile.sveltekit
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.prompting-schule-release.rule=Host(`prompting.schule`)"
+      - "traefik.http.services.prompting-schule-release.loadbalancer.server.port=3000"
+      - "traefik.http.routers.prompting-schule-release.entrypoints=websecure"
+      - "traefik.http.routers.prompting-schule-release.tls.certresolver=myresolver"
+
+      - "traefik.docker.network=traefik_net"
+
+    networks:
+      - traefik_net
+      - postgresql_net
+
+networks:
+  traefik_net:
+    external: true
+  postgresql_net:
+    external: true
+
