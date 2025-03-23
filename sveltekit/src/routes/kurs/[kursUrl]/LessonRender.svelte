@@ -102,6 +102,11 @@
     /* flex-shrink: 1; */
 
   }
+  @media (max-width: 500px) {
+    .lesson {
+      width: 290px;
+    }
+  }
 
   a.lesson-link {
     text-decoration: none;

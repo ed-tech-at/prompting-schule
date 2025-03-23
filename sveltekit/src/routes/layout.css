@@ -755,3 +755,10 @@ th {
     /* flex-direction: column; */
   }
 }
+
+
+@media (max-width: 500px) {
+  table {
+    font-size: 0.9em;
+  }
+}
