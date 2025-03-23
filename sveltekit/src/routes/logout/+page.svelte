@@ -25,8 +25,9 @@ import { browser } from '$app/environment';
 
 <Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Logout', href: '/logout' }]} />
 <main>
-  <h1>Angemeldet</h1>
+  <h1>Abgemeldet</h1>
   
+  <p>Sie wurden erfolgreich abgemeldet.</p>
 
   <a href="/">Zur Startseite</a>
 </main>
