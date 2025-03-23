@@ -1,0 +1,69 @@
+# creation
+
+npx sv create sveltekit
+
+typescript
+vitest and sveltekit-adapter
+
+node adapter
+
+package manager
+npm
+
+# RETURN Server
+/docker/return/deploy-github.sh  ed-tech-at/aicast-fyi main
+
+# Database
+
+```
+npm install prisma --save-dev
+npm install @prisma/client
+
+npx prisma init
+```
+
+## User Creation
+```
+-- Create user
+CREATE USER prompting_schule_main WITH PASSWORD 'PASSWORT_NOGIT';
+
+-- Create database with user as owner
+CREATE DATABASE prompting_schule_main OWNER prompting_schule_main;
+
+-- Set privileges
+GRANT ALL PRIVILEGES ON DATABASE prompting_schule_main TO prompting_schule_main;
+```
+
+and local database for migrations
+
+```
+-- Create database with user as owner
+CREATE DATABASE prompting_schule_migrations OWNER prompting_schule_main;
+
+-- Set privileges
+GRANT ALL PRIVILEGES ON DATABASE prompting_schule_migrations TO prompting_schule_main;
+```
+
+## .env 
+
+DATABASE_URL="postgresql://prompting_schule_main:PASSWORT_NOGIT@localhost:5432/prompting_schule_main"
+SHADOW_DATABASE_URL="postgresql://prompting_schule_main:PASSWORT_NOGIT@localhost:5432/prompting_schule_migrations"
+
+## prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+## Submit database changes
+```
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
+und danach wenn alles geht:
+```
+npx prisma migrate status
+npx prisma migrate deploy
+```

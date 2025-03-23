@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+
+  progress UserProgress[]
+  quizAttempts UserQuizAttempt[]
+}
+
+model Course {
+  id      Int      @id @default(autoincrement())
+  name    String
+  URL     String   @unique
+
+  description  String?
+
+  active  Int     @default(0)
+
+  position        Int @default(0)
+
+  lessons  Lesson[]
+  progress UserProgress[]
+  userQuizAttempts UserQuizAttempt[]
+}
+
+model Lesson {
+  id         Int     @id @default(autoincrement())
+  lessonName String
+  lessonEmoji String?
+  course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId   Int
+
+  URL     String   @unique
+  active  Int     @default(0)
+  starsNeeded  Int     @default(0)
+
+  position        Int @default(0)
+
+
+
+  progress   UserProgress[]
+  elements   Element[]
+  quizQuestions QuizQuestion[]
+  userQuizAttempts UserQuizAttempt[]
+  
+}
+
+model Element {
+  id          Int   @id @default(autoincrement())
+  type        String
+  
+  title       String?
+  
+  description String?
+  
+  taskA        String?
+  devPromptA        String?
+  
+  taskB        String?
+  devPromptB        String?
+  
+  devPromptC        String?
+
+
+  
+  position        Int @default(0)
+  
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    Int
+
+  progress    UserProgress[]
+}
+
+model UserProgress {
+  id             Int     @id @default(autoincrement())
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  course         Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId       Int
+  lesson         Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId       Int
+  element        Element  @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  elementId      Int
+
+  stars         Int     @default(0)
+  promptsTried   Int     @default(0)
+
+  progressPoints Int     @default(0)
+  
+  bonusPoints    Int     @default(0)
+  
+  attempts       Int     @default(0)
+
+  createdAt       DateTime @default(now())
+
+  ai1 String?
+  ai1Result String?
+  ai2 String?
+  ai2Result String?
+
+  promptTokens     Int  @default(0)
+  completionTokens Int  @default(0)
+
+
+}
+
+model QuizQuestion {
+  id          Int      @id @default(autoincrement())
+  question    String
+  type        String   // "single" or "multiple" or "text"
+  options     String[] // Array of possible answers
+  correct     String[] // Array of correct answers
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    Int
+}
+
+model UserQuizAttempt {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    Int
+
+  course         Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId       Int
+
+  answers        Json?
+
+  percentReached Int @default(0)
+
+  createdAt      DateTime @default(now())
+}

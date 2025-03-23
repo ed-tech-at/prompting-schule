@@ -1,0 +1,757 @@
+html {
+  background-color: var(--color-primary-dark);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Jost', sans-serif;
+
+
+  color: var(--color-black);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  padding: 0;
+  color: var(--color-primary);
+}
+
+a {
+  color: var(--color-link);
+  /* text-decoration: none; */
+}
+a:hover {
+  color: var(--color-link-light);
+}
+
+:root {
+
+  --color-background: #e2f3f6;
+  --color-white: #fff;
+  --color-black: #000;
+  --color-gray: #808080;
+
+
+  --color-primary: #01abbb;
+  --color-primary-light: #05C2D3;
+  --color-primary-lightest: #34c5d27c;
+  --color-primary-dark: #017C88;
+  --color-primary-darkest: #016069;
+
+  --color-link: #093CC6;
+  --color-link-light: #1B4EDA;
+  --color-link-lightest: #466dd974;
+  --color-link-lightest: #c1d2ff;
+  --color-link-dark: #072D96;
+  --color-link-darkest: #052375;
+
+  --color-secondary: #FFAD00;
+  --color-secondary-light: #FFAE03;
+  --color-secondary-lightest: #ffeec8;
+  --color-secondary-dark: #DF9700;
+  --color-secondary-darkest: #AD7500;
+
+  --color-complementary: #FF7800;
+  --color-complementary-light: #FF7A03;
+  --color-complementary-lightest: #ff973c6d;
+  --color-complementary-dark: #DF6900;
+  --color-complementary-darkest: #AD5200;
+
+}
+
+
+/* jost-100 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-100.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-100italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 100;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-100italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-200 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 200;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-200italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 200;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-200italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-300 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-300italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 300;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-300italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-500 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-500italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 500;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-500italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-600 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-600italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 600;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-600italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-700 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-700italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 700;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-700italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-800 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 800;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-800italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 800;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-800italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-900 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 900;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-900.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jost-900italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Jost';
+  font-style: italic;
+  font-weight: 900;
+  src: url('/fonts/jost-v18-latin/jost-v18-latin-900italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+
+/* jetbrains-mono-100 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-100.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-100italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 100;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-100italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-200 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 200;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-200italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 200;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-200italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-300 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-300.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-300italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 300;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-300italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-500 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-500italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 500;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-500italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-600 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-600italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 600;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-600italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-700 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-700italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-700italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-800 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 800;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* jetbrains-mono-800italic - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 800;
+  src: url('/fonts/jetbrains-mono-v20-latin/jetbrains-mono-v20-latin-800italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* https://gwfh.mranftl.com/fonts */
+
+
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: var(--color-primary-dark);
+  border-bottom: 4px solid var(--color-primary-darkest); 
+  flex-wrap: wrap;
+}
+
+header a, footer a, header p {
+  color: white;
+}
+
+header a:hover, footer a:hover {
+  color: var(--color-background);
+}
+
+header .logo img {
+  height: 2em;
+  margin-right: 10px;
+}
+
+header .logo a {
+  text-decoration: none;
+}
+
+header .logo h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+
+}
+
+main {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+  min-height: calc(100dvh - 300px);
+}
+
+body {
+  background-color: var(--color-background);
+}
+
+
+footer {
+  
+  padding: 20px;
+  background-color: var(--color-primary-dark);
+  color: white;
+  border-top: 3px solid var(--color-primary-darkest);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+footer .logo a {
+  text-decoration: none;
+}
+footer .logo h3 {
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+footer h3 {
+  color: white;
+}
+
+@media screen and (max-width: 570px) {
+  footer .logo {
+    width: 100%
+  }
+  footer .links div {
+    width: 100%;
+  }
+}
+
+footer .links {
+  display: flex;
+  gap: 50px;
+  flex-wrap: wrap;
+  margin: 30px;
+}
+footer .logo img {
+  height: 2em;
+  margin-right: 10px;
+
+}
+footer a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+footer .links a {
+  display: block; 
+  margin-bottom: 5px;
+}
+
+
+section {
+  margin-bottom: 20px;
+}
+
+.element {
+  margin-bottom: 120px;
+}
+
+mark {
+  display: block;
+  background-color: var(--color-complementary-lightest);
+  /* color: white; */
+
+  border-left: 5px solid var(--color-complementary);
+  padding: 1em 1.5em 0.8em 1.5em;
+  margin: 2em 0em 1em 0em;
+  /* border-radius: 1em; */
+}
+
+mark h2, mark h3 {
+  color: var(--color-complementary-dark);
+}
+
+.star mark {
+  background-color: var(--color-secondary-lightest);
+  border-left: 5px solid var(--color-secondary);
+}
+.star mark h2, .star mark h3 {
+  color: var(--color-secondary-dark);
+}
+
+.star-wrapper {
+  display: flex;
+  justify-content: center;
+}
+.star-block {
+  display: block;
+  text-align: center;
+  padding: 0.5em 1em;
+  background: var(--color-secondary-lightest);
+  width: auto;
+  margin: 1em;
+  border-radius: 1.2em;
+  /* color: var(--color-secondary); */
+  font-size: 1.2em;
+  border: 5px solid var(--color-secondary);
+  user-select: none;
+
+}
+
+.star-color {
+  color: var(--color-secondary);
+}
+
+.quiz-btn {
+  display: inline-block;
+  background: var(--color-link);
+  color: white;
+  padding: 0.5em 1em;
+  border-radius: 1em;
+}
+
+.quiz-btn:hover {
+  background: var(--color-link-light);
+  color: white;
+}
+
+.quiz-link {
+  margin-top: 4em;
+  margin-bottom: 4em;
+
+}
+
+.quiz-link h2 {
+  color: var(--color-link);
+}
+
+mark p {
+  margin: 0;
+}
+
+form.ai {
+  /* background-color: var(--color-background-light); */
+  border: 5px solid var(--color-white);
+  border-radius: 15px;
+  padding: 0.5em 1em;
+  padding: 0;
+  margin-bottom: 1em;
+  position: relative;
+}
+
+form.ai label {
+  color: var(--color-primary-dark);
+  color: var(--color-white);
+  display: block;
+  font-weight: 600;
+  font-size: 0.6em;
+  margin-bottom: 0.5em;
+
+  position: absolute;
+  top: 0.5em;
+  left: 1em;
+  right: 0.5em;
+}
+
+section.quiz-link {
+  border: 5px solid var(--color-white);
+  padding: 1em;
+  border-radius: 15px;
+  background-color: var(--color-link-lightest);
+}
+
+form.ai .result {
+  position: relative;
+}
+
+form.ai .result label {
+  position: relative;
+  color: black;
+  font-weight: 500;
+  /* font-size: 0.8em; */
+  left: -5px;
+  top: -5px;
+  margin: 0;
+  /* position: absolute; */
+  float: left;
+
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.clearboth {
+  clear: both;
+}
+
+.hidden {
+  display: none;
+}
+
+code {
+  font-family: 'Jetbrains Mono', monospace;
+  color: var(--color-primary);
+}
+
+
+/* form.ai .result .generated { */
+form.ai .result  {
+  background-color: var(--color-white);
+  font-weight: 400;
+  font-size: 1em;
+  display: block;
+  min-height: 3em;
+  padding: 10px 15px;
+  /* padding-top: 5px; */
+  margin: 10px;
+  border-radius: 10px;
+}
+
+form.ai .prompt {
+  width: 100%;
+  /* height: 100px; */
+  /* margin-bottom: 1em; */
+  padding: 2em 3em 1em 1em;
+  border: none;
+  color: white;
+  background-color: var(--color-primary);
+  font-family: 'Jost', sans-serif;
+  border-radius: 10px;
+
+  width: 100% !important;
+  min-height: 5em;
+
+  font-weight: 500;
+  font-size: 1em;
+  
+}
+
+/* form.ai .prompt::placeholder {
+  color: var(--color-background);
+} */
+
+form.ai .prompt:empty::before {
+  content: attr(placeholder);
+  color: var(--color-background);
+}
+
+form.ai .submit {
+  cursor: pointer;
+  display: inline-block;
+  margin: 0.2em 1em;
+  text-align: center;
+  background: var(--color-primary);
+  border: 2px solid var(--color-primary-darkest);
+  /* color: var(--color-primary); */
+  border-radius: 10px;
+  padding: 0.2em 0.4em;
+  color: white;
+  position: relative;
+  z-index: 5;
+  font-size: 1em;
+  top: -45px;
+  right: -5px;
+  float: right;
+
+  font-family: 'Jost', sans-serif;
+
+}
+
+
+form.ai .submit:hover {
+  
+    color: var(--color-background);
+    
+}
+
+
+form.ai .submit:disabled {
+  background: var(--color-primary-lightest);
+  color: var(--color-primary-dark);
+  cursor: progress;
+}
+
+
+form.ai .ai1prompt2, form.ai .ai2prompt2,  form.ai .ai12prompt2 {
+  position: relative;
+  margin-top: 0.5em;
+  /* color: var(--color-black); */
+  
+}
+
+form.ai .ai1prompt2 .prompt {
+  background-color: var(--color-primary-light);
+}
+
+form.ai .ai2prompt1 .prompt {
+  background-color: var(--color-primary-light);
+}
+
+
+form.ai .ai1prompt2 label, form.ai .ai1prompt2 .prompt, form.ai .ai2prompt1 label, form.ai .ai2prompt1 .prompt {
+  color: var(--color-black);
+  user-select: none;
+}
+
+button {
+  cursor: pointer;
+  display: inline-block;
+  background: var(--color-primary);
+  color: white;
+  border: 2px solid var(--color-primary-darkest);
+  border-radius: 10px;
+
+  font-family: 'Jost', sans-serif;
+  
+}
+
+button:hover {
+  background: var(--color-primary-light);
+}
+
+.generated * {
+  color: black !important;
+}
+
+.generated p, .generated ul, .generated h1, .generated h2, .generated h3, .generated h4, .generated h5, .generated h6 {
+  margin-top: 0.1em;
+  margin-bottom: 0.2em;
+}
+
+table, th, td {
+  border: 2px solid white;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.2em 0.5em;
+  hyphens: auto;
+}
+
+th {
+  background-color: var(--color-primary-lightest);
+}
+
+.aiSide {
+  display: flex;
+  gap: 1em;
+  flex-shrink: 1;
+}
+
+.aiSide .ai {
+  width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .aiSide {
+    flex-wrap: wrap;
+    /* flex-direction: column; */
+  }
+}

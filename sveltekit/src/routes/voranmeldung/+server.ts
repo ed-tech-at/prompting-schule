@@ -1,0 +1,60 @@
+import { json } from '@sveltejs/kit';
+import { PrismaClient } from '@prisma/client';
+
+
+
+
+const prisma = new PrismaClient();
+
+import type { User } from '@prisma/client';
+
+import { newUserUUID } from '$lib/server/dbUtils.js';
+import { hashPassword } from '$lib/server/pw.js';
+
+
+export async function POST({ request, params }) {
+  try {
+      console.log('params', params);
+      let { form, action } = await request.json();
+      console.log('action', action);
+      
+      if (typeof form === 'string') {
+          form = JSON.parse(form);
+      }
+
+      console.log('form', form);
+
+      if (action == "create") {
+          
+      const uuid = await newUserUUID();
+
+      let password = form.password;
+
+      
+
+      console.log('password:', password);
+
+      password = await hashPassword(password);
+      console.log('password ahesd:', password);
+
+
+
+      const newUser = await prisma.user.create({
+          data: {
+              id: uuid,
+              password: password,
+              email: form.email,
+          }
+      });
+
+      console.log('newUser', newUser);
+
+
+      return json({ success: true, newUser: newUser });
+
+
+    } 
+  } catch (error) {
+      return json({ success: false, error: error.message }, { status: 500 });
+  }
+}
