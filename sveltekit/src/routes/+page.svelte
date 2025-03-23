@@ -436,6 +436,6 @@ h1, h2 {
     Melden Sie sich noch heute für unseren Prompting School-Kurs an und lernen Sie bewährte Strategien, um Prompt Engineering zu meistern!
   </p>
   <div class="cta-buttons">
-    <a href="/login" class="cta-button">ab Mai verfügbar</a>
+    <a href="/login" class="cta-button" style="margin-bottom: 5em;">ab Mai verfügbar</a>
   </div>
 </section>
