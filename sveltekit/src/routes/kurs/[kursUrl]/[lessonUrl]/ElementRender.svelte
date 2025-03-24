@@ -107,7 +107,7 @@
       });
 
       const result = await response.json();
-      console.log("getUserProgressElementAi2:", result);
+      // console.log("getUserProgressElementAi2:", result);
       if (result.success && result.userProgress) {
         
         ai2Result = result.userProgress.ai2Result; 

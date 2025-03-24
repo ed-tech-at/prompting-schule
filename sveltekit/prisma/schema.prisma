@@ -40,6 +40,9 @@ model Course {
 
   position        Int @default(0)
 
+  displayType String?
+  
+
   lessons  Lesson[]
   progress UserProgress[]
   userQuizAttempts UserQuizAttempt[]

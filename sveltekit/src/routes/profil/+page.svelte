@@ -59,7 +59,7 @@
     }
     
     @media (min-width: 1200px) {
-      .lessons {
+      .lessons.displayType-flex {
         flex-wrap: nowrap;
       }
     }

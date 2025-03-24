@@ -25,7 +25,7 @@ import { browser } from '$app/environment';
 <main>
 <h1>Kurs: {data.course.name}</h1>
 
-<div class="lessons">
+<div class={"displayType-" + data.course.displayType + " lessons"}>
 {#each data.lessons as lesson}
   <LessonRender course={data.course} {lesson} {userId} />
 {/each}
@@ -44,7 +44,7 @@ import { browser } from '$app/environment';
 
   }
   @media (min-width: 1200px) {
-    .lessons {
+    .lessons.displayType-flex {
       flex-wrap: nowrap;
     }
   }

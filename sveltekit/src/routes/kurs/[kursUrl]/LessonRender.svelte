@@ -63,7 +63,7 @@
 </script>
 
 <!-- <div class="lesson"> -->
- <a href="/kurs/{course.URL}/{lesson.URL}" class="lesson-link lesson">
+ <a href="/kurs/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
   <p>Zum Abschluss dieser Lektion benötigst du:
