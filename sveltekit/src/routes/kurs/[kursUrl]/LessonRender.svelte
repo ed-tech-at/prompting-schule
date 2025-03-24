@@ -66,15 +66,15 @@
  <a href="/kurs/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
-  {#if lesson.starsNeeded > 0}
-    
+ 
+  {#if lesson.starsNeeded > 0}  
   
-  <p>Zum Abschluss dieser Lektion benötigst du:
+    <p>Zum Abschluss dieser Lektion benötigst du:
     {#each Array(lesson.starsNeeded) as _, i}
       <i class="fa fa-star" aria-hidden="true"></i>
     {/each}
     </p>
-    {/if}
+    
     <p>
     Von dir gesammelte Sterne:
     {#each Array(userStars) as _, i}
@@ -88,6 +88,7 @@
 
     {/if}
     </p>
+    {/if}
 </a>
 <!-- </div> -->
 
