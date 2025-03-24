@@ -141,7 +141,7 @@
     {#each quizResults.results as result (result.questionId)}
       {#if result.questionId === question.id}
         <div class="quiz-result">
-          <p><strong>Korrekte Antworten:</strong></p>
+          <p><strong>Deine korrekten Antworten:</strong></p>
           <ul>
             {#each result.userCorrectResponse as correctResponse}
               <li>{@html correctResponse}</li>
