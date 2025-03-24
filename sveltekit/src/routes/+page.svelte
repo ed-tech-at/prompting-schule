@@ -65,7 +65,7 @@ h1, h2 {
         padding: 80px 20px;
         background: linear-gradient(to bottom, #2f929a, #B5E3E8);
         color: white;
-        height: 400px;
+        /* height: 400px; */
         overflow: hidden;
         position: relative;
     }
