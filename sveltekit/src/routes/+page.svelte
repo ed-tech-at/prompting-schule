@@ -66,19 +66,21 @@ h1, h2 {
         background: linear-gradient(to bottom, #2f929a, #B5E3E8);
         color: white;
         height: 400px;
+        overflow: hidden;
+        position: relative;
     }
 
     .hero h1 {
         font-size: 48px;
-        font-family: 'Roboto', sans-serif;
+        /* font-family: 'Roboto', sans-serif; */
         margin-bottom: 20px;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Add subtle shadow for text */
         text-transform: uppercase;
     }
 
     .hero p {
-        font-size: 14px;
-        font-family: 'Roboto', sans-serif;
+        font-size: 1em;
+        /* font-family: 'Roboto', sans-serif; */
         margin-bottom: 30px;
         max-width: 800px;
         line-height: 1.6;

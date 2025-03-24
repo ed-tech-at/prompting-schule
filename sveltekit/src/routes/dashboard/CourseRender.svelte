@@ -5,7 +5,7 @@
   import { onMount } from 'svelte';
 
   onMount(() => {
-    showCourseForUser();
+    // showCourseForUser();
   });
 
   export let course: Course ;

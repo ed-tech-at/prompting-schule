@@ -222,6 +222,7 @@
     color: white;
     border-radius: 10px;
     border-color: var(--color-link-darkest);
+    display: inline-block;
   }
   h1, h2 {
     color: var(--color-link);

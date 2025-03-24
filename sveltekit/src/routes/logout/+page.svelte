@@ -18,6 +18,7 @@ import { browser } from '$app/environment';
       // console.log("Benutzer-ID:", userId);
       localStorage.removeItem("userId");
       localStorage.removeItem("userEmail");
+      localStorage.removeItem("isAdmin");
   }
 
 
