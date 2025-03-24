@@ -771,6 +771,12 @@ th {
     flex-wrap: wrap;
     /* flex-direction: column; */
   }
+
+  .laborSide {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
 }
 
 
