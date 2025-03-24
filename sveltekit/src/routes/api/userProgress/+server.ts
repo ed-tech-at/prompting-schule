@@ -381,7 +381,7 @@ export async function POST({ request }) {
         ],
         // response_format: { "type": "json_object" },
         temperature: 0.7,
-        max_completion_tokens: 2000
+        max_completion_tokens: 1000
     });
     
     let responseTextBetter = aiResponseBetter.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -469,7 +469,7 @@ export async function POST({ request }) {
         ],
         // response_format: { "type": "json_object" },
         temperature: 0.7,
-        max_completion_tokens: 2000
+        max_completion_tokens: 1000
     });
 
     let responseTextWorse = aiResponseWorse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -532,10 +532,10 @@ export async function POST({ request }) {
     // console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
     // return json({ response: "AI1" });
 
-    if (data.ai1.length > 5000) {
+    if (data.ai1.length > 10000) {
       return json( {success: false, error: "Anfrage zu lange" });
     }
-    if (data.ai2.length > 5000) {
+    if (data.ai2.length > 10000) {
       return json( {success: false, error: "Anfrage zu lange" });
     }
 
@@ -547,7 +547,7 @@ export async function POST({ request }) {
             { role: "user", content: data.ai2 }
         ],
         temperature: 0.7,
-        max_completion_tokens: 1000
+        max_completion_tokens: 2000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
