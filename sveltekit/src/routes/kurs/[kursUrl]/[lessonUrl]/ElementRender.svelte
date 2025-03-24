@@ -145,6 +145,9 @@
   let ai2promptTokens = 0;
   let ai2completionTokens = 0;
 
+  let betterPrompt = "";
+  
+
   function startTimer (number) {
     if (number == 1) {
       ai1running = true;
@@ -368,6 +371,178 @@
   }
 
 
+
+
+  function copyBetterPrompt() {
+    ai1 = betterPrompt;
+  }
+  function copyWorsePrompt() {
+    ai1 = ai2Result;
+  }
+
+  async function submitFormLabor(event: Event) {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+    ai1Result = "...";
+    ai1completionTokens = 0;
+    ai1promptTokens = 0;
+
+    betterPrompt = "";
+    ai2Result = "";
+
+
+    startTimer(1);
+
+    const data = {
+      ai1: ai1,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'labor1'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!ai1running) {
+      return;
+    }
+
+    if (result.success) {
+      // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      // ai1Result = result.ai1Result; // Convert markdown to HTML
+      // ai1promptTokens = result.promptTokens;
+      // ai1completionTokens = result.completionTokens;
+
+      betterPrompt = result.responseTextBetter;
+      // worsePrompt = result.responseTextWorse;
+      // console.log("Prompt Tokens:", ai1promptTokens, "Completion Tokens:", ai1completionTokens);
+      // console.log("Result:", result);
+
+      labor2();
+
+      // console.log('Element updated successfully:', ai1Result); // Update success message
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    // stopTimer(1); // Added to stop the timer for ai1
+  }
+
+
+  async function labor2() {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+    startTimer(2);
+
+    const data = {
+      ai1: ai1,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'labor2'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!ai1running) {
+      return;
+    }
+
+    if (result.success) {
+      // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      // ai1Result = result.ai1Result; // Convert markdown to HTML
+      // ai1promptTokens = result.promptTokens;
+      // ai1completionTokens = result.completionTokens;
+      stopTimer(2); // Added to stop the timer for ai1
+
+      ai2Result = result.responseTextWorse;
+      // worsePrompt = result.responseTextWorse;
+      // console.log("Prompt Tokens:", ai1promptTokens, "Completion Tokens:", ai1completionTokens);
+      // console.log("Result:", result);
+
+      labor3();
+
+      // console.log('Element updated successfully:', ai1Result); // Update success message
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    stopTimer(2); // Added to stop the timer for ai1
+  }
+
+  
+  async function labor3() {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+   
+
+    const data = {
+      ai1: ai1,
+      ai2: ai2,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'labor3'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!ai1running) {
+      return;
+    }
+
+    if (result.success) {
+      // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      stopTimer(1); // Added to stop the timer for ai1
+      ai1Result = result.ai1Result; // Convert markdown to HTML
+      ai1promptTokens = result.promptTokens;
+      ai1completionTokens = result.completionTokens;
+      console.log("Prompt Tokens:", ai1promptTokens, "Completion Tokens:", ai1completionTokens);
+      console.log("Result:", result);
+      // console.log('Element updated successfully:', ai1Result); // Update success message
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    stopTimer(1); // Added to stop the timer for ai1
+  }
+
   async function submitFormAi12(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
@@ -406,6 +581,7 @@
 
     if (result.success) {
       // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      stopTimer(1); // Added to stop the timer for ai1
       ai1Result = result.ai1Result; // Convert markdown to HTML
       ai1promptTokens = result.promptTokens;
       ai1completionTokens = result.completionTokens;
@@ -457,6 +633,8 @@
 
     if (result.success) {
       // console.log('Element updated successfully:', result.ai2Result); // Update success message
+    stopTimer(2); // Added to stop the timer for ai1
+      
       ai2Result = result.ai2Result; 
       ai2promptTokens = result.promptTokens;
       ai2completionTokens = result.completionTokens;
@@ -507,6 +685,7 @@
     
     if (result.success) {
       // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      stopTimer(1);
       result.ai1Result = JSON.parse(result.ai1Result);
       ai1Result = result.ai1Result.feedback; // Convert markdown to HTML
       showStar = result.ai1Result.star;
@@ -789,32 +968,103 @@
 
 
 
-  {#if element.type === "ai1old"}
+  {#if element.type === "labor"}
 
-    <form on:submit|preventDefault={submitFormai1}>
+<section>
+  {@html element.description}
+  <div class="aiLabor">
+    
+  <form class="ai" on:submit|preventDefault={submitFormLabor}>
 
-      {element.title}<br>
-      {element.description}<br>
-      {element.taskA}<br>
+      <label for="ai1">{element.taskA}</label>
 
-      <label for="ai1">ai1:</label>
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
 
-      
-      
-      <textarea id="ai1" name="ai1" rows="4" cols="50" bind:value={ai1}></textarea>
-      
-      <input type="submit" value="Submit">
+     
 
-      {#if ai1Result}
-        <p>{ai1Result}</p>
+      <button type="submit" class="submit" disabled={ai1running}>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="laborPrompt2">
+
+        <label for="ai2">{element.taskB}</label>
+  
+        <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      </div>
+  
+
+      {#if betterPrompt}
+      <div class="laborSide">
+        <div class="aiLaborSide aiLaborBetter">
+          <label for="ai2">Besserer Prompt</label>
+          <div class="prompt" placeholder="Prompt">{@html betterPrompt}</div>
+
+          <span type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt}>
+            <i class="fas fa-copy"></i>
+          </span>
+
+          
+
+
+        </div>
+        <div class="aiLaborSide aiLaborWorse">
+          <label for="ai2">Schlechterer Prompt</label>
+          <div class="prompt" placeholder="Prompt">{@html ai2Result}</div>
+
+          <span type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt}>
+            <i class="fas fa-copy"></i>
+          </span>
+        </div>
+
+      </div>
+    
       {/if}
 
+      <div class="result">
+        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <div class="clearboth"></div>
+        <div class="generated">
+          {#if ai1Result}
+            {@html ai1Result}
+          {/if}
+        </div>
+      </div>
     </form>
-  
+    
+    
+  </div>      
+</section>  
   {/if}
+
+
 
   {#if isAdmin}
     <pre>Element ID: {element.id}</pre>
   {/if}
   
 </div>
+
+
+<style>
+  .laborSide {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+  }
+  .aiLaborSide {
+    width: 100%;
+    position: relative;
+  }
+  .aiLabor form.ai .submit {
+    margin-bottom: -30px;
+  }
+
+  .aiLaborBetter .prompt {
+    background-color: #1fa05b;
+  }
+  .aiLaborWorse .prompt {
+    background-color: #c74b4b;
+  }
+
+</style>

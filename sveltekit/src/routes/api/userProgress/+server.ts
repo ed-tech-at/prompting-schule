@@ -357,6 +357,224 @@ export async function POST({ request }) {
   } 
 
   
+  
+  if (action == "labor1") {
+    data = JSON.parse(data).data;
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+
+    console.log('data parse star', data);
+
+    console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.ai1}"`);
+    // return json({ response: "AI1" });
+
+    const laborPrompt = `Entwickle einen neuen Prompt für die KI basierend auf dem User Prompt. Ausgabe in Planetext. Mache den Prompt Besser.`;
+
+    if (data.ai1.length > 10000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+    const aiResponseBetter = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        messages: [
+            { role: "developer", content: laborPrompt + element.devPromptB },
+            { role: "user", content: data.ai1 }
+        ],
+        // response_format: { "type": "json_object" },
+        temperature: 0.7,
+        max_completion_tokens: 2000
+    });
+    
+    let responseTextBetter = aiResponseBetter.choices[0]?.message?.content?.trim() || "No response generated.";
+
+    // console.log('responseText', responseText);
+    // responseText = JSON.parse(responseText);
+
+    // responseTextWorse = marked.parse(responseTextWorse);
+    // responseTextBetter = marked.parse(responseTextBetter);
+
+    responseTextBetter = responseTextBetter.replace(/\n/g, '<br>');
+    
+    
+    // responseTextBetter = responseTextBetter.replace(/<br>/g, '\n');
+    
+    const promptTokens = aiResponseBetter.usage?.prompt_tokens;
+    const completionTokens = aiResponseBetter.usage?.completion_tokens;
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        
+        ai1: data.ai1,
+        ai1Result: responseTextBetter,
+        completionTokens: completionTokens,
+        promptTokens: promptTokens,
+        attempts: 1,
+        promptsTried: 1
+      }
+    });
+    // const logResult = await prisma.userProgress.create({ 
+    //   data: {
+    //     userId: data.userId,
+    //     elementId: data.elementId,
+    //     courseId: data.courseId,
+    //     lessonId: data.lessonId,
+    //     stars: star,
+    //     ai1: data.ai1,
+    //     ai1Result: responseText,
+    //     completionTokens: completionTokens,
+    //     promptTokens: promptTokens,
+    //     promptsTried: 1
+    //   }
+    // });
+
+    return json( {success: true,  responseTextBetter });
+  } 
+
+
+
+  if (action == "labor2") {
+    data = JSON.parse(data).data;
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+
+    console.log('data parse star', data);
+
+    console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.ai1}"`);
+    // return json({ response: "AI1" });
+
+    const laborPrompt = `Entwickle einen neuen Prompt für die KI basierend auf dem User Prompt. Beantworte die Anfrage selbst nicht. Ausgabe in Planetext. Mache den Prompt schlechter.`;
+
+    if (data.ai1.length > 10000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+    // const aiResponseBetter = await openai.chat.completions.create({
+    //     model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+    //     messages: [
+    //         { role: "developer", content: laborPrompt + element.devPromptB },
+    //         { role: "user", content: data.ai1 }
+    //     ],
+    //     // response_format: { "type": "json_object" },
+    //     temperature: 0.7,
+    //     max_completion_tokens: 2000
+    // });
+
+    const aiResponseWorse = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        messages: [
+            { role: "developer", content: laborPrompt + element.devPromptC },
+            { role: "user", content: data.ai1 }
+        ],
+        // response_format: { "type": "json_object" },
+        temperature: 0.7,
+        max_completion_tokens: 2000
+    });
+
+    let responseTextWorse = aiResponseWorse.choices[0]?.message?.content?.trim() || "No response generated.";
+    // let responseTextBetter = aiResponseBetter.choices[0]?.message?.content?.trim() || "No response generated.";
+
+    // console.log('responseText', responseText);
+    // responseText = JSON.parse(responseText);
+
+    // responseTextWorse = marked.parse(responseTextWorse);
+    // responseTextBetter = marked.parse(responseTextBetter);
+
+    // responseTextBetter = responseTextBetter.replace(/\n/g, '<br>\n');
+    responseTextWorse = responseTextWorse.replace(/\n/g, '<br>\n');
+    // responseTextBetter = responseTextBetter.replace(/<br>/g, '\n');
+    
+    const promptTokens = aiResponseWorse.usage?.prompt_tokens;
+    const completionTokens = aiResponseWorse.usage?.completion_tokens;
+
+    // const logResult = await prisma.userProgress.create({ 
+    //   data: {
+    //     userId: data.userId,
+    //     elementId: data.elementId,
+    //     courseId: data.courseId,
+    //     lessonId: data.lessonId,
+    //     stars: star,
+    //     ai1: data.ai1,
+    //     ai1Result: responseText,
+    //     completionTokens: completionTokens,
+    //     promptTokens: promptTokens,
+    //     promptsTried: 1
+    //   }
+    // });
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        
+        ai1: data.ai1,
+        ai1Result: responseTextWorse,
+        completionTokens: completionTokens,
+        promptTokens: promptTokens,
+        attempts: 2,
+        promptsTried: 1
+      }
+    });
+
+    return json( {success: true, responseTextWorse });
+  } 
+
+
+  if (action == "labor3") {
+    data = JSON.parse(data).data;
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+
+    // console.log('data parse aiSide1', data);
+
+    // console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
+    // return json({ response: "AI1" });
+
+    if (data.ai1.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+    if (data.ai2.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+    const aiResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        messages: [
+            { role: "developer", content: element.devPromptA },
+            { role: "user", content: data.ai1 },
+            { role: "user", content: data.ai2 }
+        ],
+        temperature: 0.7,
+        max_completion_tokens: 1000
+    });
+
+    let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
+
+    responseText = marked.parse(responseText);
+
+    const promptTokens = aiResponse.usage?.prompt_tokens;
+    const completionTokens = aiResponse.usage?.completion_tokens;
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        ai1: data.ai1,
+        ai1Result: responseText,
+        completionTokens: completionTokens,
+        promptTokens: promptTokens,
+        promptsTried: 1,
+        attempts: 3
+      }
+    });
+
+    return json( {success: true, ai1Result: responseText, promptTokens, completionTokens });
+  } 
+  
 
 
   if (action === 'getUserProgressElementAi1') {

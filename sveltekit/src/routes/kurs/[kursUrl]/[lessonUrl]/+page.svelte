@@ -123,14 +123,19 @@ textAreas[0].dispatchEvent(new Event('input'));
 <main>
 
 <h1>Lektion {data.lesson.lessonName}</h1>
+{#if data.course.displayType != "labor"}
 <QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
+{/if}
+
 
 
 {#each data.elements as element}
   <ElementRender course={data.course} lesson={data.lesson} {element} {userId} updateUserStars={updateUserStars} {isAdmin} />
 {/each}
 
+{#if data.course.displayType != "labor"}
 <QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
+{/if}
 
 {#if isAdmin}
   <!-- <a href="/kurs/{data.course.URL}/{data.lesson.URL}/edit">Lektion bearbeiten</a> -->
