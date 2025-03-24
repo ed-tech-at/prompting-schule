@@ -3,7 +3,7 @@
   <div class="logo">
     
     <a href='/'><h3><img src="/logo-prompting.schule-bg.png"  alt="Logo"> prompting.schule</h3></a>
-    <p>Werde Prompt Engeineering Champion</p>
+    <p>Werde Prompt Engineering Champion</p>
   </div>
   <div class="links">
     <div>

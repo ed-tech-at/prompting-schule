@@ -67,3 +67,24 @@ und danach wenn alles geht:
 npx prisma migrate status
 npx prisma migrate deploy
 ```
+
+
+## DB Sequence Reset:
+SELECT * FROM "QuizQuestion_id_seq";
+
+ALTER SEQUENCE "QuizQuestion_id_seq" RESTART WITH 40;
+
+SELECT * FROM "Course_id_seq";
+
+ALTER SEQUENCE "Course_id_seq" RESTART WITH 10;
+
+SELECT * FROM "Element_id_seq";
+
+ALTER SEQUENCE "Element_id_seq" RESTART WITH 55;
+
+SELECT * FROM "Lesson_id_seq";
+
+ALTER SEQUENCE "Lesson_id_seq" RESTART WITH 22;
+
+
+

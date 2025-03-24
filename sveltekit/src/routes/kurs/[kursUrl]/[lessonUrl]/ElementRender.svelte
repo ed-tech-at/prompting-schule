@@ -182,7 +182,7 @@
     ai1completionTokens = 0;
     ai1promptTokens = 0;
 
-    startTimer(1);
+    // startTimer(1);
 
     const data = {
       ai1: ai1,
@@ -216,7 +216,7 @@
       console.error('Error updating element:', result.error); // Update error message
       ai1Result = "<i>" + result.error + "</i>"; 
     }
-    stopTimer(1); // Added to stop the timer for ai1
+    // stopTimer(1); // Added to stop the timer for ai1
   }
 
 
@@ -252,6 +252,10 @@
 
     const result = await response.json();
     
+    if (!ai1running) {
+      return;
+    }
+
     if (result.success) {
       // console.log('Element updated successfully:', result.ai1Result); // Update success message
       ai1Result = result.ai1Result; // Convert markdown to HTML
@@ -295,6 +299,10 @@
 
     const result = await response.json();
     
+    if (!ai2running) {
+      return;
+    }
+
     if (result.success) {
       ai2Result = result.ai2Result; // Convert markdown to HTML
       ai2promptTokens = result.promptTokens;
@@ -340,6 +348,10 @@
 
     const result = await response.json();
     
+    if (!ai1running) {
+      return;
+    }
+
     if (result.success) {
       // console.log('Element updated successfully:', result.ai1Result); // Update success message
       ai1Result = result.ai1Result; // Convert markdown to HTML
@@ -388,6 +400,10 @@
 
     const result = await response.json();
     
+    if (!ai1running) {
+      return;
+    }
+
     if (result.success) {
       // console.log('Element updated successfully:', result.ai1Result); // Update success message
       ai1Result = result.ai1Result; // Convert markdown to HTML
@@ -435,6 +451,10 @@
 
     const result = await response.json();
     
+    if (!ai2running) {
+      return;
+    }
+
     if (result.success) {
       // console.log('Element updated successfully:', result.ai2Result); // Update success message
       ai2Result = result.ai2Result; 

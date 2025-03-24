@@ -14,10 +14,17 @@
 
 </script>
 
+{#if course.active == 1}
+<a href="/kurs/{course.URL}" class="course-link course"><h2>{course.name}</h2>
+  {@html course.description}
+  </a>
+  {/if}
 
- <a href="/kurs/{course.URL}" class="course-link course"><h2>{course.name}</h2>
-{@html course.description}
-</a>
+  {#if course.active == 2}
+    <div class="course inactive-link"><h2>{course.name}</h2>
+  {@html course.description}
+    </div>
+{/if}
 
 
 
@@ -46,12 +53,20 @@
     
     
   }
-  .course:hover {
+  .course-link:hover {
     outline: 5px solid var(--color-primary);
   }
+
+  .inactive-link {
+    cursor:default;
+  }
+
   h2 {
     /* text-align: center; */
     margin-bottom: 1em;
+  }
+  h3 {
+    font-size: 1.6em;
   }
   .emoji {
     font-size: 3em;
