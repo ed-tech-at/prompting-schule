@@ -633,6 +633,15 @@ form.ai .prompt {
   
 }
 
+form.ai.note .prompt {
+  background-color: var(--color-complementary-dark);
+}
+
+form.ai.note .submit {
+  background-color: var(--color-complementary);
+  border: 2px solid var(--color-complementary-darkest);
+}
+
 /* form.ai .prompt::placeholder {
   color: var(--color-background);
 } */
@@ -699,6 +708,11 @@ form.ai .ai1prompt2 label, form.ai .ai1prompt2 .prompt, form.ai .ai2prompt1 labe
   color: var(--color-black);
   user-select: none;
 }
+
+.adminView form.ai .ai1prompt2 label, .adminView form.ai .ai1prompt2 .prompt, .adminView form.ai .ai2prompt1 label, .adminView form.ai .ai2prompt1 .prompt {
+  user-select: inherit;
+}
+
 
 button {
   cursor: pointer;

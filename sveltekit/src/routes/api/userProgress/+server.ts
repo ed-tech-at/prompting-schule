@@ -17,6 +17,33 @@ const openai = new OpenAI({
 export async function POST({ request }) {
 	let { data,  action } = await request.json();
 
+  if (action == "note") {
+    data = JSON.parse(data).data;
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+
+    if (data.ai1.length > 50000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+    
+    const promptTokens = data.ai1.length;
+    
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        ai1: data.ai1,
+        ai1Result: "Gespeicherte Notiz",
+        promptTokens: promptTokens,
+        promptsTried: 0
+      }
+    });
+
+    return json( {success: true, ai1Result: "Notiz gespeichert", promptTokens });
+  } 
   if (action == "aiSide1") {
     data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
@@ -63,6 +90,7 @@ export async function POST({ request }) {
 
     return json( {success: true, ai1Result: responseText, promptTokens, completionTokens });
   } 
+  
   if (action == "aiSide2") {
     data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
@@ -343,6 +371,12 @@ export async function POST({ request }) {
       // console.log('userProgress', userProgress);
       return json({ success: false });
     }
+    if (userProgress.ai1 == '\n') {
+      userProgress.ai1 = '';
+    }
+    if (userProgress.ai1 == '<br>') {
+      userProgress.ai1 = '';
+    }
     // console.log('userProgress', userProgress);
     return json({ success: true, userProgress });
 
@@ -360,6 +394,13 @@ export async function POST({ request }) {
     if (!userProgress) {
       // console.log('userProgress', userProgress);
       return json({ success: false });
+    }
+
+    if (userProgress.ai2 == '\n') {
+      userProgress.ai2 = '';
+    }
+    if (userProgress.ai2 == '<br>') {
+      userProgress.ai2 = '';
     }
 
     return json({ success: true, userProgress });
@@ -380,6 +421,14 @@ export async function POST({ request }) {
       // console.log('userProgress', userProgress);
       return json({ success: false });
     }
+
+    if (userProgress.ai1 == '\n') {
+      userProgress.ai1 = '';
+    }
+    if (userProgress.ai1 == '<br>') {
+      userProgress.ai1 = '';
+    }
+
     // console.log('userProgress', userProgress);
     return json({ success: true, userProgress });
 

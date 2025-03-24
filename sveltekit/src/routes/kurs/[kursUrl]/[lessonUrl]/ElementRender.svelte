@@ -27,6 +27,9 @@
     if (element.type === "star") {
       getUserProgressElementStar();
     }
+    if (element.type === "note") {
+      getUserProgressElementAi1();
+    }
   });
 
 
@@ -169,6 +172,53 @@
       ai2running = false; 
     }
   }
+
+
+  async function submitFormNote(event: Event) {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+    ai1Result = "...";
+    ai1completionTokens = 0;
+    ai1promptTokens = 0;
+
+    startTimer(1);
+
+    const data = {
+      ai1: ai1,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'note'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      // console.log('Element updated successfully:', result.ai1Result); // Update success message
+      ai1Result = result.ai1Result; // Convert markdown to HTML
+      ai1promptTokens = result.promptTokens;
+      // console.log("Prompt Tokens:", ai1promptTokens, "Completion Tokens:", ai1completionTokens);
+      // console.log("Result:", result);
+      // console.log('Element updated successfully:', ai1Result); // Update success message
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    stopTimer(1); // Added to stop the timer for ai1
+  }
+
 
 
   async function submitFormAiSide1(event: Event) {
@@ -458,7 +508,7 @@
 
 </script>
 
-<div class="element">
+<div class="{isAdmin ? 'adminView element' : 'element'}">
  
   <!-- {element.title} as {element.type} for User: {userId} -->
 
@@ -467,6 +517,32 @@
   {/if}
 
   
+
+  {#if element.type === "note"}
+
+<section>
+  {@html element.description}
+  
+    
+  <form class="ai note" on:submit|preventDefault={submitFormNote}>
+
+      <label for="ai1">{element.taskA}  {#if ai1Result}
+- {@html ai1Result}
+      {/if}</label>
+            
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für dich"></div>
+
+      <button type="submit" class="submit" disabled={ai1running}>
+        <i class="fas fa-save"></i>
+      </button>
+      
+    </form>
+    
+      
+</section>  
+  {/if}
+
+
   {#if element.type === "aiSide"}
 
 <section>
