@@ -354,7 +354,7 @@ h1, h2 {
 </div> -->
 
 <section class="benefits-section">
-  <h2>Warum diesen Kurs belegen?</h2>
+  <h2>Warum einen Kurs belegen?</h2>
   <div class="benefits-container">
     <div class="benefit-card">
       <div class="benefit-icon">✨</div>
@@ -388,7 +388,7 @@ h1, h2 {
 </section>
 
 <section class="about-section">
-  <h2>Über den Kurs</h2>
+  <h2>Über den Grundlagen-Kurs</h2>
   <div class="about-container">
     <div class="about-card">
       <div class="about-icon">🖋️</div>
