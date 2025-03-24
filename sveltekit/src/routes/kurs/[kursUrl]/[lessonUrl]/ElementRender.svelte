@@ -122,6 +122,7 @@
   export let element: Element;
   export let userId: String;
   export let updateUserStars: Function;
+  export let isAdmin: Integer;
 
   let ai1 = "";
   let ai1Result = "";
@@ -211,6 +212,7 @@
       // console.log('Element updated successfully:', ai1Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
     }
     stopTimer(1); // Added to stop the timer for ai1
   }
@@ -250,6 +252,7 @@
       // console.log('Element updated successfully:', ai2Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai2Result = "<i>" + result.error + "</i>"; 
     }
     stopTimer(2); 
   }
@@ -297,6 +300,7 @@
       // console.log('Element updated successfully:', ai1Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
     }
     stopTimer(1); // Added to stop the timer for ai1
   }
@@ -344,6 +348,7 @@
       // console.log('Element updated successfully:', ai1Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
     }
     stopTimer(1); // Added to stop the timer for ai1
   }
@@ -390,6 +395,8 @@
       // console.log('Element updated successfully:', ai1Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai2Result = "<i>" + result.error + "</i>"; 
+
     }
     stopTimer(2); // Added to stop the timer for ai1
   }
@@ -442,6 +449,7 @@
       // console.log('Element updated successfully:', ai1Result); // Update success message
     } else {
       console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
     }
     stopTimer(1); // Added to stop the timer for ai1
   }
@@ -488,7 +496,7 @@
     
     <form class="ai" on:submit|preventDefault={submitFormAiSide2}>
       <label for="ai2">{@html element.taskB}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div>
       
       <button type="submit" class="submit" disabled={ai2running}>
         <i class="fas fa-paper-plane"></i>
@@ -707,6 +715,10 @@
 
     </form>
   
+  {/if}
+
+  {#if isAdmin}
+    <pre>Element ID: {element.id}</pre>
   {/if}
   
 </div>

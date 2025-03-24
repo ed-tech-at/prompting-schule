@@ -44,6 +44,11 @@ if (browser) {
             console.log("Benutzer erfolgreich angemeldet:", data.user);
               localStorage.setItem("userId", data.user.id);
               localStorage.setItem("userEmail", data.user.email);
+
+              console.log("Benutzer-ID:", data.user);
+              if (data.user.isAdmin) {
+                  localStorage.setItem("isAdmin", data.user.isAdmin);
+              }
               // Redirect to the dashboard or home page after successful login
               window.location.href = "/dashboard"; // Add this line for redirection
           } else {

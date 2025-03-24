@@ -7,6 +7,8 @@
   export let data: {course: Course, lesson: Lesson, quizQuestions: QuizQuestion[]}; 
   let userId = "";
   let userStars = 0;
+  let isAdmin = 0;
+
   let quizResults = null; // Reactive variable to store quiz results
   let quizSubmitted = false; // Reactive variable to track if the quiz is submitted
 
@@ -15,6 +17,9 @@
       console.log("Benutzer-ID:", userId);
       if (!userId) {
           window.location.href = "/login";
+        }
+        if (localStorage.getItem("isAdmin")) {
+          isAdmin = localStorage.getItem("isAdmin");
         }
   }
   
@@ -147,6 +152,11 @@
       {/if}
     {/each}
   {/if}
+
+
+  {#if isAdmin}
+    <pre><strong>Question ID:</strong> {question.id}</pre>
+  {/if}
     
   </section>
 {/each}
@@ -215,6 +225,9 @@
   }
   h1, h2 {
     color: var(--color-link);
+  }
+  h2 {
+    margin-bottom: 0.3em;
   }
   button:hover, .button:hover {
     background-color: var(--color-link-light);

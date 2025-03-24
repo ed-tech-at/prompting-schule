@@ -2,7 +2,7 @@
   import Header from '$lib/Header.svelte';
 </script>
   
-<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Forschungs-Team', href: '/mehr/forschung' }]} />
+<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Datenschutz', href: '/mehr/datenschutz' }]} />
 <main>
   <h1>Datenschutz und Teilnahmebedingungen</h1>
 

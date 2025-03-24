@@ -38,7 +38,7 @@ export async function POST({ request, params }) {
           return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });
         }
         
-        return json({ success: true, user: { id: user.id, email: user.email } });
+        return json({ success: true, user: { id: user.id, email: user.email, isAdmin: user.isAdmin } });
       
 
 

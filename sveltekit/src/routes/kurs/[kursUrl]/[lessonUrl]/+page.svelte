@@ -12,12 +12,17 @@
   export let data: {course: Course, lesson: Lesson, elements: Element[]}; 
 
   let userId = "";
+  let isAdmin = 0;
 
   if (browser) {
       userId = localStorage.getItem("userId");
       console.log("Benutzer-ID:", userId);
       if (!userId) {
           window.location.href = "/login";
+        }
+
+        if (localStorage.getItem("isAdmin")) {
+          isAdmin = localStorage.getItem("isAdmin");
         }
   }
 
@@ -122,12 +127,15 @@ textAreas[0].dispatchEvent(new Event('input'));
 
 
 {#each data.elements as element}
-  <ElementRender course={data.course} lesson={data.lesson} {element} {userId} updateUserStars={updateUserStars} />
+  <ElementRender course={data.course} lesson={data.lesson} {element} {userId} updateUserStars={updateUserStars} {isAdmin} />
 {/each}
 
 <QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
 
-<!-- <pre>Lektion ID {data.lesson.id}</pre> -->
+{#if isAdmin}
+  <!-- <a href="/kurs/{data.course.URL}/{data.lesson.URL}/edit">Lektion bearbeiten</a> -->
+  <pre>Lektion ID {data.lesson.id}</pre>
+{/if}
 
 
 </main>

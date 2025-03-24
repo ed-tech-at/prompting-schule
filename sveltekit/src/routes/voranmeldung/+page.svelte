@@ -54,7 +54,6 @@
 
               localStorage.setItem("userId", data.user.id);
               localStorage.setItem("userEmail", data.user.email);
-
               window.location.href = "/profil";
               // navigate("/en/login");
           } else {

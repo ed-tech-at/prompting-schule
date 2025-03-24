@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import { OPENAI_API_KEY } from '$env/static/private';
 
 import OpenAI from 'openai';
@@ -21,10 +21,14 @@ export async function POST({ request }) {
     data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
-    console.log('data parse aiSide1', data);
+    // console.log('data parse aiSide1', data);
 
-    console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
+    // console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
     // return json({ response: "AI1" });
+
+    if (data.ai1.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
 
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
@@ -32,7 +36,8 @@ export async function POST({ request }) {
             { role: "developer", content: element.devPromptA },
             { role: "user", content: data.ai1 }
         ],
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -67,13 +72,18 @@ export async function POST({ request }) {
     console.log(`Generating AI 2 response for userId ${data.userId} developerPrompt: ${element.devPromptB} input: "${data.ai2}"`); // Updated input reference to data.ai2
     // return json({ response: "AI2" }); // Updated response comment to reflect action "ai2"
 
+    if (data.ai2.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
         messages: [
             { role: "developer", content: element.devPromptB },
             { role: "user", content: data.ai2 }
         ],
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -116,6 +126,10 @@ export async function POST({ request }) {
     console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
     // return json({ response: "AI1" });
 
+    if (data.ai1.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
         messages: [
@@ -123,7 +137,8 @@ export async function POST({ request }) {
             { role: "user", content: data.ai1 },
             { role: "user", content: element.devPromptB }
         ],
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -160,6 +175,9 @@ export async function POST({ request }) {
 
     console.log(`Generating AI 2 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.ai2}"`); // Updated to reflect action "ai2"
     // return json({ response: "AI2" });
+    if (data.ai2.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
 
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
@@ -168,7 +186,8 @@ export async function POST({ request }) {
             { role: "user", content: element.devPromptB },
             { role: "user", content: data.ai2 }
         ],
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -205,6 +224,13 @@ export async function POST({ request }) {
     console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.ai1}"`);
     // return json({ response: "AI1" });
 
+    if (data.ai2.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+    if (data.ai1.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
         messages: [
@@ -212,7 +238,8 @@ export async function POST({ request }) {
             { role: "user", content: data.ai1 },
             { role: "user", content: data.ai2 }
         ],
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -252,6 +279,10 @@ export async function POST({ request }) {
 
     const starPrompt = `Wenn die Aufgabe vom User erfüllt ist, antworte in JSON {"star": true, "feedback": feedbackText} und schreibe ein freundliches Feedback in feedbackText. Ansonsten JSON {"star": false, "feedback": feedbackText}`;
 
+    if (data.ai1.length > 5000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
     const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
         messages: [
@@ -259,7 +290,8 @@ export async function POST({ request }) {
             { role: "user", content: data.ai1 }
         ],
         response_format: { "type": "json_object" },
-        temperature: 0.7, // Adjust for creativity (0.0 = more predictable, 1.0 = highly creative)
+        temperature: 0.7,
+        max_completion_tokens: 1000
     });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
@@ -307,6 +339,10 @@ export async function POST({ request }) {
       where: { userId: data.userId, elementId: data.elementId, ai1Result: { not: null } },
       orderBy: { createdAt: 'desc' }
     });
+    if (!userProgress) {
+      // console.log('userProgress', userProgress);
+      return json({ success: false });
+    }
     // console.log('userProgress', userProgress);
     return json({ success: true, userProgress });
 
@@ -321,6 +357,11 @@ export async function POST({ request }) {
     // console.log(' data.elementId',  data);
     // console.log('userProgress', userProgress);
 
+    if (!userProgress) {
+      // console.log('userProgress', userProgress);
+      return json({ success: false });
+    }
+
     return json({ success: true, userProgress });
 
   }
@@ -334,6 +375,11 @@ export async function POST({ request }) {
       where: { userId: data.userId, elementId: data.elementId, ai1Result: { not: null } },
       orderBy: [{ stars: 'desc' }, { createdAt: 'desc' }]
     });
+
+    if (!userProgress) {
+      // console.log('userProgress', userProgress);
+      return json({ success: false });
+    }
     // console.log('userProgress', userProgress);
     return json({ success: true, userProgress });
 
@@ -348,7 +394,7 @@ export async function POST({ request }) {
       where: { userId: data.userId, lessonId: data.lessonId, stars: { not: 0 } }
     });
 
-    console.log('userProgress', userProgress);
+    // console.log('userProgress', userProgress);
 
     // const totalStars = userProgress.reduce((sum, progress) => sum + (progress._sum.stars || 0), 0);
     
