@@ -576,6 +576,111 @@ export async function POST({ request }) {
   } 
   
 
+  if (action == "directDevUser") {
+    data = JSON.parse(data).data;
+    // const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+        
+    
+    
+    if (data.ai1.length > 10000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+
+    const aiResponseWorse = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        messages: [
+            { role: "developer", content: data.developer },
+            { role: "user", content: data.ai1 }
+        ],
+        // response_format: { "type": "json_object" },
+        temperature: 0.7,
+        max_completion_tokens: 1000
+    });
+
+    let responseText = aiResponseWorse.choices[0]?.message?.content?.trim() || "No response generated.";
+    
+    responseText = responseText.replace(/\n/g, '<br>\n');
+    
+    const promptTokens = aiResponseWorse.usage?.prompt_tokens;
+    const completionTokens = aiResponseWorse.usage?.completion_tokens;
+
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        
+        ai1: data.ai1,
+        ai1Result: responseText,
+        completionTokens: completionTokens,
+        promptTokens: promptTokens,
+        attempts: 2,
+        promptsTried: 1
+      }
+    });
+
+    return json( {success: true, responseText });
+  } 
+
+
+
+
+  if (action == "directDevUserUser") {
+    data = JSON.parse(data).data;
+    // const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+        
+    
+    
+    if (data.ai1.length > 10000) {
+      return json( {success: false, error: "Anfrage zu lange" });
+    }
+
+
+    const aiResponseWorse = await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        messages: [
+            { role: "developer", content: data.developer },
+            { role: "user", content: data.ai1 },
+            { role: "user", content: data.ai2 }
+        ],
+        // response_format: { "type": "json_object" },
+        temperature: 0.7,
+        max_completion_tokens: 1000
+    });
+
+    let responseText = aiResponseWorse.choices[0]?.message?.content?.trim() || "No response generated.";
+    
+    responseText = responseText.replace(/\n/g, '<br>\n');
+    
+    const promptTokens = aiResponseWorse.usage?.prompt_tokens;
+    const completionTokens = aiResponseWorse.usage?.completion_tokens;
+
+
+    const logResult = await prisma.userProgress.create({ 
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        
+        ai1: data.ai1,
+        ai2: data.ai2,
+        ai1Result: responseText,
+        completionTokens: completionTokens,
+        promptTokens: promptTokens,
+        attempts: 2,
+        promptsTried: 1
+      }
+    });
+
+    return json( {success: true, responseText });
+  } 
+
+
+
 
   if (action === 'getUserProgressElementAi1') {
     data = JSON.parse(data);

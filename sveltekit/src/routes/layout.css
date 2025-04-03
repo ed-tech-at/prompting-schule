@@ -688,7 +688,7 @@ form.ai .submit:disabled {
 }
 
 
-form.ai .ai1prompt2, form.ai .ai2prompt2,  form.ai .ai12prompt2, form.ai .laborPrompt2 {
+form.ai .ai1prompt2, form.ai .ai2prompt2,  form.ai .ai12prompt2, form.ai .laborPrompt2, form.ai .prompt2 {
   position: relative;
   margin-top: 0.5em;
   /* color: var(--color-black); */

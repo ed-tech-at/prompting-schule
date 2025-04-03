@@ -127,6 +127,8 @@
   export let updateUserStars: Function;
   export let isAdmin: Integer;
 
+  let developer = "";
+
   let ai1 = "";
   let ai1Result = "";
   let ai1timer = null;
@@ -380,6 +382,105 @@
     ai1 = ai2Result;
   }
 
+  async function submitFormDirectDevUser(event: Event) {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+    ai1Result = "...";
+    ai1completionTokens = 0;
+    ai1promptTokens = 0;
+
+    startTimer(1);
+
+    const data = {
+      developer: developer,
+      ai1: ai1,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'directDevUser'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!ai1running) {
+      return;
+    }
+
+    if (result.success) {
+      
+      ai1Result = result.responseText; 
+      ai1promptTokens = result.promptTokens;
+      ai1completionTokens = result.completionTokens;
+
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    stopTimer(1); // Added to stop the timer for ai1
+  }
+  
+  async function submitFormDirectDevUserUser(event: Event) {
+    // const form = event.target as HTMLFormElement;
+    // const formData = new FormData(form);
+
+    ai1Result = "...";
+    ai1completionTokens = 0;
+    ai1promptTokens = 0;
+
+    startTimer(1);
+
+    const data = {
+      developer: developer,
+      ai1: ai1,
+      ai2: ai2,
+      userId: userId,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    };
+
+    const response = await fetch(`/api/userProgress`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: JSON.stringify({ data }),
+        action: 'directDevUserUser'
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!ai1running) {
+      return;
+    }
+
+    if (result.success) {
+      
+      ai1Result = result.responseText; 
+      ai1promptTokens = result.promptTokens;
+      ai1completionTokens = result.completionTokens;
+
+    } else {
+      console.error('Error updating element:', result.error); // Update error message
+      ai1Result = "<i>" + result.error + "</i>"; 
+    }
+    stopTimer(1); // Added to stop the timer for ai1
+  }
+  
   async function submitFormLabor(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
@@ -891,6 +992,103 @@
     </div>
 
       <div class="ai12prompt2">
+
+      <label for="ai2">{element.taskB}</label>
+
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+    </div>
+
+      
+
+      <button type="submit" class="submit" disabled={ai1running}>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      
+      <div class="result">
+        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <div class="clearboth"></div>
+        <div class="generated">
+          {#if ai1Result}
+            {@html ai1Result}
+          {/if}
+        </div>
+      </div>
+    </form>
+    
+    
+  </div>      
+</section>  
+  {/if}
+  
+  
+  {#if element.type === "directDevUser"}
+
+<section>
+  {@html element.description}
+  <div class="aiDirectDevUser">
+    
+  <form class="ai" on:submit|preventDefault={submitFormDirectDevUser}>
+
+    
+    <div class="aiDevPrompt1">
+      <label for="aiDev">{@html element.taskA}</label>
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+    </div>
+
+      <div class="prompt2">
+
+      <label for="ai1">{element.taskB}</label>
+
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+    </div>
+
+      
+
+      <button type="submit" class="submit" disabled={ai1running}>
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      
+      <div class="result">
+        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <div class="clearboth"></div>
+        <div class="generated">
+          {#if ai1Result}
+            {@html ai1Result}
+          {/if}
+        </div>
+      </div>
+    </form>
+    
+    
+  </div>      
+</section>  
+  {/if}
+
+
+
+
+  {#if element.type === "directDevUserUser"}
+
+<section>
+  {@html element.description}
+  <div class="aiDirectDevUserUser">
+    
+  <form class="ai" on:submit|preventDefault={submitFormDirectDevUserUser}>
+
+    
+    <div class="aiDevPrompt1">
+      <label for="aiDev">{@html element.taskA}</label>
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+    </div>
+
+      <div class="prompt2">
+
+      <label for="ai1">{element.taskB}</label>
+
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+    </div>
+    
+    <div class="prompt2">
 
       <label for="ai2">{element.taskB}</label>
 
