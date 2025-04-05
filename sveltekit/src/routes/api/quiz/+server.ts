@@ -115,6 +115,9 @@ export async function POST({ request, cookies }) {
 
   if (action == "getQuizResults") {
     
+    
+    
+
     if (answerData.userId !== user.id) {
       return json({
         success: false,
@@ -122,7 +125,6 @@ export async function POST({ request, cookies }) {
       });
     }
 
-    answerData = JSON.parse(answerData);
     // console.log('answerData:', answerData);
     const userId = answerData.userId;
     const lessonId = answerData.lessonId;

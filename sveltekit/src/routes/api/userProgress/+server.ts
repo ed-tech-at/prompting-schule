@@ -10,6 +10,7 @@ import { marked } from 'marked';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { streamAiResponse } from '$lib/server/azureAi';
 
 
 const openai = new OpenAI({
@@ -54,66 +55,117 @@ export async function POST({ request, cookies }) {
     });
 
     return json( {success: true, ai1Result: "Notiz gespeichert", promptTokens });
-  } 
+  }
+
+
   if (action == "aiSide1") {
-    // data = JSON.parse(data).data;
+
+    if (data.ai1.length > 5000) {
+      return json({ success: false, error: 'Anfrage zu lang' });
+    }
+
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
-    // console.log('data parse aiSide1', data);
+    return streamAiResponse ({
+      messages: [
+        { role: 'developer', content: element.devPromptA },
+        { role: 'user', content: data.ai1 }
+      ],
+      saveToDb: async (text, usage) => {
+        await prisma.userProgress.create({
+          data: {
+            userId: data.userId,
+            elementId: data.elementId,
+            courseId: data.courseId,
+            lessonId: data.lessonId,
+            ai1: data.ai1,
+            ai1Result: marked.parse(text),
+            completionTokens: usage.completionTokens,
+            promptTokens: usage.promptTokens,
+            promptsTried: 1
+          }
+        });
+      }
+    });
 
-    // console.log(`Generating AI 1 response for userId ${data.userId} developerPrompt: ${element.devPromptA} input: "${data.AI1}"`);
-    // return json({ response: "AI1" });
+  }
+
+
+  if (action == "aiSide1Old") {
+    
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     if (data.ai1.length > 5000) {
       return json( {success: false, error: "Anfrage zu lange" });
     }
 
-
     const azureLLM = new AzureOpenAI({endpoint: AZURE_URL, apiKey: AZURE_KEY, apiVersion: AZURE_API_VERSION });
 
-    const aiResponse = await azureLLM.chat.completions.create({
+    const stream = await azureLLM.chat.completions.create({
         model: AZURE_MODEL,
-        // model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+        
         messages: [
             { role: "developer", content: element.devPromptA },
             { role: "user", content: data.ai1 }
         ],
         temperature: 0.7,
-        max_completion_tokens: 1000
+        max_completion_tokens: 1000,
+        stream: true,
+        stream_options: {"include_usage": true},
     });
-    
-    // const aiResponse = await openai.chat.completions.create({
-    //     model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
-    //     messages: [
-    //         { role: "developer", content: element.devPromptA },
-    //         { role: "user", content: data.ai1 }
-    //     ],
-    //     temperature: 0.7,
-    //     max_completion_tokens: 1000
-    // });
 
-    let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
+    let fullText = "";
 
-    responseText = marked.parse(responseText);
+    const encoder = new TextEncoder();
 
-    const promptTokens = aiResponse.usage?.prompt_tokens;
-    const completionTokens = aiResponse.usage?.completion_tokens;
+    let lastChunk = null;
 
-    const logResult = await prisma.userProgress.create({ 
-      data: {
-        userId: data.userId,
-        elementId: data.elementId,
-        courseId: data.courseId,
-        lessonId: data.lessonId,
-        ai1: data.ai1,
-        ai1Result: responseText,
-        completionTokens: completionTokens,
-        promptTokens: promptTokens,
-        promptsTried: 1
+    const streamResponse = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content;
+          if (delta) {
+            fullText += delta;
+            controller.enqueue(encoder.encode(delta));
+          }
+
+          lastChunk = chunk;
+          console.log('chunk', chunk);
+
+        }
+
+        const promptTokens = lastChunk.usage?.prompt_tokens;
+        const completionTokens = lastChunk.usage?.completion_tokens;
+
+        const footer = JSON.stringify({ __footer: true, promptTokens, completionTokens });
+        controller.enqueue(encoder.encode('\n[__FOOTER__]' + footer));
+
+        controller.close();
+
+        // Speichern in DB (optional marked.parse() hier!)
+        await prisma.userProgress.create({
+          data: {
+            userId: data.userId,
+            elementId: data.elementId,
+            courseId: data.courseId,
+            lessonId: data.lessonId,
+            ai1: data.ai1,
+            ai1Result: marked.parse(fullText),
+            promptTokens: promptTokens,
+            completionTokens: completionTokens,
+            promptsTried: 1
+          }
+        });
       }
     });
 
-    return json( {success: true, ai1Result: responseText, promptTokens, completionTokens });
+    return new Response(streamResponse, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked'
+      }
+    });
+    
   } 
   
   if (action == "aiSide2") {

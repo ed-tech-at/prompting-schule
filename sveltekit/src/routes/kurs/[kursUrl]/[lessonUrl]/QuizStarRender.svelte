@@ -1,7 +1,10 @@
 <script lang="ts">
+  import type { JwtUserPayload } from '$lib/server/jwt';
+    import type { Course, Lesson } from '@prisma/client';
+
   export let course: Course;
   export let lesson: Lesson;
-  export let userId: String;
+  export let user: JwtUserPayload;
   export let userStars: number; // Add userStars prop
   import { onMount } from 'svelte';
     
@@ -15,15 +18,19 @@
 
   async function getQuizResults() {
     try {
+
+      const answerData = {
+        userId: user.id,
+        lessonId: lesson.id
+      };
+
+
       const response = await fetch('/api/quiz' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: "getQuizResults",
-          answerData: JSON.stringify({
-            userId: userId, 
-            lessonId: lesson.id 
-          })
+          answerData
         })
       });
 

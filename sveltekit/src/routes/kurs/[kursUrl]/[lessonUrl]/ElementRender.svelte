@@ -142,6 +142,8 @@
 
   let ai1 = "";
   let ai1Result = "";
+  let ai1RawText = "";
+
   let ai1timer = null;
   let ai1running = false;
   let showStar = false;
@@ -151,6 +153,8 @@
 
   let ai2 = "";
   let ai2Result = "";
+  let ai2RawText = "";
+
   
   let ai2timer = null;
   let ai2running = false; 
@@ -237,7 +241,507 @@
 
 
 
-  async function submitFormAiSide1(event: Event) {
+
+
+  async function streamAiAnswer({
+  action,
+  data,
+  timerKey,
+  onChunk,
+  onFooter,
+  onError
+}: {
+  action: string;
+  data: Record<string, any>;
+  timerKey: number;
+  onChunk: (textChunk: string) => void;
+  onFooter: (tokens: { promptTokens: number; completionTokens: number }) => void;
+  onError?: (msg: string) => void;
+}) {
+  startTimer(timerKey);
+
+  const response = await fetch(`/api/aiAnswer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, data })
+  });
+
+  if (!response.ok || !response.body) {
+    onError?.('<i>Fehler beim Laden der Antwort.</i>');
+    stopTimer(timerKey);
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+
+  let fullText = '';
+  let done = false;
+
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+
+    if (value) {
+      const chunk = decoder.decode(value, { stream: true });
+
+      const footerIndex = chunk.indexOf('[__FOOTER__]');
+      if (footerIndex !== -1) {
+        const text = chunk.substring(0, footerIndex);
+        fullText += text;
+        onChunk(text);
+
+        const footerRaw = chunk.substring(footerIndex + '[__FOOTER__]'.length).trim();
+        try {
+          const footer = JSON.parse(footerRaw);
+          onFooter({
+            promptTokens: footer.promptTokens ?? 0,
+            completionTokens: footer.completionTokens ?? 0
+          });
+        } catch (err) {
+          console.error('Footer JSON error', err);
+        }
+
+        done = true;
+      } else {
+        fullText += chunk;
+        onChunk(chunk);
+      }
+    }
+
+    done = done || streamDone;
+  }
+
+  stopTimer(timerKey);
+}
+
+
+
+
+
+
+
+async function submitFormAiSide1() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'aiSide1',
+    data: {
+      ai1: ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 2,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+async function submitFormAiSide2() {
+  ai2Result = '...';
+  ai2RawText = '';
+  ai2promptTokens = 0;
+  ai2completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'aiSide2',
+    data: {
+      ai2,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 2,
+    onChunk: (chunk) => {
+      ai2RawText += chunk;
+      ai2Result = marked.parse(ai2RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai2promptTokens = promptTokens;
+      ai2completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai2Result = err;
+    }
+  });
+}
+
+
+
+async function submitFormAi1() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'ai1',
+    data: {
+      ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+async function submitFormAi2() {
+  ai2Result = '...';
+  ai2RawText = '';
+  ai2promptTokens = 0;
+  ai2completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'ai2',
+    data: {
+      ai2,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 2,
+    onChunk: (chunk) => {
+      ai2RawText += chunk;
+      ai2Result = marked.parse(ai2RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai2promptTokens = promptTokens;
+      ai2completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai2Result = err;
+    }
+  });
+}
+
+async function submitFormAi12() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'ai12',
+    data: {
+      ai1,
+      ai2,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+async function submitFormDirectDevUser() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'directDevUser',
+    data: {
+      developer,
+      ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+async function submitFormDirectDevUserUser() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'directDevUserUser',
+    data: {
+      developer,
+      ai1,
+      ai2,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+
+async function submitFormLabor() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+  betterPrompt = '';
+  ai2Result = '';
+  ai2RawText = '';
+
+  await streamAiAnswer({
+    action: 'labor1',
+    data: {
+      ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      betterPrompt += chunk;
+    },
+    onFooter: () => {
+      labor2(); // ⏭ automatisch weiter zu labor2
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+async function labor2() {
+  await streamAiAnswer({
+    action: 'labor2',
+    data: {
+      ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 2,
+    onChunk: (chunk) => {
+      ai2RawText += chunk;
+      ai2Result = marked.parse(ai2RawText);
+    },
+    onFooter: () => {
+      labor3(); // ⏭ automatisch weiter zu labor3
+    },
+    onError: (err) => {
+      ai2Result = err;
+    }
+  });
+}
+
+async function labor3() {
+  ai1Result = '...';
+  ai1RawText = '';
+
+  await streamAiAnswer({
+    action: 'labor3',
+    data: {
+      ai1,
+      ai2,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+      ai1Result = marked.parse(ai1RawText);
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+
+async function submitFormStar() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1promptTokens = 0;
+  ai1completionTokens = 0;
+
+  await streamAiAnswer({
+    action: 'star',
+    data: {
+      ai1,
+      userId: user.id,
+      elementId: element.id,
+      courseId: course.id,
+      lessonId: lesson.id
+    },
+    timerKey: 1,
+    onChunk: (chunk) => {
+      ai1RawText += chunk;
+    },
+    onFooter: ({ promptTokens, completionTokens }) => {
+      try {
+        const parsed = JSON.parse(ai1RawText);
+        ai1Result = marked.parse(parsed.feedback || '');
+        showStar = parsed.star;
+      } catch (e) {
+        ai1Result = 'Fehler beim Parsen der Rückgabe';
+        showStar = false;
+      }
+      ai1promptTokens = promptTokens;
+      ai1completionTokens = completionTokens;
+
+      updateUserStars?.(); // falls übergeben
+    },
+    onError: (err) => {
+      ai1Result = err;
+    }
+  });
+}
+
+
+
+
+
+
+
+  async function submitFormAiSide1Temp() {
+  ai1Result = '...';
+  ai1RawText = '';
+  ai1completionTokens = 0;
+  ai1promptTokens = 0;
+  startTimer(1);
+
+  const data = {
+    ai1: ai1,
+    userId: user.id,
+    elementId: element.id,
+    courseId: course.id,
+    lessonId: lesson.id
+  };
+
+  const response = await fetch(`/api/aiAnswer`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      data,
+      action: 'aiSide1'
+    })
+  });
+
+  if (!response.ok || !response.body) {
+    ai1Result = "<i>Fehler beim Laden der Antwort.</i>";
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+
+  let done = false;
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+    if (value) {
+    const chunk = decoder.decode(value, { stream: true });
+
+    // 🔍 Check for footer marker
+    const footerIndex = chunk.indexOf('[__FOOTER__]');
+    if (footerIndex !== -1) {
+      // Text part before footer
+      stopTimer(1);
+
+      ai1RawText += chunk.substring(0, footerIndex);
+
+      // Extract and parse footer
+      const footerStr = chunk.substring(footerIndex + '[__FOOTER__]'.length).trim();
+      try {
+        const footer = JSON.parse(footerStr);
+        ai1promptTokens = footer.promptTokens ?? 0;
+        ai1completionTokens = footer.completionTokens ?? 0;
+      } catch (err) {
+        console.error('Failed to parse footer:', err);
+      }
+
+      done = true;
+    } else {
+      ai1RawText += chunk;
+    }
+
+    // Live parse markdown (optional)
+    ai1Result = marked.parse(ai1RawText);
+  }
+
+  done = done || streamDone;
+}
+
+
+  
+}
+
+  async function submitFormAiSide1Old(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -287,7 +791,7 @@
     stopTimer(1); // Added to stop the timer for ai1
   }
   
-  async function submitFormAiSide2(event: Event) {
+  async function submitFormAiSide2Old(event: Event) {
     ai2Result = "...";
     ai2completionTokens = 0;
     ai2promptTokens = 0;
@@ -333,7 +837,7 @@
 
   
 
-  async function submitFormAi1(event: Event) {
+  async function submitFormAi1Old(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -393,7 +897,7 @@
     ai1 = ai2Result;
   }
 
-  async function submitFormDirectDevUser(event: Event) {
+  async function submitFormDirectDevUserOld(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -442,7 +946,7 @@
     stopTimer(1); // Added to stop the timer for ai1
   }
   
-  async function submitFormDirectDevUserUser(event: Event) {
+  async function submitFormDirectDevUserUserOld(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -492,7 +996,7 @@
     stopTimer(1); // Added to stop the timer for ai1
   }
   
-  async function submitFormLabor(event: Event) {
+  async function submitFormLaborOld(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -553,7 +1057,7 @@
   }
 
 
-  async function labor2() {
+  async function labor2Old() {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -607,7 +1111,7 @@
   }
 
   
-  async function labor3() {
+  async function labor3Old() {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -655,7 +1159,7 @@
     stopTimer(1); // Added to stop the timer for ai1
   }
 
-  async function submitFormAi12(event: Event) {
+  async function submitFormAi12Old(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -708,7 +1212,7 @@
   }
 
 
-  async function submitFormAi2(event: Event) {
+  async function submitFormAi2Old(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 
@@ -764,7 +1268,7 @@
   
 
 
-  async function submitFormStar(event: Event) {
+  async function submitFormStarOld(event: Event) {
     // const form = event.target as HTMLFormElement;
     // const formData = new FormData(form);
 

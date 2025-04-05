@@ -35,15 +35,16 @@
   });
 
   async function updateUserStars() {
+    const requestData = {
+      userId: data.user.id,
+      lessonId: data.lesson.id
+    };
     const response = await fetch('/api/userProgress' , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: "getLessonStars",
-      data: JSON.stringify({
-        userId: data.user.id,
-        lessonId: data.lesson.id
-      })
+      data: requestData
     })
     });
     const result = await response.json();
@@ -125,7 +126,7 @@ textAreas[0].dispatchEvent(new Event('input'));
 
 <h1>Lektion {data.lesson.lessonName}</h1>
 {#if data.course.displayType != "labor"}
-<QuizStarRender course={data.course} lesson={data.lesson} userId={data.user.id} {userStars} />
+<QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if}
 
 
@@ -135,7 +136,7 @@ textAreas[0].dispatchEvent(new Event('input'));
 {/each}
 
 {#if data.course.displayType != "labor"}
-<QuizStarRender course={data.course} lesson={data.lesson} userId={data.user.id} {userStars} />
+<QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if}
 
 {#if data.user.isAdmin > 0}
