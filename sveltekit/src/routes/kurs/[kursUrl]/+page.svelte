@@ -1,33 +1,24 @@
 <script lang="ts">
   import type { Course, Lesson } from '@prisma/client';
 import { onMount } from 'svelte';
-import { browser } from '$app/environment';
     import LessonRender from './LessonRender.svelte';
     import Header from '$lib/Header.svelte';
 
-  export let data: {course: Course, lessons: Lesson[]}; 
+  import type { JwtUserPayload } from '$lib/server/jwt';
 
+  export let data: {course: Course, lessons: Lesson[], user: JwtUserPayload}; 
 
-  let userId = "";
-  
-  if (browser) {
-      userId = localStorage.getItem("userId");
-      console.log("Benutzer-ID:", userId);
-      if (!userId) {
-          window.location.href = "/login";
-        }
-  }
 
 
 </script>
 
-<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }]} />
+<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }]} user={data.user} />
 <main>
 <h1>Kurs: {data.course.name}</h1>
 
 <div class={"displayType-" + data.course.displayType + " lessons"}>
 {#each data.lessons as lesson}
-  <LessonRender course={data.course} {lesson} {userId} />
+  <LessonRender course={data.course} {lesson} userId={data.user.id} />
 {/each}
 </div>
 

@@ -2,23 +2,34 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 import { error, json } from '@sveltejs/kit';
-import { OPENAI_API_KEY } from '$env/static/private';
+import { AZURE_API_VERSION, AZURE_KEY, AZURE_MODEL, AZURE_URL, OPENAI_API_KEY } from '$env/static/private';
 
-import OpenAI from 'openai';
+import OpenAI, { AzureOpenAI } from 'openai';
 
 import { marked } from 'marked';
 
+
+import { requireLogin } from '$lib/server/jwt';
 
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY
 });
 
-export async function POST({ request }) {
+export async function POST({ request, cookies }) {
 	let { data,  action } = await request.json();
 
+  const user = requireLogin(cookies);
+  
+  console.log('data', data);
+  console.log('action', action);
+
+  if (data.userId != user.id) {
+    return json({ success: false, error: "Unauthorized user" });
+  }
+
+  // data = JSON.parse(data).data;
   if (action == "note") {
-    data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     if (data.ai1.length > 50000) {
@@ -45,7 +56,7 @@ export async function POST({ request }) {
     return json( {success: true, ai1Result: "Notiz gespeichert", promptTokens });
   } 
   if (action == "aiSide1") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     // console.log('data parse aiSide1', data);
@@ -57,8 +68,12 @@ export async function POST({ request }) {
       return json( {success: false, error: "Anfrage zu lange" });
     }
 
-    const aiResponse = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+
+    const azureLLM = new AzureOpenAI({endpoint: AZURE_URL, apiKey: AZURE_KEY, apiVersion: AZURE_API_VERSION });
+
+    const aiResponse = await azureLLM.chat.completions.create({
+        model: AZURE_MODEL,
+        // model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
         messages: [
             { role: "developer", content: element.devPromptA },
             { role: "user", content: data.ai1 }
@@ -66,6 +81,16 @@ export async function POST({ request }) {
         temperature: 0.7,
         max_completion_tokens: 1000
     });
+    
+    // const aiResponse = await openai.chat.completions.create({
+    //     model: "gpt-4o-mini", // Use GPT-4o-mini or a different OpenAI model if preferred
+    //     messages: [
+    //         { role: "developer", content: element.devPromptA },
+    //         { role: "user", content: data.ai1 }
+    //     ],
+    //     temperature: 0.7,
+    //     max_completion_tokens: 1000
+    // });
 
     let responseText = aiResponse.choices[0]?.message?.content?.trim() || "No response generated.";
 
@@ -92,7 +117,7 @@ export async function POST({ request }) {
   } 
   
   if (action == "aiSide2") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse aiSide2', data);
@@ -146,7 +171,7 @@ export async function POST({ request }) {
 
 
   if (action == "ai1") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse ai1', data);
@@ -196,7 +221,7 @@ export async function POST({ request }) {
   
 
   if (action == "ai2") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse ai2', data);
@@ -244,7 +269,7 @@ export async function POST({ request }) {
 
   
   if (action == "ai12") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse ai12', data);
@@ -297,7 +322,7 @@ export async function POST({ request }) {
   
 
   if (action == "star") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse star', data);
@@ -359,7 +384,7 @@ export async function POST({ request }) {
   
   
   if (action == "labor1") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse star', data);
@@ -436,7 +461,7 @@ export async function POST({ request }) {
 
 
   if (action == "labor2") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     console.log('data parse star', data);
@@ -524,7 +549,7 @@ export async function POST({ request }) {
 
 
   if (action == "labor3") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
     // console.log('data parse aiSide1', data);
@@ -577,7 +602,7 @@ export async function POST({ request }) {
   
 
   if (action == "directDevUser") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     // const element = await prisma.element.findUnique({ where: { id: data.elementId } });
         
     
@@ -629,7 +654,7 @@ export async function POST({ request }) {
 
 
   if (action == "directDevUserUser") {
-    data = JSON.parse(data).data;
+    // data = JSON.parse(data).data;
     // const element = await prisma.element.findUnique({ where: { id: data.elementId } });
         
     
@@ -683,7 +708,7 @@ export async function POST({ request }) {
 
 
   if (action === 'getUserProgressElementAi1') {
-    data = JSON.parse(data);
+    // data = JSON.parse(data);
     // console.log('getUserProgressElementAi1', data);
     // console.log('elementId', data.userId);
     const userProgress = await prisma.userProgress.findFirst({
@@ -705,7 +730,7 @@ export async function POST({ request }) {
 
   }
   if (action === 'getUserProgressElementAi2') {
-    data = JSON.parse(data);
+    // data = JSON.parse(data);
 
     const userProgress = await prisma.userProgress.findFirst({
       where: { userId: data.userId, elementId: data.elementId, ai2Result: { not: null } },
@@ -732,7 +757,7 @@ export async function POST({ request }) {
 
 
   if (action === 'getUserProgressElementStar') {
-    data = JSON.parse(data);
+    // data = JSON.parse(data);
     // console.log('getUserProgressElementAi1', data);
     // console.log('elementId', data.userId);
     const userProgress = await prisma.userProgress.findFirst({
@@ -758,8 +783,8 @@ export async function POST({ request }) {
   }
 
   if (action === 'getLessonStars') {
-    data = JSON.parse(data);
-    // console.log('getUserProgressElementAi1', data);
+    // data = JSON.parse(data);
+    // console.log('getLessonStars', data);
     // console.log('elementId', data.userId);
     const userProgress = await prisma.userProgress.groupBy({
       by: ['elementId'],

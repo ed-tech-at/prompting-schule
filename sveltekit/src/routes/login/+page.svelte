@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   
   let email = "";
   let password = "";
@@ -7,13 +7,21 @@
   import Header from '$lib/Header.svelte';
   import { browser } from '$app/environment';
 
+  import type { JwtUserPayload } from '$lib/server/jwt';
+
+  export let data: { user: JwtUserPayload }; 
+
+
 let userId = "";
 if (browser) {
-  userId = localStorage.getItem("userId");
-  console.log("Benutzer-ID:", userId);
-  if (userId) {
+    if (data.user) {
       window.location.href = "/profil";
     }
+//   userId = localStorage.getItem("userId");
+//   console.log("Benutzer-ID:", userId);
+//   if (userId) {
+    //   window.location.href = "/profil";
+    // }
 }
 
   async function handleLogin() {
@@ -41,16 +49,18 @@ if (browser) {
           const data = await response.json();
           
           if (response.ok) {
-            console.log("Benutzer erfolgreich angemeldet:", data.user);
-              localStorage.setItem("userId", data.user.id);
-              localStorage.setItem("userEmail", data.user.email);
 
-              console.log("Benutzer-ID:", data.user);
-              if (data.user.isAdmin) {
-                  localStorage.setItem("isAdmin", data.user.isAdmin);
-              }
-              // Redirect to the dashboard or home page after successful login
-              window.location.href = "/dashboard"; // Add this line for redirection
+            window.location.href = "/dashboard";
+            // console.log("Benutzer erfolgreich angemeldet:", data.user);
+            //   localStorage.setItem("userId", data.user.id);
+            //   localStorage.setItem("userEmail", data.user.email);
+
+            //   console.log("Benutzer-ID:", data.user);
+            //   if (data.user.isAdmin) {
+            //       localStorage.setItem("isAdmin", data.user.isAdmin);
+            //   }
+            //   // Redirect to the dashboard or home page after successful login
+            //   window.location.href = "/dashboard"; // Add this line for redirection
           } else {
               error = data.error || "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.";
           }
@@ -192,7 +202,7 @@ if (browser) {
   }
 </style>
 
-<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Login', href: '/login' }]} />
+<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Login', href: '/login' }]} user={null} />
 
 
 <div class="login-section">

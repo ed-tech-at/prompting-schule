@@ -3,8 +3,14 @@ const prisma = new PrismaClient();
 
 import { json } from '@sveltejs/kit';
 
+import { requireLogin } from '$lib/server/jwt';
 
-export async function POST({ request }) {
+
+export async function POST({ request, cookies }) {
+
+  const user = requireLogin(cookies);
+
+
   let { answerData, action } = await request.json();
 
   if (action == "submitQuiz") {
@@ -72,6 +78,13 @@ export async function POST({ request }) {
     const maxPoints = quizQuestions.length;
     const percent = Math.ceil((totalPoints / maxPoints) * 100);
 
+    if (answerData.userId !== user.id) {
+      return json({
+        success: false,
+        message: "User ID passen nicht zusammen."
+      });
+    }
+
     const log = await prisma.userQuizAttempt.create({
       data: {
         user: {
@@ -102,6 +115,13 @@ export async function POST({ request }) {
 
   if (action == "getQuizResults") {
     
+    if (answerData.userId !== user.id) {
+      return json({
+        success: false,
+        message: "User ID passen nicht zusammen."
+      });
+    }
+
     answerData = JSON.parse(answerData);
     // console.log('answerData:', answerData);
     const userId = answerData.userId;

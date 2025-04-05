@@ -1,20 +1,14 @@
 import { json } from '@sveltejs/kit';
 import { PrismaClient } from '@prisma/client';
-
-
-
-
 const prisma = new PrismaClient();
 
-
 import { comparePassword, hashPassword } from '$lib/server/pw.js';
+import { createJWT } from '$lib/server/jwt.js';
 
 
 export async function POST({ request, params }) {
   try {
-      console.log('params', params);
       let { form, action } = await request.json();
-      console.log('action', action);
       
       if (typeof form === 'string') {
           form = JSON.parse(form);
@@ -37,8 +31,27 @@ export async function POST({ request, params }) {
         if (!passwordMatch) {
           return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });
         }
+
+        const token = createJWT({
+          id: user.id,
+          email: user.email,
+          isAdmin: user.isAdmin
+        });
+
+        return new Response(
+          JSON.stringify({ success: true }),
+          // JSON.stringify({ success: true, user: { email: user.email, isAdmin: user.isAdmin } }),
+          {
+            status: 200,
+            headers: {
+              'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`, // 7 Tage
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
         
-        return json({ success: true, user: { id: user.id, email: user.email, isAdmin: user.isAdmin } });
+        // return json({ success: true, user: { id: user.id, email: user.email, isAdmin: user.isAdmin } });
       
 
 

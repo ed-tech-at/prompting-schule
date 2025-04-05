@@ -29,11 +29,13 @@
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
+		"@azure/openai": "^2.0.0",
 		"@prisma/client": "^6.5.0",
 		"bcrypt": "^5.1.1",
 		"dotenv": "^16.4.7",
+		"jsonwebtoken": "^9.0.2",
 		"marked": "^15.0.7",
-		"openai": "^4.89.0",
+		"openai": "^4.91.1",
 		"uuid": "^11.1.0"
 	}
 }

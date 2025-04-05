@@ -1,38 +1,22 @@
 <script lang="ts">
-    import type { Course, Lesson } from '@prisma/client';
-  import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
-  // import CourseRender from './CourseRender.svelte';
       
-      import Header from '$lib/Header.svelte';
+  import Header from '$lib/Header.svelte';  
   
-    // export let data: {courses: Course[]}; 
+  import type { JwtUserPayload } from '$lib/server/jwt';
   
-  
-    let userId = "";
-    let email = "";
+  export let data: { user: JwtUserPayload };
     
-    if (browser) {
-        userId = localStorage.getItem("userId");
-        email = localStorage.getItem("userEmail");
-        console.log("Benutzer-ID:", userId);
-        if (!userId) {
-          window.location.href = "/login";
-        }
-    }
+</script>
   
-  
-  </script>
-  
-  <Header navItems={[{ name: 'Dashboard', href: '/dashboard' }, { name: 'Profil', href: '/profil' }]} />
+<Header navItems={[{ name: 'Dashboard', href: '/dashboard' }, { name: 'Profil', href: '/profil' }]} user={data.user} />
   <main>
     <h1>Profil</h1>
-    <p>E-Mail: {email}</p>
+    <p>E-Mail: {data.user.email}</p>
 
     <a href="/dashboard" style="display: inline-block; color: var(--color-black); background: var(--color-secondary); padding: 1em 2em; border-radius: 15px; margin-bottom: 3em;">Zum Kurse - Dashboard</a>
     <br>
 
-    <a href="/logout">Logout</a>
+    <a href="/logout" data-sveltekit-reload rel="external">Logout</a>
 
     <!-- <form action="/api/user" method="POST">
       <label for="old">Altes Passwort:</label>

@@ -1,10 +1,12 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
-  import Footer from '$lib/Footer.svelte';
+  // import Footer from '$lib/Footer.svelte';
   import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
+  // import { browser } from '$app/environment';
   import type { Course, Lesson, QuizQuestion } from '@prisma/client';
-  export let data: {course: Course, lesson: Lesson, quizQuestions: QuizQuestion[]}; 
+  import type { JwtUserPayload } from '$lib/server/jwt';
+
+  export let data: {course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], user: JwtUserPayload}; 
   let userId = "";
   let userStars = 0;
   let isAdmin = 0;
@@ -12,16 +14,16 @@
   let quizResults = null; // Reactive variable to store quiz results
   let quizSubmitted = false; // Reactive variable to track if the quiz is submitted
 
-  if (browser) {
-      userId = localStorage.getItem("userId");
-      console.log("Benutzer-ID:", userId);
-      if (!userId) {
-          window.location.href = "/login";
-        }
-        if (localStorage.getItem("isAdmin")) {
-          isAdmin = localStorage.getItem("isAdmin");
-        }
-  }
+  // if (browser) {
+  //     userId = localStorage.getItem("userId");
+  //     console.log("Benutzer-ID:", userId);
+  //     if (!userId) {
+  //         window.location.href = "/login";
+  //       }
+  //       if (localStorage.getItem("isAdmin")) {
+  //         isAdmin = localStorage.getItem("isAdmin");
+  //       }
+  // }
   
   onMount(() => {
     // updateUserStars();
@@ -72,7 +74,7 @@
   const answerData = {
       courseId: data.course.id,
       lessonId: data.lesson.id,
-      userId: userId,
+      userId: data.user.id,
       answers: JSON.stringify(answers)
     };
 
@@ -95,7 +97,7 @@
       quizResults = result; // Store the results in the reactive variable
       quizSubmitted = true; // Mark the quiz as submitted
     } else {
-      console.error("Fehler beim Abschließen von AI1");
+      console.error("Fehler beim Abschließen von quiz");
     }
 
 
@@ -154,7 +156,7 @@
   {/if}
 
 
-  {#if isAdmin}
+  {#if data.user.isAdmin > 0}
     <pre><strong>Question ID:</strong> {question.id}</pre>
   {/if}
     

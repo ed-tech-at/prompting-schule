@@ -5,24 +5,27 @@
   import CourseRender from './CourseRender.svelte';
       
       import Header from '$lib/Header.svelte';
+    import type { JwtUserPayload } from '$lib/server/jwt';
   
-    export let data: {courses: Course[]}; 
+    export let data: {courses: Course[], user: JwtUserPayload}; 
   
   
     let userId = "";
+    // export let user: JwtUserPayload; 
     
     if (browser) {
-        userId = localStorage.getItem("userId");
+        console.log ("user", data.user);
+        userId = data.user.id;
         console.log("Benutzer-ID:", userId);
-        if (!userId) {
-          window.location.href = "/login";
-        }
+        // if (!userId) {
+          // window.location.href = "/login";
+        // }
     }
   
   
   </script>
   
-  <Header navItems={[{ name: 'Dashboard', href: '/dashboard' }]} />
+  <Header navItems={[{ name: 'Dashboard', href: '/dashboard' }]} user={data.user} />
   <main>
   <h1>Kurse - Dashboard</h1>
   

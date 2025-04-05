@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type { JwtUserPayload } from '$lib/server/jwt';
+
 
   import type { Element, Course, Lesson, User } from '@prisma/client';
 
@@ -35,15 +37,18 @@
 
   async function getUserProgressElementAi1() {
     try {
+
+      const data = {
+        userId: user.id,
+        elementId: element.id
+      };
+
       const response = await fetch('/api/userProgress' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "getUserProgressElementAi1",
-          data: JSON.stringify({
-            userId: userId,
-            elementId: element.id
-          })
+          data,
+          action: "getUserProgressElementAi1"
         })
       });
 
@@ -62,15 +67,18 @@
 
   async function getUserProgressElementStar() {
     try {
+
+      const data = {
+        userId: user.id,
+        elementId: element.id
+      };
+
       const response = await fetch('/api/userProgress' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: "getUserProgressElementStar",
-          data: JSON.stringify({
-            userId: userId,
-            elementId: element.id
-          })
+          data
         })
       });
 
@@ -94,15 +102,18 @@
 
   async function getUserProgressElementAi2() {
     try {
+
+      const data = {
+        userId: user.id,
+        elementId: element.id
+      };
+      
       const response = await fetch('/api/userProgress' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: "getUserProgressElementAi2",
-          data: JSON.stringify({
-            userId: userId,
-            elementId: element.id
-          })
+          data
         })
       });
 
@@ -123,9 +134,9 @@
   export let course: Course ;
   export let lesson: Lesson ;
   export let element: Element;
-  export let userId: String;
+  export let user: JwtUserPayload;
   export let updateUserStars: Function;
-  export let isAdmin: Integer;
+  // export let isAdmin: Integer;
 
   let developer = "";
 
@@ -191,7 +202,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -203,7 +214,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'note'
       }),
     });
@@ -238,7 +249,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -250,7 +261,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'aiSide1'
       }),
     });
@@ -285,7 +296,7 @@
 
     const data = {
       ai2: ai2,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -297,7 +308,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'aiSide2'
       }),
     });
@@ -334,7 +345,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -346,7 +357,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'ai1'
       }),
     });
@@ -395,7 +406,7 @@
     const data = {
       developer: developer,
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -407,7 +418,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'directDevUser'
       }),
     });
@@ -445,7 +456,7 @@
       developer: developer,
       ai1: ai1,
       ai2: ai2,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -457,7 +468,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'directDevUserUser'
       }),
     });
@@ -497,7 +508,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -509,7 +520,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'labor1'
       }),
     });
@@ -550,7 +561,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -562,7 +573,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'labor2'
       }),
     });
@@ -605,7 +616,7 @@
     const data = {
       ai1: ai1,
       ai2: ai2,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -617,7 +628,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'labor3'
       }),
     });
@@ -657,7 +668,7 @@
     const data = {
       ai1: ai1,
       ai2: ai2,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -669,7 +680,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'ai12'
       }),
     });
@@ -709,7 +720,7 @@
 
     const data = {
       ai2: ai2,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -721,7 +732,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'ai2'
       }),
     });
@@ -765,7 +776,7 @@
 
     const data = {
       ai1: ai1,
-      userId: userId,
+      userId: user.id,
       elementId: element.id,
       courseId: course.id,
       lessonId: lesson.id
@@ -777,7 +788,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        data: JSON.stringify({ data }),
+        data,
         action: 'star'
       }),
     });
@@ -808,7 +819,7 @@
 
 </script>
 
-<div class="{isAdmin ? 'adminView element' : 'element'}">
+<div class="{user.isAdmin > 0 ? 'adminView element' : 'element'}">
  
   <!-- {element.title} as {element.type} for User: {userId} -->
 
@@ -1237,7 +1248,7 @@
 
 
 
-  {#if isAdmin}
+  {#if user.isAdmin > 0}
     <pre>Element ID: {element.id}</pre>
   {/if}
   

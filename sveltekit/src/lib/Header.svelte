@@ -1,12 +1,15 @@
 <script lang="ts">
+  
+  import type { JwtUserPayload } from './server/jwt';
+  // import { browser } from '$app/environment';
+  
   export let navItems: { name: string; href: string }[] = [];
-  export let userEmail = "";
+  export let user: JwtUserPayload | null;
 
-  import { browser } from '$app/environment';
-
-  if (browser) {
-    userEmail = localStorage.getItem("userEmail");
-  }
+  // let userEmail = "";
+  // if (browser) {
+  //   userEmail = user?.email;
+  // }
 </script>
 
 <header>
@@ -26,8 +29,8 @@
   </nav>
 
   <div class="login">
-  {#if userEmail}
-  <a href='/profil'>{userEmail}</a>
+  {#if user?.email}
+  <a href='/profil'>{user?.email}</a>
   {:else}
     <a href="/login">🔑 Anmelden</a>
   {/if}

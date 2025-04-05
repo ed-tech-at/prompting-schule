@@ -8,23 +8,24 @@
   import QuizStarRender from './QuizStarRender.svelte';
   import { on } from 'svelte/events';
   
+  import type { JwtUserPayload } from '$lib/server/jwt';
 
-  export let data: {course: Course, lesson: Lesson, elements: Element[]}; 
+  export let data: {course: Course, lesson: Lesson, elements: Element[], user: JwtUserPayload}; 
 
-  let userId = "";
-  let isAdmin = 0;
+  // let userId = "";
+  // let isAdmin = 0;
 
-  if (browser) {
-      userId = localStorage.getItem("userId");
-      console.log("Benutzer-ID:", userId);
-      if (!userId) {
-          window.location.href = "/login";
-        }
+  // if (browser) {
+  //     userId = localStorage.getItem("userId");
+  //     console.log("Benutzer-ID:", userId);
+  //     if (!userId) {
+  //         window.location.href = "/login";
+  //       }
 
-        if (localStorage.getItem("isAdmin")) {
-          isAdmin = localStorage.getItem("isAdmin");
-        }
-  }
+  //       if (localStorage.getItem("isAdmin")) {
+  //         isAdmin = localStorage.getItem("isAdmin");
+  //       }
+  // }
 
 
   let userStars = 0;
@@ -40,7 +41,7 @@
     body: JSON.stringify({
       action: "getLessonStars",
       data: JSON.stringify({
-        userId: userId,
+        userId: data.user.id,
         lessonId: data.lesson.id
       })
     })
@@ -119,25 +120,25 @@ textAreas[0].dispatchEvent(new Event('input'));
   }
 
 </script>
-<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }]} />
+<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }]} user={data.user} />
 <main>
 
 <h1>Lektion {data.lesson.lessonName}</h1>
 {#if data.course.displayType != "labor"}
-<QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
+<QuizStarRender course={data.course} lesson={data.lesson} userId={data.user.id} {userStars} />
 {/if}
 
 
 
 {#each data.elements as element}
-  <ElementRender course={data.course} lesson={data.lesson} {element} {userId} updateUserStars={updateUserStars} {isAdmin} />
+  <ElementRender course={data.course} lesson={data.lesson} {element} user={data.user} updateUserStars={updateUserStars} />
 {/each}
 
 {#if data.course.displayType != "labor"}
-<QuizStarRender course={data.course} lesson={data.lesson} {userId} {userStars} />
+<QuizStarRender course={data.course} lesson={data.lesson} userId={data.user.id} {userStars} />
 {/if}
 
-{#if isAdmin}
+{#if data.user.isAdmin > 0}
   <!-- <a href="/kurs/{data.course.URL}/{data.lesson.URL}/edit">Lektion bearbeiten</a> -->
   <pre>Lektion ID {data.lesson.id}</pre>
 {/if}

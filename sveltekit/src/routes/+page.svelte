@@ -1,8 +1,10 @@
-<script>
-    import Header from "$lib/Header.svelte";
+<script lang="ts">
+  import Header from "$lib/Header.svelte";
+  import type { JwtUserPayload } from '$lib/server/jwt';
 
+  export let data: { user: JwtUserPayload }; 
 </script>
-<Header />
+<Header user={data.user}  />
 
 
 <style>

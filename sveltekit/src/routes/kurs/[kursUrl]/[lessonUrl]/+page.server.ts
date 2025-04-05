@@ -2,7 +2,13 @@ import { PrismaClient } from '@prisma/client';
 import type { PageServerLoad, Actions } from './$types';
 const prisma = new PrismaClient();
 
-export const load: PageServerLoad = async ({ params }) => {
+import { requireLogin } from '$lib/server/jwt';
+
+
+export const load: PageServerLoad = async ({ params, cookies }) => {
+
+  const user = requireLogin(cookies);
+
   const courseUrl = params.kursUrl as String;
   const lessonUrl = params.lessonUrl as String;
 
@@ -22,5 +28,6 @@ export const load: PageServerLoad = async ({ params }) => {
     course,
     lesson,
     elements,
+    user
   };
 };

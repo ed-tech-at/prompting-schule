@@ -19,15 +19,18 @@
     });
 
     async function updateUserStars() {
+
+      const data = {
+        userId: userId,
+        lessonId: lesson.id
+      };
+
     const response = await fetch('/api/userProgress' , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: "getLessonStars",
-      data: JSON.stringify({
-        userId: userId,
-        lessonId: lesson.id
-      })
+      data
     })
     });
     const result = await response.json();
