@@ -2,6 +2,9 @@ import { marked } from 'marked';
 import { AzureOpenAI } from 'openai';
 import { AZURE_API_VERSION, AZURE_KEY, AZURE_URL, AZURE_MODEL } from '$env/static/private';
 
+import { json } from '@sveltejs/kit';
+import { stringify } from 'openai/internal/qs/stringify.mjs';
+
 type azureAiParams = {
   messages: { role: 'developer' | 'user'; content: string }[];
   maxTokens?: number;
@@ -15,14 +18,56 @@ export async function streamAiResponse({ messages, saveToDb, maxTokens = 1000 }:
     apiVersion: AZURE_API_VERSION
   });
 
-  const stream = await azureLLM.chat.completions.create({
-    model: AZURE_MODEL,
-    messages,
-    temperature: 0.7,
-    max_completion_tokens: maxTokens,
-    stream: true,
-    stream_options: { include_usage: true }
-  });
+  let stream;
+
+  try {
+    stream = await azureLLM.chat.completions.create({
+      model: AZURE_MODEL,
+      messages,
+      temperature: 0.7,
+      max_completion_tokens: maxTokens,
+      stream: true,
+      stream_options: { include_usage: true }
+    });
+  } catch (err: any) {
+    if (err.code === 'content_filter') {
+      const errorMessage =
+        // json({error: '⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.'});
+         '⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.';
+
+      // Optional: log the actual filtered message for moderation/debugging
+      // const userInput = messages.map((m) => `[${m.role}] ${m.content}`).join('\n');
+
+      
+      const text = "[Gefiltert]" + stringify(messages);
+      // console.log ("error for db:" + text);
+      // console.log ("type error for db:" + typeof(text));
+      const usage = {
+        promptTokens: 0,
+        completionTokens: 0
+      };
+
+      await saveToDb(text, usage);
+
+      const response = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(errorMessage));
+          controller.close();
+        }
+      });
+
+      return new Response(response, {
+        status: 451,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8'
+        }
+      });
+    }
+
+    // Other unexpected errors
+    // console.error('Azure OpenAI error:', err);
+    throw err;
+  }
 
   let fullText = '';
   let lastChunk = null;

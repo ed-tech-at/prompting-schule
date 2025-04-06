@@ -267,7 +267,13 @@
   });
 
   if (!response.ok || !response.body) {
-    onError?.('<i>Fehler beim Laden der Antwort.</i>');
+    
+    if (response.status == 451) {
+      onError?.("<i>⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.</i>");
+    } else {
+      onError?.('<i>Fehler beim Laden der Antwort.</i>');
+    }
+
     stopTimer(timerKey);
     return;
   }
@@ -657,6 +663,7 @@ async function submitFormStar() {
     },
     onError: (err) => {
       ai1Result = err;
+      console.error('Error in submitFormStar:', err);
     }
   });
 }
@@ -695,6 +702,11 @@ async function submitFormStar() {
 
   if (!response.ok || !response.body) {
     ai1Result = "<i>Fehler beim Laden der Antwort.</i>";
+    if (response.body.startsWith("⚠️")) {
+      ai1Result = "<i>" + response.body.substring(2) + "</i>";
+    } else {
+      ai1Result = "<i>Fehler beim Laden der Antwort.</i>";
+    }
     return;
   }
 
