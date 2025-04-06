@@ -35,20 +35,24 @@ if (browser) {
       }
 
       try {
+            const formData = {
+                email,
+                password,
+            };
           const response = await fetch("/login", {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                  form: JSON.stringify({ email, password }),
+                  formData,
                   action: 'login' 
               }),
           });
 
           const data = await response.json();
           
-          if (response.ok) {
+          if (response.ok && data.success) {
 
             window.location.href = "/dashboard";
             // console.log("Benutzer erfolgreich angemeldet:", data.user);

@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 const prisma = new PrismaClient();
 
 
-export async function newUserUUID() {
-  let uuid;
+export async function newUserUUID() : Promise<string> {
+  let uuid = "";
   let exists = true;
 
   while (exists) {

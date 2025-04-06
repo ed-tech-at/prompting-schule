@@ -9,28 +9,30 @@ const prisma = new PrismaClient();
 import type { User } from '@prisma/client';
 
 import { newUserUUID } from '$lib/server/dbUtils.js';
-import { hashPassword } from '$lib/server/pw.js';
+import { hashPassword, register } from '$lib/server/pw.js';
 import { comparePassword } from '$lib/server/pw.js';
 
 
 export async function POST({ request, params }) {
   try {
       console.log('params', params);
-      let { form, action } = await request.json();
+      let { formData, action } = await request.json();
       console.log('action', action);
       
-      if (typeof form === 'string') {
-          form = JSON.parse(form);
-      }
+      // if (typeof form === 'string') {
+          // form = JSON.parse(form);
+      // }
 
-      console.log('form', form);
+      // console.log('form', form);
 
       if (action == "create") {
 
-        const user = await prisma.user.findUnique({ where: { email: form.email } });
+        return register(formData.email, formData.password);
+
+        const user = await prisma.user.findUnique({ where: { email: formData.email } });
 
         if (user) {
-            const passwordMatch = await comparePassword(form.password, user.password);
+            const passwordMatch = await comparePassword(formData.password, user.password);
              
             if (!passwordMatch) {
                 return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });

@@ -5,6 +5,8 @@
   import type { JwtUserPayload } from '$lib/server/jwt';
   
   export let data: { user: JwtUserPayload };
+
+  let showPwChangeForm = false;
     
 </script>
   
@@ -16,15 +18,31 @@
     <a href="/dashboard" style="display: inline-block; color: var(--color-black); background: var(--color-secondary); padding: 1em 2em; border-radius: 15px; margin-bottom: 3em;">Zum Kurse - Dashboard</a>
     <br>
 
-    <a href="/logout" data-sveltekit-reload rel="external">Logout</a>
+    <div style="margin-bottom: 2em;">
 
-    <!-- <form action="/api/user" method="POST">
-      <label for="old">Altes Passwort:</label>
-      <input type="password"  name="old">
-      <label for="password">Neues Passwort:</label>
-      <input type="password" id="password" name="new">
-      <button type="submit">Passwort ändern</button>
-      </form>  -->
+    <a href="/logout" class="button large complementary" data-sveltekit-reload rel="external">Logout</a>
+
+    </div>
+
+    <div style="margin-bottom: 2em;">
+<!-- 
+    <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}>
+      {showPwChangeForm ? 'Passwort ändern ausblenden' : 'Passwort ändern anzeigen'}
+    </button>
+
+    {#if showPwChangeForm}
+      <form action="/api/user" method="POST">
+        <label for="old">Altes Passwort:</label>
+        <input type="password" name="old">
+        <label for="password">Neues Passwort:</label>
+        <input type="password" id="password" name="new">
+        <button type="submit">Passwort ändern</button>
+      </form>
+    {/if} -->
+
+  </div>
+    
+
   
   <style>
     h1 {

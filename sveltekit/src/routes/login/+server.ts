@@ -2,21 +2,24 @@ import { json } from '@sveltejs/kit';
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-import { comparePassword, hashPassword } from '$lib/server/pw.js';
+import { comparePassword, comparePasswordV2, login } from '$lib/server/pw.js';
 import { createJWT } from '$lib/server/jwt.js';
 
 
 export async function POST({ request, params }) {
   try {
-      let { form, action } = await request.json();
+      let { formData, action } = await request.json();
       
-      if (typeof form === 'string') {
-          form = JSON.parse(form);
-      }
+      // if (typeof form === 'string') {
+      //     form = JSON.parse(form);
+      // }
 
-      console.log('form', form);
+      // console.log('form', form);
 
       if (action == "login") {
+
+        return login(formData.email, formData.password);
+
       
         const user = await prisma.user.findUnique({ where: { email: form.email } });
         
@@ -26,10 +29,23 @@ export async function POST({ request, params }) {
 
         console.log('chekcing user', user);
 
-        const passwordMatch = await comparePassword(form.password, user.password);
-        console.log('passwordMatch', passwordMatch);
-        if (!passwordMatch) {
-          return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });
+        if (user.cryptVersion == 1) {
+
+          const passwordMatch = await comparePassword(form.password, user.password);
+          // console.log('passwordMatch', passwordMatch);
+          if (!passwordMatch) {
+            return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });
+          }
+        }
+
+        if (user.cryptVersion == 2) {
+
+
+          const passwordMatch = await comparePasswordV2(form.password, user.password, user.id);
+          // console.log('passwordMatch', passwordMatch);
+          if (!passwordMatch) {
+            return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." }, { status: 401 });
+          }
         }
 
         const token = createJWT({

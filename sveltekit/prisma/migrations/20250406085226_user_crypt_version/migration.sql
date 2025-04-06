@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "cryptVersion" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "isDeleted" INTEGER NOT NULL DEFAULT 0;

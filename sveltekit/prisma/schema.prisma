@@ -22,6 +22,10 @@ model User {
 
   isAdmin  Int @default(0)
 
+  cryptVersion Int @default(1)
+
+  isDeleted Int @default(0)
+
   createdAt       DateTime? @default(now())
 
 

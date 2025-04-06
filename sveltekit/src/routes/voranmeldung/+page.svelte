@@ -36,24 +36,33 @@
 
 
       try {
+
+            const formData = {
+                email,
+                password,
+            };
+
           const response = await fetch(`/voranmeldung/`, { 
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                  form: JSON.stringify({ email, password }),
+                  formData,
                   action: 'create' 
               }),
           });
 
           const data = await response.json();
-          if (response.ok) {
+          if (response.ok && data.success) {
+              // Registration successful
+              // You can redirect the user or show a success message here
+              // For example:
             //   console.log("User registered successfully:", data.user);
-              console.log("User ID:", data);
+            //   console.log("User ID:", data);
 
-              localStorage.setItem("userId", data.user.id);
-              localStorage.setItem("userEmail", data.user.email);
+            //   localStorage.setItem("userId", data.user.id);
+            //   localStorage.setItem("userEmail", data.user.email);
               window.location.href = "/profil";
               // navigate("/en/login");
           } else {
