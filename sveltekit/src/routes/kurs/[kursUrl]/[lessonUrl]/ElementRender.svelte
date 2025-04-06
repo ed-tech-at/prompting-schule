@@ -341,7 +341,7 @@ async function submitFormAiSide1() {
       courseId: course.id,
       lessonId: lesson.id
     },
-    timerKey: 2,
+    timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
       ai1Result = marked.parse(ai1RawText);
