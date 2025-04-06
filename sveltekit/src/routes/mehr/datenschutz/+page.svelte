@@ -20,6 +20,26 @@
   
   <p>Die eingegebenen Daten werden für wissenschaftliche Zwecke ausgewertet. Die Ergebnisse helfen uns, die Struktur von Lehr- und Lernangeboten besser zu verstehen. Dabei werden die Daten nicht mit der eingegebenen E-Mail-Adresse verknüpft – nur die jeweilige Person kann ihre eigenen Inhalte einsehen. Für wissenschaftliche Zwecke erfolgt keinerlei Verknüpfung von Inhalten mit E-Mail-Adressen. Es ist nicht gestattet, personenbezogene Daten oder urheberrechtlich geschütztes Material in den Lektionen einzugeben. Beim Herunterladen eines Zertifikats oder Open Badges wird die E-Mail-Adresse darauf vermerkt. Nur über dieses Zertifikat oder die Datei kann nachvollzogen werden, welche Lektionen abgeschlossen wurden, jedoch nicht, welche Inhalte eingegeben wurden. Der Serverbetreiber (TU Graz) behält sich das Recht vor, bei Verstößen gegen geltende Regeln – insbesondere bei schädlichen Inhalten wie Hassrede oder Diskriminierung – die betroffenen Personen zu kontaktieren.</p>
 
+  <p><strong>Verwendung von Künstlicher Intelligenz (KI) in interaktiven Lernobjekten</strong></p>
+
+<p>Unsere Plattform nutzt moderne KI-Technologien zur Unterstützung interaktiver Lernobjekte. Diese kommen insbesondere bei der dynamischen Generierung von Inhalten, bei der Analyse von Eingaben sowie zur Verbesserung der Benutzererfahrung zum Einsatz.</p>
+
+<p>Die zugrunde liegende KI-Infrastruktur wird durch <strong>Microsoft Azure OpenAI</strong> bereitgestellt, einem Cloud-Dienst der Microsoft Corporation, One Microsoft Way, Redmond, WA 98052-6399, USA. Microsoft verarbeitet im Rahmen dieses Dienstes bestimmte Nutzungs- und Kommunikationsdaten. Dies umfasst u. a.:</p>
+
+<ul>
+  <li>Interaktionsdaten (z. B. Eingaben in Lernobjekten)</li>
+  <li>Nutzungsdaten (z. B. Zugriffszeiten, Navigationsverhalten)</li>
+  <li>Systembezogene Metadaten (z. B. IP-Adresse, verwendeter Browser)</li>
+</ul>
+
+<p>Die Verarbeitung erfolgt ausschließlich zur Bereitstellung und Wartung der Dienste. Die eingesetzten Modelle lernen nicht aus den individuellen Inhalten der Nutzer:innen. Inhalte werden nicht dauerhaft gespeichert oder für Trainingszwecke verwendet.</p>
+
+<p><strong>Rechenzentrumsstandort</strong></p>
+
+<p>Die Speicherung und Verarbeitung der Daten erfolgt in Rechenzentren innerhalb der Europäischen Union. Microsoft sichert die Einhaltung der geltenden Datenschutzbestimmungen durch den Einsatz von <a href="https://learn.microsoft.com/de-de/compliance/regulatory/offering-eu-model-clauses" target="_blank" rel="noopener noreferrer">Standardvertragsklauseln</a> und anderen geeigneten Schutzmaßnahmen. Weitere Informationen unter <a href="https://learn.microsoft.com/de-de/legal/cognitive-services/openai/data-privacy" target="_blank" rel="noopener noreferrer">Data, privacy, and security for Azure OpenAI Service</a> und in der <a href="https://privacy.microsoft.com/de-de/privacystatement" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Microsoft</a>.</p>
+
+
+
   
   <li>Interne Dienste und interne Datenermittlungen</li>
   

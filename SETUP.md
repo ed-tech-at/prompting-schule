@@ -87,4 +87,7 @@ SELECT * FROM "Lesson_id_seq";
 ALTER SEQUENCE "Lesson_id_seq" RESTART WITH 22;
 
 
+## DB Update
 
+docker-compose pull
+docker-compose up -d
