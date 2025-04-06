@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
       import Header from '$lib/Header.svelte';
 
   let email = "";
@@ -6,16 +6,17 @@
   let loading = false;
   let error = "";
   let agree = false; 
+  
+  import type { JwtUserPayload } from '$lib/server/jwt';
+  export let data: { user: JwtUserPayload }; 
+
   import { browser } from '$app/environment';
 
-    let userId = "";
   if (browser) {
-      userId = localStorage.getItem("userId");
-      console.log("Benutzer-ID:", userId);
-      if (userId) {
-          window.location.href = "/profil";
-        }
-  }
+    if (data.user) {
+      window.location.href = "/profil";
+    }
+    }
 
   async function handleSubmit() {
       error = "";
