@@ -301,26 +301,15 @@ if (action === 'star') {
   const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
   const starPrompt = `
-Wenn die Aufgabe vom User erfüllt ist, antworte **ausschließlich** im folgenden JSON-Format:
-
-{
-  "star": true,
-  "feedback": "Kurzes, freundliches Feedback."
-}
-
-Wenn sie nicht erfüllt ist:
-
-{
-  "star": false,
-  "feedback": "Hilfreiches, freundliches Feedback."
-}
-
-Gib keine Erklärungen. Keine zusätzlichen Texte. Keine Markdown-Formatierung.
+Wenn die Aufgabe vom User erfüllt ist, antworte **ausschließlich** im folgenden JSON-Format: {"star": true, "feedback": feedbackText} 
+Wenn sie nicht erfüllt ist, schreibe: {"star": false, "feedback": feedbackText}
+Schreibe ein freundliches hilfreiches Feedback in feedbackText
+Gib keine Lösung. Keine zusätzlichen Texte. Keine Markdown-Formatierung.
 `;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: element.devPromptA + '\n' + starPrompt },
+      { role: 'developer', content: starPrompt + '\n' + element.devPromptA },
       { role: 'user', content: data.ai1 }
     ],
     saveToDb: async (text, usage) => {

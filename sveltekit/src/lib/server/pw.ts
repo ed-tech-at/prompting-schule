@@ -41,6 +41,10 @@ export async function login(email: string, password: string): Promise<Response> 
     return json({ success: false, error: "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut." });
   }
 
+  if (user.isDeleted) {
+    return json({ success: false, error: "Benutzer existiert nicht." });
+  }
+
   let passwordMatch = false;
 
   if (user.cryptVersion === 1) {
@@ -59,6 +63,9 @@ export async function login(email: string, password: string): Promise<Response> 
 
   } else if (user.cryptVersion === 2) {
     passwordMatch = await comparePasswordV2(password, user.password, user.id);
+
+    // comparePasswordV2 auch im profil
+
   } else {
     return json({ success: false, error: "Unbekannte Passwort-Verschlüsselung." });
   }

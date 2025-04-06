@@ -21,7 +21,12 @@
 
   <h4>Technische Umsetzung, Webentwicklung und Webdesign</h4>
 
-  <p>TU Graz Lehr- und Lerntechnologien<br><b>Studierendenteam:</b> <br>Irfan Jahic (Master Student)<br>Benedikt Brünner (PhD Student, Co-Supervision)</p>
+  <p>TU Graz Lehr- und Lerntechnologien<br>
+    Benedikt Brünner (Future Learning, Analytics & AI for Teaching)
+    <br>
+    <br>
+    <i>Studierendenteam:</i> 
+    <br>Irfan Jahic (Master Student)</p>
 
   <h4>Aufsichtsbehörde</h4>
 

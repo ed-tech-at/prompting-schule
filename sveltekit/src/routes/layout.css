@@ -62,6 +62,20 @@ a:hover {
   --color-complementary-dark: #DF6900;
   --color-complementary-darkest: #AD5200;
 
+
+  --color-red: #E53935;
+  --color-red-light: #EF5350;
+  --color-red-lightest: #f9b2b274;
+  --color-red-dark: #C62828;
+  --color-red-darkest: #B71C1C;
+
+  --color-green: #43A047;
+  --color-green-light: #66BB6A;
+  --color-green-lightest: #bce8c574;
+  --color-green-dark: #2E7D32;
+  --color-green-darkest: #1B5E20;
+
+
 }
 
 
@@ -752,6 +766,16 @@ button.complementary, .button.complementary {
 }
 button.complementary:hover, .button.complementary:hover {
   background: var(--color-complementary-light);
+  color: white;
+}
+
+button.danger, .button.danger {
+  background: var(--color-red);
+  color: white;
+  border: 2px solid var(--color-red-darkest);
+}
+button.danger:hover, .button.danger:hover {
+  background: var(--color-red-light);
   color: white;
 }
 
