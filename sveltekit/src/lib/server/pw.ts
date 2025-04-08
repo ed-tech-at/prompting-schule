@@ -11,13 +11,13 @@ import { newUserUUID } from '$lib/server/dbUtils.js';
 
 export async function hashPassword(password: string) {
   const salt = env.SERVER_PW_SALT;
-  console.log('Salt:', salt);
+  // console.log('Salt:', salt);
   return await bcrypt.hash(password + salt, 10);
 }
 
 export async function comparePassword(password: string, hashedPassword: string) {
   const salt = env.SERVER_PW_SALT;
-  console.log('Salt:', salt);
+  // console.log('Salt:', salt);
   return await bcrypt.compare(password + salt, hashedPassword);
 }
 
@@ -90,7 +90,7 @@ export async function login(email: string, password: string): Promise<Response> 
 
 export async function register(email: string, password: string): Promise<Response> { /* | { success: false; error: string }*/
   const existingUser = await prisma.user.findUnique({ where: { email } });
-
+  
   if (existingUser) {
     const loginResult = await login(email, password);
 

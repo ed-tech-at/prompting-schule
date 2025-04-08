@@ -7,6 +7,7 @@
 
   export let data: { course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], badges: Badge[], user: JwtUserPayload };
 
+  let badgeDataUrl = '';
 
   async function newBadge() {
     const formData = {
@@ -27,6 +28,30 @@
       const newBadge = await response.json();
       console.log('Badge created:', newBadge.badge);
       data.badges = [...data.badges, newBadge.badge];
+    } else {
+      console.error('Error creating badge:', response.statusText);
+    }
+  }
+
+  async function getBadgeImg(badgeHash: string) {
+    const formData = {
+      lessonId: data.lesson.id,
+      hash: badgeHash
+    }
+    const response = await fetch('/api/badge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        formData,
+        action: 'getBadgeImg',
+      })
+    });
+    if (response.ok) {
+      const imgBadge = await response.json();
+      console.log('Badge image:', imgBadge);
+      badgeDataUrl = imgBadge.image; // Updated to match the response structure
     } else {
       console.error('Error creating badge:', response.statusText);
     }
@@ -54,6 +79,9 @@ Badges:
     <br>
     Link: {badge.hash}</div>
 
+    <img src={badgeDataUrl} alt="Badge" width="300" />
+
+    <button on:click={() => getBadgeImg(badge.hash)}>get Badge erstellen</button>
 {/each}
 
 <button on:click={newBadge}>Neuen Badge erstellen</button>
