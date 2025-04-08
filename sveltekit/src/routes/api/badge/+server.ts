@@ -77,7 +77,7 @@ export async function POST({ request, cookies }) {
         userId: user.id,
         type: 'lesson',
         lessonId: lesson.id,
-        promptsTried: aggregate._sum.promptTokens,
+        promptsTried: aggregate._sum.promptsTried,
         promptTokens: aggregate._sum.promptTokens,
         completionTokens: aggregate._sum.completionTokens,
         hash: hash,
@@ -91,14 +91,15 @@ export async function POST({ request, cookies }) {
   if (action === "getBadgeImg") {
     const badgeDb = await prisma.badge.findFirst({ where: { userId: user.id, hash: formData.hash } });
     
-    const badgePath = path.resolve('static/badge/badge_v1_1.png');
+    const badgePath = path.resolve('static/badge/badge_v2_1.png');
     // const boldFontBase64 = fontToBase64('static/badge/Jost-Bold.ttf');
     // const boldFontBase64 = fontToBase64('static/fonts/jost-v18-latin/jost-v18-latin-100italic.woff2');
     // const fontLesson = path.resolve('static/badge/Jost-Regular.ttf');
 
     const lesson = await prisma.lesson.findUnique({ where: { id: badgeDb?.lessonId } });
+    const course = await prisma.course.findUnique({ where: { id: lesson?.courseId } });
 
-const certUrl = `https://example.com/badges/${badgeDb?.hash}`; // falls QR auf externe Assertion zeigt
+const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
 	const qrBuffer = await QRCode.toBuffer(certUrl, {
     color: {
       dark: "#009CB1",
@@ -114,30 +115,59 @@ const certUrl = `https://example.com/badges/${badgeDb?.hash}`; // falls QR auf e
 	<svg width="1000" height="1000"  xmlns="http://www.w3.org/2000/svg">
 	  <defs>
 		<style type="text/css">
-		  
+		  text {
+			fill: #009CB1;
+			font-family: 'Arial';
+			font-size: 38px;
+      
+      }
 		  .email {
 			font-family: 'Arial';
 			font-size: 48px;
 			text-anchor: middle;
+      font-weight: bold;
 			fill: #009CB1;
 		  }
-		  .lesson {
-			font-family: 'Arial';
+		  .cert {
+			font-style: italic;
 			
-			font-size: 32px;
-			// text-anchor: middle;
-			fill: #009CB1;
 		  }
+      .lesson {
+			text-anchor: middle;
+
+      }
+      .bold {
+      font-weight: bold;
+      }
+      .used {
+      fill: white;
+      text-align: left;
+      font-size: 42px;
+      }
+      .generated {
+      fill: black;
+      text-align: left;
+      font-size: 42px;
+
+      }
+      
 		</style>
 	  </defs>
-	  <text x="50%" y="410" class="email">${user.email}</text>
-	  <text x="60" y="545" class="lesson">hat die Lektion ${lesson?.lessonName}</text>
-	  <text x="50%" y="585" class="lesson">im Kurs KURSNAME</text>
-	  <text x="50%" y="645" class="lesson"> bearbeitet und die Selbstüberprüfung positiv absolivert.</text>
-	  <text x="50%" y="845" class="lesson">Ausgesellt am ${badgeDb?.createdAt.toLocaleDateString('de-DE')}</text>
-	  <text x="50%" y="970" class="lesson"> prompting.schule2 eduNexus Ausgestellt am: ${badgeDb?.createdAt.toLocaleDateString('de-DE')}</text>
-	</svg>`;
+	  <text x="165" y="320" class="cert">Zertifikat ${badgeDb?.hash} vom ${badgeDb?.createdAt.toLocaleDateString('de-DE')}</text>
 
+	  
+	  <text x="50%" y="420" class="email">testmail@prompting.schule</text>
+	  
+    <text x="50%" y="490" class="lesson">hat die Lektion <tspan class='bold'> ${lesson?.lessonName}</tspan></text>
+    <text x="50%" y="550" class="lesson">im Kurs <tspan class='bold'> ${course?.name}</tspan></text>
+	  
+	  <text x="50%" y="610" class="lesson"> absolviert und die Selbstüberprüfung bestanden.</text>
+	  <text x="100" y="720" class="used">Es wurden ${badgeDb?.promptsTried} Prompts</text>
+	  <text x="100" y="775" class="used">mit ${badgeDb?.promptTokens} Tokens abgesendet</text>
+	  <text x="100" y="900" class="generated">und ${badgeDb?.completionTokens} Tokens generiert.</text>
+    </svg>`;
+	  // <text x="50%" y="845" class="lesson">Ausgesellt am </text>
+    // ${user.email} 
   console.log (svg);
 
 
@@ -146,7 +176,7 @@ const certUrl = `https://example.com/badges/${badgeDb?.hash}`; // falls QR auf e
 	// Bild generieren (nicht speichern!)
 	const badge = await sharp(badgePath)
 		.composite([
-			{ input: qrBuffer, top: 180, left: 730 }, // Position QR
+			{ input: qrBuffer, top: 170, left: 800 }, // Position QR
 			{ input: svgBuffer, top: 0, left: 0 }   // SVG-Text
 		])
 		.png()
