@@ -32,6 +32,22 @@ model User {
   progress UserProgress[]
   quizAttempts UserQuizAttempt[]
   badges Badge[]
+  userPasswordResets UserPasswordReset[]
+}
+
+
+model UserPasswordReset {
+  token       String  @id @default(uuid())
+  
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  createdAt       DateTime? @default(now())
+  
+  finishedAt       DateTime?
+
+
+
 }
 
 model Course {

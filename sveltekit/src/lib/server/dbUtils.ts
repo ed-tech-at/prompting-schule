@@ -30,3 +30,16 @@ export async function newBadgeHash(userId : string, prefix: number) : Promise<st
   return randomNumber;
 }
 
+
+export async function newPwResetToken() : Promise<string> {
+  let uuid = "";
+  let exists = true;
+
+  while (exists) {
+    uuid = uuidv4();
+    const existing = await prisma.userPasswordReset.findUnique({ where: { token: uuid } });
+    if (!existing) exists = false;
+  }
+  return uuid;
+}
+

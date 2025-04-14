@@ -77,7 +77,7 @@
       }
   }
 </script>
-
+<!-- 
 <style>
   /* Register Section */
   .register-section {
@@ -211,13 +211,13 @@
       color: black;
       margin-bottom: 10px;
   }
-</style>
+</style> -->
 
 <Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Voranmeldung', href: '/voranmeldung' }]} />
 
 
-<div class="register-section">
-  <div class="register-container">
+<div class="registerBg">
+  <div class="registerBlock">
       <h2>Voranmeldung</h2>
       {#if error}
           <div class="error-message">{error}</div>
@@ -262,8 +262,7 @@
       </form>
       <div class="alt-links">
           <p>Haben Sie bereits ein Konto?</p>
-          <a href="/login">
-              <button class="alt-links-button">Einloggen</button>
+          <a href="/login" class="button invert">Einloggen
           </a>
       </div>
   </div>

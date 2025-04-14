@@ -41,7 +41,7 @@ async function handleSubmit() {
           },
           body: JSON.stringify({
               formData,
-              action: 'passwort' 
+              action: 'passwortToken' 
           }),
       });
 
@@ -74,33 +74,7 @@ async function handleSubmit() {
 
 <div class="registerBg">
 <div class="registerBlock">
-  <h2>Passwort zurücksetzen</h2>
-  {#if error}
-      <div class="error-message">{error}</div>
-  {/if}
-  <form on:submit|preventDefault={handleSubmit}>
-      <div class="form-group">
-          <label for="email">E-Mail Addresse</label>
-          <input
-              id="email"
-              type="email"
-              placeholder="Geben Sie Ihre E-Mail ein"
-              bind:value={email}
-              required
-          />
-      </div>
-      
-      <button type="submit" class="register-button" disabled={loading}>
-          {#if loading}
-              <div class="loader"></div>
-          {/if}
-          {!loading ? "Passwort-Token zusenden" : ""}
-      </button>
-  </form>
-  <div class="alt-links">
-      <p>Sie kennen Ihr Passwort?</p>
-      <a href="/login" class="button invert">Einloggen
-      </a>
-  </div>
+  <h2>Token fehlt</h2>
+  
 </div>
 </div>
