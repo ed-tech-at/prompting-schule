@@ -20,14 +20,30 @@ export async function POST({ request, cookies }) {
     return json({ success: false, error: "Unauthorized user" });
   }
 
+  const maxLength = 3000;
 
+  if ((data.ai1 && data.ai1.length > maxLength)
+      || (data.ai2 && data.ai2.length > maxLength)
+      || (data.developer && data.developer.length > maxLength)
+      ) {
+
+    await prisma.userProgress.create({
+      data: {
+        userId: data.userId,
+        elementId: data.elementId,
+        courseId: data.courseId,
+        lessonId: data.lessonId,
+        ai1: "!Anfrage zu lang! " + data.ai1?.length,
+        ai2: "!Anfrage zu lang! " + data.ai2?.length,
+        promptsTried: 0,
+      }
+    });
+    return new Response('<i>Anfrage zu lang</i>', { status: 200 });
+  }
 
   if (action === 'aiSide1') {
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
   
-    if (data.ai1.length > 5000) {
-      return json({ success: false, error: 'Anfrage zu lang' });
-    }
   
     return streamAiResponse({
       messages: [
@@ -56,9 +72,6 @@ export async function POST({ request, cookies }) {
   if (action === 'aiSide2') {
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
   
-    if (data.ai2.length > 5000) {
-      return json({ success: false, error: "Anfrage zu lang" });
-    }
   
     return streamAiResponse({
       messages: [
@@ -84,6 +97,7 @@ export async function POST({ request, cookies }) {
   
 
   if (action === 'ai1') {
+
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
   
     return streamAiResponse({
@@ -139,6 +153,7 @@ export async function POST({ request, cookies }) {
   if (action === 'ai12') {
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
   
+
     return streamAiResponse({
       messages: [
         { role: 'developer', content: element.devPromptA },
@@ -164,6 +179,8 @@ export async function POST({ request, cookies }) {
   }
   
   if (action === 'directDevUser') {
+
+    
     return streamAiResponse({
       messages: [
         { role: 'developer', content: data.developer },
@@ -188,6 +205,8 @@ export async function POST({ request, cookies }) {
   
 
   if (action === 'directDevUserUser') {
+
+    
     return streamAiResponse({
       messages: [
         { role: 'developer', content: data.developer },
@@ -213,12 +232,16 @@ export async function POST({ request, cookies }) {
   }
 
 
+  const laborPrompt = `Develop a new prompt for the AI based on the user prompt, which can be used later. Do not execute the request itself. Integrate the user prompt, the content will follow later. Please output the new prompt in Planetext directly. `
+
   if (action === 'labor1') {
   const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
+  const laborPromptBetter = laborPrompt + `Make the prompt BETTER. `;
+
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: `Verbessere den Prompt:` + element.devPromptB },
+      { role: 'developer', content: laborPromptBetter + element.devPromptB },
       { role: 'user', content: data.ai1 }
     ],
     maxTokens: 2000,
@@ -243,9 +266,11 @@ export async function POST({ request, cookies }) {
 if (action === 'labor2') {
   const element = await prisma.element.findUnique({ where: { id: data.elementId } });
 
+  const laborPromptWorse = laborPrompt + `Make the prompt WORSE. `;
+
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: `Mache diesen Prompt schlechter:` + element.devPromptC },
+      { role: 'developer', content: laborPromptWorse + element.devPromptC },
       { role: 'user', content: data.ai1 }
     ],
     
