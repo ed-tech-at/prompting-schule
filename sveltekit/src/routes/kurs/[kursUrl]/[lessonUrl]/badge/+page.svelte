@@ -4,12 +4,18 @@
   import type { Badge, Course, Lesson, QuizQuestion } from '@prisma/client';
   import type { JwtUserPayload } from '$lib/server/jwt';
   import { onMount } from 'svelte';
+    import BadgeRender from './BadgeRender.svelte';
 
-  export let data: { course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], badges: Badge[], user: JwtUserPayload };
+  export let data: { course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], badges: Badge[], user: JwtUserPayload, maxPrompts: number };
+
+  let maxPromptsOnBadge = 0;
+  
+
 
   let badgeDataUrl = '';
 
   async function newBadge() {
+    maxPromptsOnBadge = data.maxPrompts;
     const formData = {
       lessonId: data.lesson.id,
     }
@@ -26,41 +32,19 @@
 
     if (response.ok) {
       const newBadge = await response.json();
-      console.log('Badge created:', newBadge.badge);
+      // console.log('Badge created:', newBadge.badge);
       data.badges = [...data.badges, newBadge.badge];
     } else {
       console.error('Error creating badge:', response.statusText);
     }
   }
 
-  async function getBadgeImg(badgeHash: string) {
-    const formData = {
-      lessonId: data.lesson.id,
-      hash: badgeHash
-    }
-    const response = await fetch('/api/badge', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        formData,
-        action: 'getBadgeImg',
-      })
-    });
-    if (response.ok) {
-      const imgBadge = await response.json();
-      console.log('Badge image:', imgBadge);
-      badgeDataUrl = imgBadge.image; // Updated to match the response structure
-    } else {
-      console.error('Error creating badge:', response.statusText);
-    }
-  }
 
   onMount(() => {
     if (data.badges.length === 0) {
       newBadge();
     }
+    maxPromptsOnBadge = data.badges[0]?.promptsTried || 0;
   });
 
 </script>
@@ -69,22 +53,18 @@
 
 <main>
 
-<h1>Badge herunterladen</h1>
-<h2>für Lektion "{data.lesson.lessonName}" für {data.user.email}</h2>
+<h1>Digital Badge von {data.user.email}</h1>
+<h2>für die Lektion <b>{data.lesson.lessonName}</b> im Kurs <b>{data.course.name}</b></h2>
 
-Badges:
 
 {#each data.badges as badge}
-  <div>Badge ausgestellt am: {new Date(badge.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })} 
-    <br>
-    Link: {badge.hash}</div>
-
-    <img src={badgeDataUrl} alt="Badge" width="300" />
-
-    <button on:click={() => getBadgeImg(badge.hash)}>get Badge erstellen</button>
+  <BadgeRender {badge} lesson={data.lesson} user={data.user} />
 {/each}
 
-<button on:click={newBadge}>Neuen Badge erstellen</button>
+{#if data.maxPrompts && maxPromptsOnBadge && data.maxPrompts > maxPromptsOnBadge}
+  <button on:click={newBadge}>Neuen Badge mit {data.maxPrompts} Prompts erstellen</button>
+{/if}
+
 
 
 </main>

@@ -38,6 +38,8 @@ a:hover {
 
 
   --color-primary: #01abbb;
+  --color-primary: #00a1af;
+  --color-primary: #0097a4;
   --color-primary-light: #05C2D3;
   --color-primary-lightest: #34c5d27c;
   --color-primary-dark: #017C88;
@@ -571,6 +573,87 @@ form.ai label {
   left: 0.8em;
   right: 0.5em;
 }
+
+.lessonWrapper .badges label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.8em;
+  margin-bottom: 0.5em;
+  position: relative;
+  top: -5px;
+  left: -5px;
+}
+
+.lessonWrapper .badges p {
+  margin: 0;
+}
+.lessonWrapper .badges {
+  font-size: 0.95em;
+}
+
+.badge-container {
+  margin-bottom: 2em;
+}
+
+.lessonWrapper {
+  width: 400px;
+
+}
+
+.lessonWrapper .lesson, .lessonWrapper .badges {
+  background-color: white;
+  padding: 1em;
+  border-radius: 25px;
+  /* min-width: 360px; */
+  /* width: 100%; */
+  /* flex-grow: 1; */
+  transition: all 0.3s;
+  outline: 5px solid transparent;
+  /* flex-shrink: 1; */
+
+}
+
+.lessonWrapper .lesson {
+  border-radius: 25px 25px 0 0;
+}
+
+
+.lessonWrapper .badges {
+  border-radius: 0 0 25px 25px;
+  margin-top: 10px;
+  background-color: var(--color-secondary-dark);
+  background-color: var(--color-primary);
+  color: white;
+}
+
+
+@media (max-width: 500px) {
+  .lessonWrapper {
+    width: 290px;
+  }
+}
+
+.lessonWrapper a.lesson-link {
+  text-decoration: none;
+  color: black;
+  display: block;
+  
+  
+  
+}
+.lessonWrapper .lesson:hover {
+  outline: 5px solid var(--color-primary);
+}
+.lessonWrapper h2 {
+  text-align: center;
+}
+.lessonWrapper .emoji {
+  font-size: 3em;
+  text-align: center;
+  margin-bottom: 0em;
+}
+
+
 
 section.quiz-link {
   border: 5px solid var(--color-white);

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { Course, Lesson } from '@prisma/client';
+  import type { Course, Lesson, Badge } from '@prisma/client';
 import { onMount } from 'svelte';
     import LessonRender from './LessonRender.svelte';
     import Header from '$lib/Header.svelte';
 
   import type { JwtUserPayload } from '$lib/server/jwt';
 
-  export let data: {course: Course, lessons: Lesson[], user: JwtUserPayload}; 
+  export let data: {course: Course, lessons: Lesson[], user: JwtUserPayload, latestBadge: Badge[]}; 
 
 
 
@@ -18,7 +18,7 @@ import { onMount } from 'svelte';
 
 <div class={"displayType-" + data.course.displayType + " lessons"}>
 {#each data.lessons as lesson}
-  <LessonRender course={data.course} {lesson} userId={data.user.id} />
+  <LessonRender course={data.course} {lesson} userId={data.user.id} latestBadge={data.latestBadge[lesson.id]} />
 {/each}
 </div>
 

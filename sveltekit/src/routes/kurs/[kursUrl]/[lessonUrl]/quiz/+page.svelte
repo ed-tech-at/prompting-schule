@@ -92,8 +92,8 @@
     const result = await response.json();
     
     if (result.success) {
-      console.log("quiz abgeschlossen");
-      console.log(result);
+      // console.log("quiz abgeschlossen");
+      // console.log(result);
       quizResults = result; // Store the results in the reactive variable
       quizSubmitted = true; // Mark the quiz as submitted
     } else {
@@ -173,12 +173,13 @@
     <p><strong>Erreichte Punkte:</strong> {quizResults.totalPoints} / {quizResults.maxPoints}</p>
     <p><strong>Prozent:</strong> {quizResults.percent}%</p>
 
-    {#if quizResults.percent >= 85}
+    {#if quizResults.percent >= 75}
+      <!-- todo 75 -->
       <p><i class="fas fa-check-circle" style="color: #638e21;"></i> Gut gemacht! Lektion abgeschlossen.</p>
       <a class="button" href="/kurs/{data.course.URL}">Zur Kurs-Seite {data.course.name}</a>
     {:else}
       <p><i class="fas fa-exclamation-circle" style="color: red;"></i> Diese Quiz-Leistung reicht für das Zertifikat noch nicht aus. </p>
-      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehe zur Lektion zurück und schaue dir die Inhalte erneut an</a>
+      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehe zur Lektion zurück und schaue dir die Inhalte erneut an. Sobald du 75&nbsp;% beim Quiz erreichst, bekommst du die Digital Badge.</a>
     {/if}
   </section>
 {/if}

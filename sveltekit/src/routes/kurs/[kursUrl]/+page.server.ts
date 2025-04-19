@@ -3,6 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 const prisma = new PrismaClient();
 
 import { requireLogin } from '$lib/server/jwt';
+import type { Badge } from '@prisma/client';
 
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -19,10 +20,23 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     orderBy: { position: 'asc' }
   });
 
+  const badges = await prisma.badge.findMany({
+    where: { userId: user.id, lessonId: { in: lessons.map((lesson) => lesson.id) } },
+    
+    orderBy: { createdAt: 'desc' }
+  });
+
+  let latestBadge = [] as Badge[];
+  for (const badge of badges) {
+    if (!latestBadge[badge.lessonId]) {
+      latestBadge[badge.lessonId] = badge;
+    }
+  }
 
   return {
     course,
     lessons,
-    user
+    user,
+    latestBadge: latestBadge
   };
 };

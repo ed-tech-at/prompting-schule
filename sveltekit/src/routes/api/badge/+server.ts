@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 
 import { error, json } from '@sveltejs/kit';
 
+import bakery from 'openbadges-bakery-v3';
 
 import { newBadgeHash } from '$lib/server/dbUtils';
 
@@ -29,7 +30,7 @@ export async function POST({ request, cookies }) {
   
 
   if (action === 'createLessonBadge') {
-    console.log('formData', formData);
+    // console.log('formData', formData);
     const { lessonId } = formData;
     
     const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
@@ -53,7 +54,7 @@ export async function POST({ request, cookies }) {
       return json({ success: false, error: 'Not enough points' });
     }
 
-    console.log('bestQuiz', bestQuiz);
+    // console.log('bestQuiz', bestQuiz);
 
     const aggregate = await prisma.userProgress.aggregate({
       where: {
@@ -68,7 +69,7 @@ export async function POST({ request, cookies }) {
       }
     });
 
-    console.log('aggregate', aggregate);
+    // console.log('aggregate', aggregate);
 
     const hash = await newBadgeHash(user.id, lessonId);
 
@@ -77,14 +78,14 @@ export async function POST({ request, cookies }) {
         userId: user.id,
         type: 'lesson',
         lessonId: lesson.id,
-        promptsTried: aggregate._sum.promptsTried,
-        promptTokens: aggregate._sum.promptTokens,
-        completionTokens: aggregate._sum.completionTokens,
+        promptsTried: aggregate._sum.promptsTried ?? 0,
+        promptTokens: aggregate._sum.promptTokens ?? 0,
+        completionTokens: aggregate._sum.completionTokens ?? 0,
         hash: hash,
       }
     });
     
-    console.log('badge', badge);
+    // console.log('badge', badge);
     return json({ success: true, badge });
   }
 
@@ -168,13 +169,13 @@ const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`;
     </svg>`;
 	  // <text x="50%" y="845" class="lesson">Ausgesellt am </text>
     // ${user.email} 
-  console.log (svg);
+  // console.log (svg);
 
 
 	const svgBuffer = Buffer.from(svg);
 
 	// Bild generieren (nicht speichern!)
-	const badge = await sharp(badgePath)
+	const badgeImgBuffer = await sharp(badgePath)
 		.composite([
 			{ input: qrBuffer, top: 170, left: 800 }, // Position QR
 			{ input: svgBuffer, top: 0, left: 0 }   // SVG-Text
@@ -226,15 +227,57 @@ const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`;
 //   .toBuffer();
 
 
-	// Als base64 zurückgeben
-	const base64 = badge.toString('base64');
+
+const assertion = {
+  "@context": "https://w3id.org/openbadges/v2",
+  "type": "Assertion",
+  "id": "https://prompting.schule/badge/" + badgeDb?.hash + "/" + user.email + "/json.json",
+  "recipient": {
+    "type": "email",
+    "hashed": false,
+    "identity": user.email
+  },
+  "badge": "https://prompting.schule/badge/class/" + course?.URL + "/" + lesson?.URL + "/json.json",
+  "issuedOn": badgeDb?.createdAt.toISOString(),
+  "verification": {
+    "type": "hosted"
+  }
+  };
+
+  // console.log('Assertion:', assertion);
+
+//   // Als base64 zurückgeben
+  // const base64a = badgeImgBuffer.toString('base64');
+//   console.log('Baked Image:', base64);
+
+  // const bakedImage = await bakery.bake({ image: base64a, assertion });
+  const bakedImage = await bakeBadge(badgeImgBuffer, assertion);
+
+  const base64 = bakedImage.toString('base64');
+
+  // const base64 = base64a;
+  // console.log('Badge erfolgreich gebacken!');
+
 	const dataUrl = `data:image/png;base64,${base64}`;
 
 	return new Response(JSON.stringify({ image: dataUrl }), {
 		headers: { 'Content-Type': 'application/json' }
 	});
-
+  
   }
 
 
+}
+
+// Funktion, die das Backen des Badges als Promise kapselt
+function bakeBadge(imageBuffer, assertion) {
+  return new Promise((resolve, reject) => {
+    bakery.bake({ image: imageBuffer, assertion }, (err, bakedImage) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(bakedImage);
+      }
+    });
+  });
 }

@@ -33,19 +33,33 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     where: {
       lessonId: lesson?.id,
       userId: user.id
-    }
+    },
+    orderBy: { createdAt: 'desc' }
   });
 
 
-  if (bestQuiz?.percentReached < 30) throw redirect(302, '/dashboard');
-  //  TODO 85
+  if (bestQuiz?.percentReached < 75) throw redirect(302, '/dashboard');
+  //  TODO 75
 
+  const aggregate = await prisma.userProgress.aggregate({
+
+    where: {
+      userId: user.id,
+      lessonId: lesson?.id
+    },
+    _sum: {
+      promptsTried: true,
+    }
+  });
+
+  const maxPrompts = aggregate._sum.promptsTried || 0;
 
   return {
     course,
     lesson,
     bestQuiz,
     badges,
-    user
+    user,
+    maxPrompts
   };
 };
