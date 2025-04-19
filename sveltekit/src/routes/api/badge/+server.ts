@@ -157,7 +157,7 @@ const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`;
 	  <text x="165" y="320" class="cert">Zertifikat ${badgeDb?.hash} vom ${badgeDb?.createdAt.toLocaleDateString('de-DE')}</text>
 
 	  
-	  <text x="50%" y="420" class="email">testmail@prompting.schule</text>
+	  <text x="50%" y="420" class="email">${user.email}</text>
 	  
     <text x="50%" y="490" class="lesson">hat die Lektion <tspan class='bold'> ${lesson?.lessonName}</tspan></text>
     <text x="50%" y="550" class="lesson">im Kurs <tspan class='bold'> ${course?.name}</tspan></text>
