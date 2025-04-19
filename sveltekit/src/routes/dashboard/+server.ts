@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 
 export async function POST({ request, params }) {
   try {
-      console.log('params', params);
+      // console.log('params', params);
       let { action, userId } = await request.json();
-      console.log('action', action);
+      // console.log('action', action);
       
       
       if (action == "listCourses") {

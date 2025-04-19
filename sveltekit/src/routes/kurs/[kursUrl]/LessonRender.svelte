@@ -1,6 +1,6 @@
 <script lang="ts">
 
-  import type { Course, Lesson, User } from '@prisma/client';
+  import type { Badge, Course, Lesson, User } from '@prisma/client';
 
   import { onMount } from 'svelte';
 
@@ -8,6 +8,8 @@
   export let course: Course ;
   export let lesson: Lesson ;
   export let userId: String;
+  export let latestBadge: Badge;
+
 
   let percentReached = 0; 
 
@@ -39,22 +41,23 @@
 
   async function getQuizResults() {
     try {
+      const answerData = {
+        userId: userId,
+        lessonId: lesson.id
+      };
       const response = await fetch('/api/quiz' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: "getQuizResults",
-          answerData: JSON.stringify({
-            userId: userId, 
-            lessonId: lesson.id 
-          })
+          answerData
         })
       });
 
       const result = await response.json();
       // console.log("getUserProgressElementAi1:", result);
       if (result.success && result.percentReached) {
-        console.log("getQuizResults:", result);
+        // console.log("getQuizResults:", result);
         percentReached = result.percentReached;
       } 
     } catch (error) {
@@ -65,7 +68,7 @@
 
 </script>
 
-<!-- <div class="lesson"> -->
+<div class="lessonWrapper">
  <a href="/kurs/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
@@ -93,48 +96,27 @@
     </p>
     {/if}
 </a>
-<!-- </div> -->
+
+<div class="badges">
+  <label>Digital Badge</label>
+  
+  {#if latestBadge}
+    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    Badge vom {new Date(latestBadge.createdAt).toLocaleDateString('de-DE')} anzeigen
+    </a>
+  {:else if percentReached >= 75}
+    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    Badge erstellen
+    </a>
+  {:else}
+    <p>Schließe das Quiz mit mindestens 75&nbsp;% für den Badge ab.</p>
+  {/if}
+  
+
+</div>
+
+</div>
 
 <style>
 
-  .lesson {
-    background-color: white;
-    padding: 1em;
-    border-radius: 25px;
-    /* min-width: 360px; */
-    /* width: 100%; */
-    /* flex-grow: 1; */
-    transition: all 0.3s;
-    outline: 5px solid transparent;
-    width: 400px;
-    /* flex-shrink: 1; */
-
-  }
-  @media (max-width: 500px) {
-    .lesson {
-      width: 290px;
-    }
-  }
-
-  a.lesson-link {
-    text-decoration: none;
-    color: black;
-    display: block;
-    
-    
-    
-  }
-  .lesson:hover {
-    outline: 5px solid var(--color-primary);
-  }
-  h2 {
-    text-align: center;
-  }
-  .emoji {
-    font-size: 3em;
-    text-align: center;
-    margin-bottom: 0em;
-  }
-
-  
 </style>

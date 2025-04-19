@@ -91,3 +91,7 @@ ALTER SEQUENCE "Lesson_id_seq" RESTART WITH 22;
 
 docker-compose pull
 docker-compose up -d
+
+## mac pgdump
+brew install libpq
+/opt/homebrew/opt/libpq/bin/pg_dump

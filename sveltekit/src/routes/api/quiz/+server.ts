@@ -57,9 +57,9 @@ export async function POST({ request, cookies }) {
           }
         }
 
-        console.log('Correct answers given:', correctCount);
-        console.log('Wrong answers given:', wrongCount);
-        console.log('Correct user responses:', userCorrectResponse);
+        // console.log('Correct answers given:', correctCount);
+        // console.log('Wrong answers given:', wrongCount);
+        // console.log('Correct user responses:', userCorrectResponse);
 
         points = correctCount / (correctAnswers.length + wrongCount * 2);
         points = Math.round(points * 100) / 100;

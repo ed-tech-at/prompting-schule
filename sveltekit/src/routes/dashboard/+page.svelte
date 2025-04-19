@@ -14,9 +14,9 @@
     // export let user: JwtUserPayload; 
     
     if (browser) {
-        console.log ("user", data.user);
+        // console.log ("user", data.user);
         userId = data.user.id;
-        console.log("Benutzer-ID:", userId);
+        // console.log("Benutzer-ID:", userId);
         // if (!userId) {
           // window.location.href = "/login";
         // }

@@ -11,13 +11,13 @@
   <h4>Für den Inhalt verantwortlich</h4>
 
   <p>Ed-Tech Research Community Graz<br>
-    Leiter der Forschungsgruppe: Martin Ebner<br>Tel.: <a href="http://00433168738577">+43 316 873-8577</a></p>
+    Leiter der Forschungsgruppe: Martin Ebner<br>Tel.: <a href="tel://00433168738577">+43 316 873-8577</a></p>
 
   <h4>Herausgeber:in</h4>
 
   <p>Technische Universität Graz<br>Rechbauerstrasse 12<br>8010 Graz<br>Österreich</p>
 
-  <p>Tel.: <a href="tel:00433168730">+43 316 873-0</a></p>
+  <p>Tel.: <a href="tel://00433168730">+43 316 873-0</a></p>
 
   <h4>Technische Umsetzung, Webentwicklung und Webdesign</h4>
 

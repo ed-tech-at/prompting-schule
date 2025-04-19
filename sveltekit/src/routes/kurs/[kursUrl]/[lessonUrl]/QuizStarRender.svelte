@@ -37,7 +37,7 @@
       const result = await response.json();
       // console.log("getUserProgressElementAi1:", result);
       if (result.success) {
-        console.log("getQuizResults:", result);
+        // console.log("getQuizResults:", result);
         percentReached = result.percentReached;
       } 
     } catch (error) {

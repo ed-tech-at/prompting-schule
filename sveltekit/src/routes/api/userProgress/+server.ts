@@ -22,8 +22,8 @@ export async function POST({ request, cookies }) {
 
   const user = requireLogin(cookies);
   
-  console.log('data', data);
-  console.log('action', action);
+  // console.log('data', data);
+  // console.log('action', action);
 
   if (data.userId != user.id) {
     return json({ success: false, error: "Unauthorized user" });

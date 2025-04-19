@@ -31,6 +31,23 @@ model User {
 
   progress UserProgress[]
   quizAttempts UserQuizAttempt[]
+  badges Badge[]
+  userPasswordResets UserPasswordReset[]
+}
+
+
+model UserPasswordReset {
+  token       String  @id @default(uuid())
+  
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  createdAt       DateTime? @default(now())
+  
+  finishedAt       DateTime?
+
+
+
 }
 
 model Course {
@@ -50,6 +67,7 @@ model Course {
   lessons  Lesson[]
   progress UserProgress[]
   userQuizAttempts UserQuizAttempt[]
+  badges Badge[]
 }
 
 model Lesson {
@@ -71,6 +89,7 @@ model Lesson {
   elements   Element[]
   quizQuestions QuizQuestion[]
   userQuizAttempts UserQuizAttempt[]
+  bagdes Badge[]
   
 }
 
@@ -160,3 +179,33 @@ model UserQuizAttempt {
 
   createdAt      DateTime @default(now())
 }
+
+
+model Badge {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  type        String
+
+  lesson      Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    Int?
+
+  course         Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId       Int?
+
+  hash        String?
+
+
+  
+  promptTokens     Int  @default(0)
+  completionTokens Int  @default(0)
+
+  promptsTried    Int  @default(0)
+  
+
+  createdAt      DateTime @default(now())
+}
+
+
+

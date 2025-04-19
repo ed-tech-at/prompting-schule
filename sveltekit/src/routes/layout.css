@@ -38,6 +38,8 @@ a:hover {
 
 
   --color-primary: #01abbb;
+  --color-primary: #00a1af;
+  --color-primary: #0097a4;
   --color-primary-light: #05C2D3;
   --color-primary-lightest: #34c5d27c;
   --color-primary-dark: #017C88;
@@ -572,6 +574,87 @@ form.ai label {
   right: 0.5em;
 }
 
+.lessonWrapper .badges label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.8em;
+  margin-bottom: 0.5em;
+  position: relative;
+  top: -5px;
+  left: -5px;
+}
+
+.lessonWrapper .badges p {
+  margin: 0;
+}
+.lessonWrapper .badges {
+  font-size: 0.95em;
+}
+
+.badge-container {
+  margin-bottom: 2em;
+}
+
+.lessonWrapper {
+  width: 400px;
+
+}
+
+.lessonWrapper .lesson, .lessonWrapper .badges {
+  background-color: white;
+  padding: 1em;
+  border-radius: 25px;
+  /* min-width: 360px; */
+  /* width: 100%; */
+  /* flex-grow: 1; */
+  transition: all 0.3s;
+  outline: 5px solid transparent;
+  /* flex-shrink: 1; */
+
+}
+
+.lessonWrapper .lesson {
+  border-radius: 25px 25px 0 0;
+}
+
+
+.lessonWrapper .badges {
+  border-radius: 0 0 25px 25px;
+  margin-top: 10px;
+  background-color: var(--color-secondary-dark);
+  background-color: var(--color-primary);
+  color: white;
+}
+
+
+@media (max-width: 500px) {
+  .lessonWrapper {
+    width: 290px;
+  }
+}
+
+.lessonWrapper a.lesson-link {
+  text-decoration: none;
+  color: black;
+  display: block;
+  
+  
+  
+}
+.lessonWrapper .lesson:hover {
+  outline: 5px solid var(--color-primary);
+}
+.lessonWrapper h2 {
+  text-align: center;
+}
+.lessonWrapper .emoji {
+  font-size: 3em;
+  text-align: center;
+  margin-bottom: 0em;
+}
+
+
+
 section.quiz-link {
   border: 5px solid var(--color-white);
   padding: 1em;
@@ -830,4 +913,91 @@ th {
   table {
     font-size: 0.9em;
   }
+}
+
+
+.registerBg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(to bottom, #2f929a, #B5E3E8);
+  /* color: white; */
+  min-height: 100vh;
+  background-size: cover;
+  background-repeat: no-repeat;
+  margin: 0;
+}
+
+.registerBlock {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px 20px;
+  max-width: 400px;
+  width: 100%;
+  text-align: left;
+}
+
+.registerBlock h2 {
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--color-primary);
+}
+
+.registerBlock label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.registerBlock input[type="text"],
+.registerBlock input[type="email"],
+.registerBlock input[type="password"]
+ {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: 0px;
+    margin-bottom: 1.5em;
+    /* transition: outline 0.3s ease; */
+}
+
+.form-group input:focus {
+  outline: 2px solid var(--color-primary);
+}
+
+.registerBlock .error-message {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.registerBlock button, .registerBlock .button {
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 1.5em;
+}
+
+.registerBlock button.invert, .registerBlock .button.invert {
+  background-color: var(--color-white);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary-darkest);
+  transition: all .3s ease;
+}
+.registerBlock button.invert:hover, .registerBlock .button.invert:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.registerBlock .checkbox-form label {
+  color: black;
+  font-weight: 400;
 }

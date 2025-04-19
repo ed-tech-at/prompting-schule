@@ -76,31 +76,15 @@ if (browser) {
       }
   }
 </script>
-
+<!-- 
 <style>
   /* Login-Bereich */
   .login-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      background: linear-gradient(to bottom, #2f929a, #B5E3E8);
-      color: white;
-      min-height: 100vh;
-      background-size: cover;
-      background-repeat: no-repeat;
-      margin: 0;
+      
   }
 
   .login-container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 30px 20px;
-      max-width: 400px;
-      width: 100%;
-      text-align: left;
+      
   }
 
   .login-container h2 {
@@ -204,13 +188,13 @@ if (browser) {
       margin-bottom: 10px;
       text-align: center;
   }
-</style>
+</style> -->
 
 <Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Login', href: '/login' }]} user={null} />
 
 
-<div class="login-section">
-  <div class="login-container">
+<div class="registerBg">
+  <div class="registerBlock">
       <h2>Anmeldung</h2>
       {#if error}
           <div class="error-message">{error}</div>
@@ -244,11 +228,11 @@ if (browser) {
           </button>
       </form>
       <div class="alt-links">
+        
+          <a style="color: var(--color-complementary);"  href='/passwort'>Passwort vergessen</a>
+
           <p>Sie haben noch kein Konto?</p>
-          <a href="/voranmeldung">
-          
-              <button class="alt-links-button">Voranmeldung zur Beta</button>
-          </a>
+          <a href="/voranmeldung" class="button invert">Voranmeldung zur Beta</a>
       </div>
   </div>
 </div>
