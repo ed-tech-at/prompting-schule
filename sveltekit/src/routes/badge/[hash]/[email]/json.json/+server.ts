@@ -53,7 +53,7 @@ export async function GET({ params }) {
 			type: 'HostedBadge',
       url: `https://prompting.schule/badge/${hash}/${email}/json.json`
 		},
-		image: `https://prompting.schule/images/badges/${courseUrl}/${lessonUrl}/image.png`,
+		image: `https://prompting.schule/badge/class/${courseUrl}/${lessonUrl}/image.png`,
 		evidence: `https://prompting.schule/badge/${hash}/${email}`,
 	};
 
