@@ -50,10 +50,11 @@ export async function GET({ params }) {
 		badge: `https://prompting.schule/badge/class/${courseUrl}/${lessonUrl}/json.json`,
 		issuedOn: badge.createdAt.toISOString(),
 		verification: {
-			type: 'hosted'
+			type: 'HostedBadge',
+      url: `https://prompting.schule/badge/${hash}/${email}/json.json`
 		},
-		// image: `https://prompting.schule/images/badges/${courseUrl}-${lessonUrl}.png`,
-		// evidence: `https://prompting.schule/progress/${hash}`
+		image: `https://prompting.schule/images/badges/${courseUrl}/${lessonUrl}/image.png`,
+		evidence: `https://prompting.schule/badge/${hash}/${email}`,
 	};
 
 	return new Response(JSON.stringify(assertion), {

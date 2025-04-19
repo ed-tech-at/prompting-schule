@@ -95,3 +95,9 @@ docker-compose up -d
 ## mac pgdump
 brew install libpq
 /opt/homebrew/opt/libpq/bin/pg_dump
+
+
+# Open Badge
+https://openbadgesvalidator.imsglobal.org/
+https://openbadgefactory.com/validator/
+https://badgecheck.io/
