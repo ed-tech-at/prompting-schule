@@ -13,9 +13,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
     maxAge: 0
   });
 
-  console.log("token type", typeof(token));
-  console.log("token", token);
-
+  
   
   // if (typeof(token) === 'string') {
   //   throw redirect(303, "/logout"); // Seite neu laden nach Cookie-Delete

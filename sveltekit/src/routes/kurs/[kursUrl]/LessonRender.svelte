@@ -65,7 +65,7 @@
 
 </script>
 
-<!-- <div class="lesson"> -->
+<div class="lessonWrapper">
  <a href="/kurs/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
@@ -93,11 +93,21 @@
     </p>
     {/if}
 </a>
-<!-- </div> -->
+
+<div class="badges">
+  Badges: <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">Badge Erstellen</a>
+</div>
+
+</div>
 
 <style>
 
-  .lesson {
+  .lessonWrapper {
+    width: 400px;
+
+  }
+
+  .lesson, .badges {
     background-color: white;
     padding: 1em;
     border-radius: 25px;
@@ -106,12 +116,22 @@
     /* flex-grow: 1; */
     transition: all 0.3s;
     outline: 5px solid transparent;
-    width: 400px;
     /* flex-shrink: 1; */
 
   }
+
+  .lesson {
+    border-radius: 25px 25px 0 0;
+  }
+  .badges {
+    border-radius: 0 0 25px 25px;
+    margin-top: 10px;
+    background-color: var(--color-primary);
+    color: white;
+  }
+
   @media (max-width: 500px) {
-    .lesson {
+    .lessonWrapper {
       width: 290px;
     }
   }
