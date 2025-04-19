@@ -30,7 +30,7 @@ export async function GET({ params }) {
 		id: `https://prompting.schule/badge/class/${course}/${lesson}/json.json`,
 		name: `Digital Badge: ${lessonDb.lessonName}`,
 		description: `Für den erfolgreichen Abschluss der Lektion "${lessonDb.lessonName}" im Kurs "${lessonDb.course.name}".`,
-		image: `https://prompting.schule/badges/badge.png`,
+		image: `https://prompting.schule/badge/class/${course}/${lesson}/image.png`,
 		criteria: {
 			narrative: 'Selbstüberprüfung bestanden, Prompts abgesendet und Tokens generiert.'
 		},
