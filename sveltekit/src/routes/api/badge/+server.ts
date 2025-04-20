@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
+import { env } from '$env/dynamic/private';
+
+
 import { error, json } from '@sveltejs/kit';
 
 import bakery from 'openbadges-bakery-v3';
@@ -100,7 +103,7 @@ export async function POST({ request, cookies }) {
     const lesson = await prisma.lesson.findUnique({ where: { id: badgeDb?.lessonId } });
     const course = await prisma.course.findUnique({ where: { id: lesson?.courseId } });
 
-const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
+const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
 	const qrBuffer = await QRCode.toBuffer(certUrl, {
     color: {
       dark: "#009CB1",
@@ -231,17 +234,20 @@ const certUrl = `https://prompting.schule/badge/${badgeDb?.hash}/${user.email}`;
 const assertion = {
   "@context": "https://w3id.org/openbadges/v2",
   "type": "Assertion",
-  "id": "https://prompting.schule/badge/" + badgeDb?.hash + "/" + user.email + "/json.json",
+  "id": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json",
   "recipient": {
     "type": "email",
     "hashed": false,
     "identity": user.email
   },
-  "badge": "https://prompting.schule/badge/class/" + course?.URL + "/" + lesson?.URL + "/json.json",
+  "badge": env.APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/json.json",
   "issuedOn": badgeDb?.createdAt.toISOString(),
   "verification": {
-    "type": "hosted"
-  }
+    "type": "HostedBadge",
+    "url": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json"
+  },
+  "image": env.APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/image.png",
+  "evidence": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email
   };
 
   // console.log('Assertion:', assertion);
