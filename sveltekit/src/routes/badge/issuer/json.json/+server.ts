@@ -1,11 +1,13 @@
-// /badge/issuer/json.json/+server.ts
+import { env } from '$env/dynamic/private';
+
+
 export async function GET() {
 	const issuer = {
 		'@context': 'https://w3id.org/openbadges/v2',
 		type: 'Issuer',
-		id: 'https://prompting.schule/badge/issuer/json.json',
+		id: env.APP_URL + '/badge/issuer/json.json',
 		name: 'prompting.schule & TU Graz',
-		url: 'https://prompting.schule',
+		url: env.APP_URL,
 		// email: 'info@prompting.schule'
 	};
 

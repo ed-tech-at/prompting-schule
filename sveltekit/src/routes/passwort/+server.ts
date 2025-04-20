@@ -45,7 +45,7 @@ export async function POST({ request, params }) {
             }
         });
 
-        await sendMail(user.email, "Passwort zurücksetzen", "Guten Tag,\n\nfür die E-Mail Adresse " + user.email + " wurde ein Passwort zurücksetzen angefordert.\n\nBitte öffnen Sie folgenden Link, um Ihr Passwort zurückzusetzen:\n\n" + env.APP_URL + "/passwort/" + user.email + "" + pwToken + " \n\nWenn Sie diese E-Mail nicht angefordert haben, ignorieren Sie bitte diese Nachricht.\n\nMit freundlichen Grüßen,\nIhr Team der prompting.schule");
+        await sendMail(user.email, "Passwort zurücksetzen", "Guten Tag,\n\nfür die E-Mail Adresse " + user.email + " wurde ein Passwort zurücksetzen angefordert.\n\nBitte öffnen Sie folgenden Link, um Ihr Passwort zurückzusetzen:\n\n" + env.APP_URL + "/passwort/" + user.email + "/" + pwToken + " \n\nWenn Sie diese E-Mail nicht angefordert haben, ignorieren Sie bitte diese Nachricht.\n\nMit freundlichen Grüßen,\nIhr Team der prompting.schule");
 
         return json({ success: true }, { status: 200 });
     } 

@@ -3,6 +3,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+import { env } from '$env/dynamic/private';
+
+
 export async function GET({ params }) {
 	const { course, lesson } = params;
 
@@ -27,14 +30,14 @@ export async function GET({ params }) {
 	const badgeClass = {
 		'@context': 'https://w3id.org/openbadges/v2',
 		type: 'BadgeClass',
-		id: `https://prompting.schule/badge/class/${course}/${lesson}/json.json`,
+		id: env.APP_URL + `/badge/class/${course}/${lesson}/json.json`,
 		name: `Digital Badge: ${lessonDb.lessonName}`,
 		description: `Für den erfolgreichen Abschluss der Lektion "${lessonDb.lessonName}" im Kurs "${lessonDb.course.name}".`,
-		image: `https://prompting.schule/badge/class/${course}/${lesson}/image.png`,
+		image: env.APP_URL + `/badge/class/${course}/${lesson}/image.png`,
 		criteria: {
 			narrative: 'Selbstüberprüfung bestanden, Prompts abgesendet und Tokens generiert.'
 		},
-		issuer: `https://prompting.schule/badge/issuer/json.json`
+		issuer: env.APP_URL + `/badge/issuer/json.json`
 	};
 
 	return new Response(JSON.stringify(badgeClass), {

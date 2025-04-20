@@ -4,11 +4,13 @@
 let email = "";
 let error = "";
 let loading = false;
+let showForm = true;
 
 import type { JwtUserPayload } from '$lib/server/jwt';
 export let data: { user: JwtUserPayload }; 
 
 import { browser } from '$app/environment';
+
 
 if (browser) {
 if (data.user) {
@@ -47,6 +49,7 @@ async function handleSubmit() {
 
       const data = await response.json();
       if (response.ok && data.success) {
+            showForm = false;
           // Registration successful
           // You can redirect the user or show a success message here
           // For example:
@@ -78,6 +81,7 @@ async function handleSubmit() {
   {#if error}
       <div class="error-message">{error}</div>
   {/if}
+  {#if showForm}
   <form on:submit|preventDefault={handleSubmit}>
       <div class="form-group">
           <label for="email">E-Mail Addresse</label>
@@ -97,6 +101,8 @@ async function handleSubmit() {
           {!loading ? "Passwort-Token zusenden" : ""}
       </button>
   </form>
+  {/if}
+
   <div class="alt-links">
       <p>Sie kennen Ihr Passwort?</p>
       <a href="/login" class="button invert">Einloggen

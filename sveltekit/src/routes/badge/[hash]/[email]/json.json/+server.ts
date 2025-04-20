@@ -2,6 +2,8 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
+import { env } from '$env/dynamic/private';
+
 export async function GET({ params }) {
 	const { hash, email } = params;
 
@@ -41,20 +43,20 @@ export async function GET({ params }) {
 	const assertion = {
 		'@context': 'https://w3id.org/openbadges/v2',
 		type: 'Assertion',
-		id: `https://prompting.schule/badge/${hash}/${email}/json.json`,
+		id: env.APP_URL + `/badge/${hash}/${email}/json.json`,
 		recipient: {
 			type: 'email',
 			hashed: false,
 			identity: email
 		},
-		badge: `https://prompting.schule/badge/class/${courseUrl}/${lessonUrl}/json.json`,
+		badge: env.APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/json.json`,
 		issuedOn: badge.createdAt.toISOString(),
 		verification: {
 			type: 'HostedBadge',
-      url: `https://prompting.schule/badge/${hash}/${email}/json.json`
+      url: env.APP_URL + `/badge/${hash}/${email}/json.json`
 		},
-		image: `https://prompting.schule/badge/class/${courseUrl}/${lessonUrl}/image.png`,
-		evidence: `https://prompting.schule/badge/${hash}/${email}`,
+		image: env.APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/image.png`,
+		evidence: env.APP_URL + `/badge/${hash}/${email}`,
 	};
 
 	return new Response(JSON.stringify(assertion), {
