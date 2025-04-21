@@ -113,7 +113,7 @@
 <main>
 <h1>Quiz zur Lektion {data.lesson.lessonName}</h1>
 
-<p>Beantworte die Quizfragen.</p>
+<p>Beantworten Sie die Quizfragen.</p>
 
 <form class="quiz-questions" on:submit|preventDefault={handleSubmit} disabled={quizSubmitted}>
 {#each data.quizQuestions as question}
@@ -178,8 +178,8 @@
       <p><i class="fas fa-check-circle" style="color: #638e21;"></i> Gut gemacht! Lektion abgeschlossen.</p>
       <a class="button" href="/kurs/{data.course.URL}">Zur Kurs-Seite {data.course.name}</a>
     {:else}
-      <p><i class="fas fa-exclamation-circle" style="color: red;"></i> Diese Quiz-Leistung reicht für das Zertifikat noch nicht aus. </p>
-      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehe zur Lektion zurück und schaue dir die Inhalte erneut an. Sobald du 75&nbsp;% beim Quiz erreichst, bekommst du die Digital Badge.</a>
+      <p><i class="fas fa-exclamation-circle" style="color: red;"></i> Diese Quiz-Leistung reicht für den Digital Badge noch nicht aus. </p>
+      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehen Sie zur Lektion zurück und schauen Sie sich die Inhalte erneut an. Sobald Sie 75&nbsp;% beim Quiz erreichen, erhalten Sie die Digital Badge.</a>
     {/if}
   </section>
 {/if}

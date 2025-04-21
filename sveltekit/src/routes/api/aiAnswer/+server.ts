@@ -125,13 +125,21 @@ export async function POST({ request, cookies }) {
   
   if (action === 'ai2') {
     const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+
+    let messages = [
+      { role: 'developer', content: element.devPromptA },
+      { role: 'user', content: element.devPromptB },
+      { role: 'user', content: data.ai2 }
+    ];
+    if (element?.type == 'ai2only') {
+      messages = [
+        { role: 'developer', content: element.devPromptA },
+        { role: 'user', content: data.ai2 }
+      ];
+    }
   
     return streamAiResponse({
-      messages: [
-        { role: 'developer', content: element.devPromptA },
-        { role: 'user', content: element.devPromptB },
-        { role: 'user', content: data.ai2 }
-      ],
+      messages: messages,
       saveToDb: async (text, usage) => {
         await prisma.userProgress.create({
           data: {

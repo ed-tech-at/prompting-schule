@@ -26,6 +26,9 @@
     if (element.type === "ai2") {
       getUserProgressElementAi2();
     }
+    if (element.type === "ai2only") {
+      getUserProgressElementAi2();
+    }
     if (element.type === "star") {
       getUserProgressElementStar();
     }
@@ -804,7 +807,7 @@ function copyWorsePrompt() {
   {/if}
 
 
-  {#if element.type === "ai2"}
+  {#if element.type === "ai2" || element.type === "ai2only"}
 
 <section>
   {@html element.description}
