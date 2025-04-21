@@ -87,14 +87,14 @@
  
   {#if lesson.starsNeeded > 0}  
   
-    <p>Zum Abschluss dieser Lektion benötigst du:
+    <p>Zum Abschluss dieser Lektion benötigen Sie:
     {#each Array(lesson.starsNeeded) as _, i}
       <i class="fa fa-star" aria-hidden="true"></i>
     {/each}
     </p>
     
     <p>
-    Von dir gesammelte Sterne:
+    Gesammelte Sterne:
     {#each Array(userStars) as _, i}
       <i class="fa fa-star star-color" aria-hidden="true"></i>
 

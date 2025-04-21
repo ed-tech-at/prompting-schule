@@ -59,15 +59,9 @@
 
   .inactive-link {
     cursor:default;
+    opacity: 0.7;
   }
 
-  h2 {
-    /* text-align: center; */
-    margin-bottom: 1em;
-  }
-  h3 {
-    font-size: 1.6em;
-  }
   .emoji {
     font-size: 3em;
     text-align: center;

@@ -405,7 +405,7 @@ h1, h2 {
       <div class="benefit-icon">✨</div>
       <div class="benefit-title">Prompting verstehen</div>
       <div class="benefit-description">
-        Erfahren Sie die Wissenschaft hinter der Erstellung von Prompts, die genaue Ergebnisse liefern.
+        Entdecken Sie die Konzepte für die Erstellung von Prompts, die genaue Ergebnisse liefern.
       </div>
     </div>
     <div class="benefit-card">
@@ -417,16 +417,16 @@ h1, h2 {
     </div>
     <div class="benefit-card">
       <div class="benefit-icon">📚</div>
-      <div class="benefit-title">Expertenbasierte Strategien</div>
+      <div class="benefit-title">Erprobte Strategien</div>
       <div class="benefit-description">
-        Lernen Sie Techniken, die von OpenAI und Expert:innen unterstützt werden.
+        Entdecken Sie Techniken, die auf Empfehlungen von OpenAI, der UNESCO und Expert:innen basieren.
       </div>
     </div>
     <div class="benefit-card">
-      <div class="benefit-icon">💡</div>
-      <div class="benefit-title">Kommunikationsfähigkeiten verbessern</div>
+      <div class="benefit-icon">🎖️</div>
+      <div class="benefit-title">Digitales Lernabzeichen</div>
       <div class="benefit-description">
-        Entwickeln Sie Ihre Fähigkeit, effektiv mit KI-Modellen zu interagieren.
+        Testen Sie Ihr Wissen direkt nach jeder Lektion. Für Ihren Lernerfolg erhalten Sie eine Digital Badge.
       </div>
     </div>
 
@@ -435,13 +435,14 @@ h1, h2 {
 
 <section class="about-section">
   <h2>Über den Grundlagen-Kurs</h2>
+  <p>Der Grundlagen-Kurs umfasst 4 Lektionen und ist in rund 4 x 60 Minuten abschließbar. </p>
   <div class="about-container">
     <div class="about-card">
       <div class="about-icon">🖋️</div>
       <div class="about-content">
-        <div class="about-title">Schreiben Sie klare Anweisungen</div>
+        <div class="about-title">Klare Anweisungen schreiben</div>
         <div class="about-description">
-          Lernen Sie, präzise und eindeutige Anweisungen zu formulieren, um die besten Antworten von KI zu erhalten.
+          Sie lernen, wie Sie präzise und eindeutige Prompts schreiben, um bessere Antworten von der KI zu erhalten.
         </div>
       </div>
     </div>
@@ -449,9 +450,9 @@ h1, h2 {
     <div class="about-card">
       <div class="about-icon">📖</div>
       <div class="about-content">
-        <div class="about-title">Geben Sie Referenztexte an</div>
+        <div class="about-title">Referenztexte bereitgestellt</div>
         <div class="about-description">
-          Entdecken Sie die Macht von Beispielen, um KI zu besseren Ergebnissen zu führen.
+          Sie erfahren, wie Referenztexte und Beispiele die Qualität von KI-Antworten erheblich verbessern können.
         </div>
       </div>
     </div>
@@ -459,9 +460,9 @@ h1, h2 {
     <div class="about-card">
       <div class="about-icon">🔗</div>
       <div class="about-content">
-        <div class="about-title">Teilen Sie komplexe Aufgaben auf</div>
+        <div class="about-title">Komplexe Aufgaben teilen</div>
         <div class="about-description">
-          Teilen Sie komplexe Anfragen in kleinere Schritte auf, um Genauigkeit und Klarheit zu verbessern.
+          Sie verstehen, wie man große Anfragen in sinnvolle Schritte unterteilt – für mehr Klarheit und Genauigkeit.
         </div>
       </div>
     </div>
@@ -469,9 +470,9 @@ h1, h2 {
     <div class="about-card">
       <div class="about-icon">⏳</div>
       <div class="about-content">
-        <div class="about-title">Geben Sie dem Modell Zeit zum "Denken"</div>
+        <div class="about-title">Modelle nachdenken lassen</div>
         <div class="about-description">
-          Lernen Sie, wie Sie Anfragen strukturieren, damit das Modell Schritt für Schritt überlegen kann.
+          Sie entdecken, wie Sie Ihre Prompts so formulieren, dass die KI schrittweise überlegt und durchdachte Antworten liefert.
         </div>
       </div>
     </div>
@@ -481,7 +482,7 @@ h1, h2 {
 <section class="cta-section">
   <h2>Machen Sie den nächsten Schritt</h2>
   <p>
-    Melden Sie sich noch heute für unseren Grundlagen-Kurs an und lernen Sie bewährte Strategien, um Prompt-Engineering zu meistern!
+    Melden Sie sich noch heute an und lernen Sie im Grundlagen-Kurs bewährte Strategien, um Prompt-Engineering zu meistern!
   </p>
   <div class="cta-buttons">
     <a href="/login" class="cta-button" style="margin-bottom: 5em;">ab Mai verfügbar</a>

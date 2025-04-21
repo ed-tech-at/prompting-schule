@@ -23,6 +23,17 @@ h1, h2, h3 {
   color: var(--color-primary);
 }
 
+h1:has(+ p), h2:has(+ p), h3:has(+ p) {
+  margin-bottom: 0.2em;
+}
+h1+ p, h2+ p, h3+ p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 1em;
+}
+
 a {
   color: var(--color-link);
   /* text-decoration: none; */
@@ -928,6 +939,16 @@ button.danger:hover, .button.danger:hover {
   background: var(--color-red-light);
   color: white;
 }
+
+
+
+.course h3 {
+  margin: 0;
+}
+.course p {
+  margin-top: 0;
+}
+
 
 .generated * {
   color: black !important;

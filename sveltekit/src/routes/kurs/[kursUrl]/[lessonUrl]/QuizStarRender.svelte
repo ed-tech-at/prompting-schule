@@ -53,13 +53,13 @@
 
 <section class="quiz-link">
   <h2>Quiz</h2>
-  <p>Zum Abschluss dieser Lektion benötigst du:
+  <p>Zum Abschluss dieser Lektion benötigen Sie:
   {#each Array(lesson.starsNeeded) as _, i}
     <i class="fa fa-star" aria-hidden="true"></i>
   {/each}
   </p>
   <p>
-  Von dir gesammelte Sterne:
+  Von Ihnen gesammelte Sterne:
   {#each Array(userStars) as _, i}
     <i class="fa fa-star star-color" aria-hidden="true"></i>
   {/each}
@@ -67,7 +67,7 @@
   {#if userStars >= lesson.starsNeeded}
 
     {#if percentReached > 0}
-      <p>Dein bester Versuch liegt bei {percentReached}%.</p>
+      <p>Ihr bester Versuch liegt bei {percentReached}%.</p>
       <a class="quiz-btn" href="/kurs/{course.URL}/{lesson.URL}/quiz">Quiz erneut starten</a>
     {:else}
       <a class="quiz-btn" href="/kurs/{course.URL}/{lesson.URL}/quiz">Quiz starten</a>
@@ -75,7 +75,7 @@
     {/if}
 
   {:else}
-    <p>Du hast noch nicht genügend Sterne gesammelt, um das Quiz zu starten.</p>
+    <p>Sie haben noch nicht genügend Sterne gesammelt, um das Quiz zu starten.</p>
   {/if}
   
   

@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
 
   const courses = await prisma.course.findMany({
     where: { active: { gt: 0 } },
-    orderBy: { id: 'asc' }
+    orderBy: { position: 'asc' }
   });
 
   return {

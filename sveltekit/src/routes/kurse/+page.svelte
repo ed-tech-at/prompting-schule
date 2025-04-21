@@ -36,32 +36,7 @@
   </div>
   
   <style>
-    h1 {
-      padding-bottom: 1em;
-    }
-    /* .courses {
-      
-      display: flex;
-      /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin: 1rem;
-  
-  
-    }
-    
-    @media (min-width: 1220px) {
-      .lessons {
-        flex-wrap: nowrap;
-      }
-    }
-    @media (max-width: 1220px) {
-      .lessons {
-        flex-direction: column;
-        align-content: space-around;
-      }
-    } */
+   
   </style>
   
   </main>
