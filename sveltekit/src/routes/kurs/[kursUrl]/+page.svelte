@@ -12,7 +12,7 @@ import { onMount } from 'svelte';
 
 </script>
 
-<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }]} user={data.user} />
+<Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: data.course.name, href: '/kurs/' + data.course.URL }]} user={data.user} />
 <main>
 <h1>Kurs: {data.course.name}</h1>
 
@@ -27,19 +27,19 @@ import { onMount } from 'svelte';
     
     display: flex;
     /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
-    gap: 1rem;
+    gap: 2rem;
     flex-wrap: wrap;
     justify-content: center;
     margin: 1rem;
 
 
   }
-  @media (min-width: 1200px) {
+  @media (min-width: 1220px) {
     .lessons.displayType-flex {
       flex-wrap: nowrap;
     }
   }
-  @media (max-width: 1200px) {
+  @media (max-width: 1220px) {
     .lessons {
       flex-direction: column;
       align-content: space-around;

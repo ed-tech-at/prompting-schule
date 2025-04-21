@@ -54,7 +54,7 @@ if (browser) {
           
           if (response.ok && data.success) {
 
-            window.location.href = "/dashboard";
+            window.location.href = "/kurse";
             // console.log("Benutzer erfolgreich angemeldet:", data.user);
             //   localStorage.setItem("userId", data.user.id);
             //   localStorage.setItem("userEmail", data.user.email);

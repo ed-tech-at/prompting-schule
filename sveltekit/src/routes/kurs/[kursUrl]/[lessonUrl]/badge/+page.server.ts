@@ -39,7 +39,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
 
   if (lesson?.starsNeeded > 0) {
-    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, '/dashboard');
+    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, '/kurse');
     //  TODO 75
   } 
 
@@ -59,7 +59,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const maxPrompts = aggregate._sum.promptsTried || 0;
 
   if (maxPrompts == 0) {
-    throw redirect(302, '/dashboard'); 
+    throw redirect(302, '/kurse'); 
   }
 
   return {

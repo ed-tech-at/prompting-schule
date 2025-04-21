@@ -26,6 +26,8 @@
     </a>
   </div>
 
+  {#if navItems.length > 0}
+
   <nav>
     {#each navItems as item, i}
       <a href={item.href}>{item.name}</a>
@@ -34,12 +36,15 @@
       {/if}
     {/each}
   </nav>
+  {/if}
 
   <div class="login">
   {#if user?.email}
-  <a href='/profil'>{user?.email}</a>
+  <a href='/profil'>Profil {user?.email}</a>
   {:else}
     <a href="/login">🔑 Anmelden</a>
   {/if}
   </div>
+  <div class="logo-tugraz"><img src="/logo-tugraz-white.svg" alt="TU Graz Logo"></div>
+  <div class='flex-full'></div>
 </header>

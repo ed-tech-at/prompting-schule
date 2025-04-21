@@ -32,6 +32,7 @@ export async function POST({ request, params }) {
         const user = await prisma.user.findUnique({ where: { email: formData.email } });
 
         if (!user) {
+            
             return json({ success: false, error: "Benutzer nicht gefunden." }, { status: 400 });
         }
 

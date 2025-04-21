@@ -111,20 +111,23 @@
     
 </script>
   
-<Header navItems={[{ name: 'Dashboard', href: '/dashboard' }, { name: 'Profil', href: '/profil' }]} user={data.user} />
+<Header navItems={[{ name: 'Kurse', href: '/kurse' }]} user={data.user} />
+<!-- <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: 'Profil', href: '/profil' }]} user={data.user} /> -->
   <main>
     <h1>Profil</h1>
     <p>E-Mail: {data.user.email}</p>
 
-    <a href="/dashboard" style="display: inline-block; color: var(--color-black); background: var(--color-secondary); padding: 1em 2em; border-radius: 15px; margin-bottom: 3em;">Zum Kurse - Dashboard</a>
-    <br>
+    <div style="margin-bottom: 3em;">
+
+      <a href="/kurse" class="button large secondary">Zur den Kursen</a>
+    </div>
 
     
 
     <div style="margin-bottom: 2em;">
 
-    <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}>
-      {showPwChangeForm ? 'Passwort ändern ausblenden' : 'Passwort ändern anzeigen'}
+    <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}  style="margin-bottom: 1em;">
+      {showPwChangeForm ? 'Passwort ändern —' : 'Passwort ändern +'}
     </button>
 
     {#if pwChangeResult}
@@ -135,13 +138,13 @@
     
     
       <form on:submit|preventDefault={handlePwChange}>
-        <br>
+        
         <label for="old">Ihr Passwort:</label>
         <input type="password" bind:value={oldPassword} name="old">
         <br>
         <label for="password">Neues Passwort:</label>
         <input type="password" id="password" bind:value={newPassword} name="new">
-        <br><button type="submit">{buttonText}</button>
+        <br><button type="submit" class="medium">{buttonText}</button>
       </form>
     {/if}
 
@@ -157,11 +160,11 @@
     <div style="margin-top: 3em; margin-bottom: 2em;">
 
       <button class="large danger" on:click={() => showDelFrom = !showDelFrom}>
-        {showDelFrom ? 'Formular zur Benutzeraccount-Löschung ausblenden' : 'Formular zur Benutzeraccount-Löschung anzeigen'}
+        {showDelFrom ? 'Account löschen —' : 'Account löschen +'}
       </button>
   
      {#if delResult}
-      <h3>{delResult}</h3>
+      <h3 style="margin-top: 1em; color: red">{delResult}</h3>
     {/if}
   
   
@@ -169,10 +172,10 @@
       
       
         <form on:submit|preventDefault={handleDel}>
-          <br>
+          
           <p> Nach dem Absenden der Löschung wird die Verknüpfung Ihres Kontos mit Ihrer E-Mail-Adresse dauerhaft gelöscht und sie werden abgemeldet.<br>
             <strong>Wichtig:</strong> Danach ist keine Anmeldung mit dieser E-Mail-Adresse und Ihrem Passwort mehr möglich, ein neuer Account mit dieser E-Mail Adresse kann danach jedoch bei Bedarf wieder erstellt werden. <br>
-            <strong>Achtung:</strong> Zertifikate und Open Badges können nach der Löschung nicht mehr heruntergeladen werden, und bereits ausgestellte Zertifikate und Open Badges lassen sich nicht mehr validieren oder auf Echtheit überprüfen.</p>
+            <strong>Achtung:</strong> Zertifikate und Digital Badges können nach der Löschung nicht mehr heruntergeladen werden, und bereits ausgestellte Zertifikate und Digital Badges lassen sich nicht mehr validieren oder auf Echtheit überprüfen.</p>
             
             <br><label for="email">Ihre E-Mail Adresse:</label>
             <input type="email" id="email" bind:value={email} name="email">
@@ -182,39 +185,13 @@
           <input type="password" bind:value={password} name="password">
 
           
-          <br><button type="submit" class="danger">Benutzeraccount löschen</button>
+          <br>
+          
+          <button type="submit" class="danger medium">Benutzeraccount löschen</button>
         </form>
       {/if}
   
     </div>
   
-  <style>
-    h1 {
-      padding-bottom: 1em;
-    }
-    /* .courses {
-      
-      display: flex;
-      /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin: 1rem;
-  
-  
-    }
-    
-    @media (min-width: 1200px) {
-      .lessons.displayType-flex {
-        flex-wrap: nowrap;
-      }
-    }
-    @media (max-width: 1200px) {
-      .lessons {
-        flex-direction: column;
-        align-content: space-around;
-      }
-    } */
-  </style>
   
   </main>

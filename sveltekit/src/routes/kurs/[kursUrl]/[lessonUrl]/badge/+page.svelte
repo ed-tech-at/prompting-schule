@@ -49,7 +49,7 @@
 
 </script>
 
-<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }, {name: "Badge",  href: '/kurs/' + data.course.URL + '/' + data.lesson.URL + "/badge" }]} user={data.user}  />
+<Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }, {name: "Badge",  href: '/kurs/' + data.course.URL + '/' + data.lesson.URL + "/badge" }]} user={data.user}  />
 
 <main>
 

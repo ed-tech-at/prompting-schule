@@ -25,9 +25,9 @@
   
   </script>
   
-  <Header navItems={[{ name: 'Dashboard', href: '/dashboard' }]} user={data.user} />
+  <Header navItems={[{ name: 'Kurse', href: '/kurse' }]} user={data.user} />
   <main>
-  <h1>Kurse - Dashboard</h1>
+  <h1>Übersicht der Kurse</h1>
   
   <div class="courses">
   {#each data.courses as course}
@@ -51,12 +51,12 @@
   
     }
     
-    @media (min-width: 1200px) {
+    @media (min-width: 1220px) {
       .lessons {
         flex-wrap: nowrap;
       }
     }
-    @media (max-width: 1200px) {
+    @media (max-width: 1220px) {
       .lessons {
         flex-direction: column;
         align-content: space-around;

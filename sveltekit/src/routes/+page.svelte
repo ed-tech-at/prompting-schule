@@ -177,10 +177,13 @@ h1, h2 {
   }
 
   .benefits-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Four columns for larger screens */
+    /* display: grid; */
+    /*grid-template-columns: repeat(4, 1fr); /* Four columns for larger screens */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
     gap: 20px;
-    max-width: 1200px;
+    max-width: 1220px;
     margin: 0 auto;
   }
 
@@ -189,15 +192,16 @@ h1, h2 {
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 20px;
+    max-width: 290px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
-  .benefit-card:hover {
+  /* .benefit-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
+  } */
 
   .benefit-icon {
     font-size: 48px;
@@ -260,7 +264,7 @@ h1, h2 {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    max-width: 1200px;
+    max-width: 1220px;
     margin: 0 auto;
   }
 
@@ -273,11 +277,11 @@ h1, h2 {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
   }
-
+/* 
   .about-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  }
+  } */
 
   .about-icon {
     font-size: 48px;
@@ -336,7 +340,7 @@ h1, h2 {
   <h1><img src='/logo-prompting.schule-bg.png' style="height: 1.3em;
     position: relative;
     top: 0.3em;
-    margin-right: 0.3em;" alt="prompting.schule Logo" /> Meistere Prompt Engineering</h1>
+    margin-right: 0.3em;" alt="prompting.schule Logo" /> Meistern Sie Prompt-Engineering</h1>
   <p>
       Erzielen Sie bessere Ergebnisse mit KI-Modellen wie ChatGPT, indem Sie bewährte Strategien erlernen, klare Anweisungen zu schreiben und komplexe Aufgaben zu vereinfachen.
   </p>
@@ -355,18 +359,58 @@ h1, h2 {
 </div> -->
 
 <section class="benefits-section">
-  <h2>Warum einen Kurs belegen?</h2>
+  <h2>So funktioniert die prompting.schule</h2>
+  <div class="benefits-container">
+    
+    
+
+    <div class="benefit-card">
+      <div class="benefit-icon">💰</div>
+      <div class="benefit-title">Kostenlos starten</div>
+      <div class="benefit-description">
+        Unsere Kurse sind Offene Bildungsressourcen (OER). Daher frei verfügbar – bereitgestellt von der TU Graz.
+      </div>
+    </div>
+
+    <div class="benefit-card">
+      <div class="benefit-icon">🎯</div>
+      <div class="benefit-title">Zielgruppen</div>
+      <div class="benefit-description">
+        Egal ob Einsteiger:in, Studierende, Berufstätige oder Lehrkräfte – hier findet jede:r den passenden Einstieg.
+      </div>
+    </div>
+  
+    <div class="benefit-card">
+      <div class="benefit-icon">⏱️</div>
+      <div class="benefit-title">Flexible Zeiteinteilung</div>
+      <div class="benefit-description">
+        Die Kurse sind modular aufgebaut – Sie bestimmen Tempo und Zeitpunkt des Lernens.
+      </div>
+    </div>
+  
+    <div class="benefit-card">
+      <div class="benefit-icon">🧠</div>
+      <div class="benefit-title">Selbstlernkurse</div>
+      <div class="benefit-description">
+        Sie entscheiden selbst, wie tief Sie in ein Thema einsteigen möchten – ideal für Neugierige und Fortgeschrittene gleichermaßen.
+      </div>
+    </div>
+
+
+  </div>
+
+  <h2 style="margin-top: 4em;">Warum einen Kurs belegen?</h2>
   <div class="benefits-container">
     <div class="benefit-card">
       <div class="benefit-icon">✨</div>
-      <div class="benefit-title">Verstehen Sie effektive Prompts</div>
+      <div class="benefit-title">Prompting verstehen</div>
       <div class="benefit-description">
         Erfahren Sie die Wissenschaft hinter der Erstellung von Prompts, die genaue Ergebnisse liefern.
       </div>
     </div>
     <div class="benefit-card">
       <div class="benefit-icon">🚀</div>
-      <div class="benefit-title">Steigern Sie Ihre Produktivität</div>
+      <div class="benefit-title">Produktivität steigern</div>
       <div class="benefit-description">
         Nutzen Sie KI-Tools, um Ihre Effizienz bei täglichen Aufgaben zu verbessern.
       </div>
@@ -375,18 +419,19 @@ h1, h2 {
       <div class="benefit-icon">📚</div>
       <div class="benefit-title">Expertenbasierte Strategien</div>
       <div class="benefit-description">
-        Lernen Sie Techniken, die von OpenAI und Experten unterstützt werden.
+        Lernen Sie Techniken, die von OpenAI und Expert:innen unterstützt werden.
       </div>
     </div>
     <div class="benefit-card">
       <div class="benefit-icon">💡</div>
-      <div class="benefit-title">Verbessern Sie Ihre Kommunikationsfähigkeiten</div>
+      <div class="benefit-title">Kommunikationsfähigkeiten verbessern</div>
       <div class="benefit-description">
         Entwickeln Sie Ihre Fähigkeit, effektiv mit KI-Modellen zu interagieren.
       </div>
     </div>
-  </div>
-</section>
+
+    </div>
+    </section>
 
 <section class="about-section">
   <h2>Über den Grundlagen-Kurs</h2>
@@ -436,7 +481,7 @@ h1, h2 {
 <section class="cta-section">
   <h2>Machen Sie den nächsten Schritt</h2>
   <p>
-    Melden Sie sich noch heute für unseren Prompting School-Kurs an und lernen Sie bewährte Strategien, um Prompt Engineering zu meistern!
+    Melden Sie sich noch heute für unseren Grundlagen-Kurs an und lernen Sie bewährte Strategien, um Prompt-Engineering zu meistern!
   </p>
   <div class="cta-buttons">
     <a href="/login" class="cta-button" style="margin-bottom: 5em;">ab Mai verfügbar</a>

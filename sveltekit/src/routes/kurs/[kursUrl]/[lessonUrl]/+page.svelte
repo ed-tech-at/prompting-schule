@@ -121,7 +121,7 @@ textAreas[0].dispatchEvent(new Event('input'));
   }
 
 </script>
-<Header navItems={[{ name: 'Kurs', href: '/dashboard' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }]} user={data.user} />
+<Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }]} user={data.user} />
 <main>
 
 <h1>Lektion {data.lesson.lessonName}</h1>
