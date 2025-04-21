@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   
   const user = requireLogin(cookies);
 
-  console.log('user', user);
+  // console.log('user', user);
 
   const courses = await prisma.course.findMany({
     where: { active: { gt: 0 } },

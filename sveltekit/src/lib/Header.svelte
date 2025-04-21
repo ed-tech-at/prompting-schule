@@ -11,11 +11,18 @@
   //   userEmail = user?.email;
   // }
 </script>
-
+<svelte:head>
+  {#if navItems.length > 0}
+    
+    <title>{navItems[navItems.length - 1].name} | prompting.schule</title>
+  {:else}
+    <title>prompting.schule</title>
+  {/if}
+</svelte:head>
 <header>
   <div class="logo">
     <a href='/'>
-      <h3><img src="/logo-prompting.schule-bg.png" alt="Logo" /> prompting.schule</h3>
+      <h3><img src="/logo-prompting.schule-bg.png" alt="prompting.schule Logo" /> prompting.schule</h3>
     </a>
   </div>
 

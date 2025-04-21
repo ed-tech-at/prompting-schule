@@ -148,4 +148,24 @@ export async function POST({ request, cookies }) {
       percentReached: results.percentReached
     });
   }
+
+  if (action == "getPromptsTried") {
+    if (answerData.userId !== user.id) {
+      return json({
+        success: false,
+        message: "User ID passen nicht zusammen."
+      });
+    }
+    const promptsTried = await prisma.userProgress.aggregate({
+      where: { userId: answerData.userId, lessonId: answerData.lessonId },
+      _count: {
+        promptsTried: true
+      }
+    });
+    return json({
+      success: true,
+      promptsTried: promptsTried._count.promptsTried
+    });
+
+  }
 }

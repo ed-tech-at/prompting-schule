@@ -40,21 +40,26 @@ export async function POST({ request, cookies }) {
     if (!lesson) {
       return json({ success: false, error: 'Lesson not found' });
     }
-    const bestQuiz = await prisma.userQuizAttempt.findFirst({
-      where: {
-        userId: user.id,
-        lessonId: lesson.id
-      },
-      orderBy: {
-        percentReached: 'desc'
+    
+    if (lesson?.starsNeeded > 0) {
+      
+
+      const bestQuiz = await prisma.userQuizAttempt.findFirst({
+        where: {
+          userId: user.id,
+          lessonId: lesson.id
+        },
+        orderBy: {
+          percentReached: 'desc'
+        }
+      });
+      if (!bestQuiz) {
+        return json({ success: false, error: 'No quiz attempt found' });
       }
-    });
-    if (!bestQuiz) {
-      return json({ success: false, error: 'No quiz attempt found' });
-    }
-    if (bestQuiz.percentReached < 30) {
-      //  todo
-      return json({ success: false, error: 'Not enough points' });
+      if (bestQuiz.percentReached < 75) {
+        //  todo 75
+        return json({ success: false, error: 'Not enough points' });
+      }
     }
 
     // console.log('bestQuiz', bestQuiz);
@@ -73,6 +78,10 @@ export async function POST({ request, cookies }) {
     });
 
     // console.log('aggregate', aggregate);
+
+    if (aggregate._sum.promptsTried === 0) {
+      return json({ success: false, error: 'No prompts tried' });
+    }
 
     const hash = await newBadgeHash(user.id, lessonId);
 
@@ -102,6 +111,12 @@ export async function POST({ request, cookies }) {
 
     const lesson = await prisma.lesson.findUnique({ where: { id: badgeDb?.lessonId } });
     const course = await prisma.course.findUnique({ where: { id: lesson?.courseId } });
+    let textSelbstueberpruefung = '';
+
+    if (lesson?.starsNeeded > 0) {
+      textSelbstueberpruefung = 'und die Selbstüberprüfung bestanden';
+    }
+    
 
 const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
 	const qrBuffer = await QRCode.toBuffer(certUrl, {
@@ -165,7 +180,7 @@ const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls 
     <text x="50%" y="490" class="lesson">hat die Lektion <tspan class='bold'> ${lesson?.lessonName}</tspan></text>
     <text x="50%" y="550" class="lesson">im Kurs <tspan class='bold'> ${course?.name}</tspan></text>
 	  
-	  <text x="50%" y="610" class="lesson"> absolviert und die Selbstüberprüfung bestanden.</text>
+	  <text x="50%" y="610" class="lesson"> absolviert${textSelbstueberpruefung}.</text>
 	  <text x="100" y="720" class="used">Es wurden ${badgeDb?.promptsTried} Prompts</text>
 	  <text x="100" y="775" class="used">mit ${badgeDb?.promptTokens} Tokens abgesendet</text>
 	  <text x="100" y="900" class="generated">und ${badgeDb?.completionTokens} Tokens generiert.</text>

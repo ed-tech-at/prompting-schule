@@ -6,6 +6,7 @@
     badgeEmail: string, 
     badgeHash: string, 
     badgeLesson: string, 
+    badgeLessonStars?: number, 
     badgeCourse: string,
     badgeDate: string,
   };
@@ -22,7 +23,7 @@
   <p>Der User <b>{data.badgeEmail}</b><br>
     hat die Lektion <b>{data.badgeLesson}</b><br>
     im Kurs: <b>{data.badgeCourse}</b> <br>
-    absolviert und die Selbstüberprüfung bestanden.<br>
+    absolviert{data.badgeLessonStars > 0 ? ' und die Sterneprüfung bestanden' : ''}.<br>
   </p>
 {:else}
   <h1>Diese Badge existiert nicht</h1>

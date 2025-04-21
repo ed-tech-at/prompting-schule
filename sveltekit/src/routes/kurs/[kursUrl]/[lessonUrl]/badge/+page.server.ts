@@ -38,8 +38,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   });
 
 
-  if (bestQuiz?.percentReached < 75) throw redirect(302, '/dashboard');
-  //  TODO 75
+  if (lesson?.starsNeeded > 0) {
+    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, '/dashboard');
+    //  TODO 75
+  } 
+
+  
 
   const aggregate = await prisma.userProgress.aggregate({
 
@@ -53,6 +57,10 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   });
 
   const maxPrompts = aggregate._sum.promptsTried || 0;
+
+  if (maxPrompts == 0) {
+    throw redirect(302, '/dashboard'); 
+  }
 
   return {
     course,

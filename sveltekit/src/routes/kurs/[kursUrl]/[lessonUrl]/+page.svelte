@@ -125,9 +125,9 @@ textAreas[0].dispatchEvent(new Event('input'));
 <main>
 
 <h1>Lektion {data.lesson.lessonName}</h1>
-{#if data.course.displayType != "labor"}
+<!-- {#if data.course.displayType != "labor"}
 <QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
-{/if}
+{/if} -->
 
 
 

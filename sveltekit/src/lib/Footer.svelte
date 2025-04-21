@@ -2,7 +2,7 @@
 <footer>
   <div class="logo">
     
-    <a href='/'><h3><img src="/logo-prompting.schule-bg.png"  alt="Logo"> prompting.schule</h3></a>
+    <a href='/'><h3><img src="/logo-prompting.schule-bg.png"  alt="prompting.schule Logo"> prompting.schule</h3></a>
     <p>Werden Sie zum Prompt-Engineering Champion</p>
   </div>
   <div class="links">

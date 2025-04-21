@@ -11,7 +11,7 @@
 h1, h2 {
     color: white
 }
-    /* Language Selector */
+    /* Language Selector
     .language-selector {
         position: absolute;
         top: 20px;
@@ -40,9 +40,9 @@ h1, h2 {
     .language-button:hover {
         background-color: #2f929a;
         color: white;
-    }
+    } */
 
-    /* Responsive Design */
+    /* Responsive Design
     @media (max-width: 768px) {
         .language-selector {
             font-size: 14px;
@@ -52,7 +52,7 @@ h1, h2 {
         .language-button {
             padding: 6px 12px;
         }
-    }
+    } */
 
     section {
         margin: 0;
@@ -334,10 +334,9 @@ h1, h2 {
   <!-- Dimmed Letters -->
   <div class="dimmed-text">PROMPTING.SCHULE</div>
   <h1><img src='/logo-prompting.schule-bg.png' style="height: 1.3em;
-    
     position: relative;
     top: 0.3em;
-    margin-right: 0.3em;" /> Meistere Prompt Engineering</h1>
+    margin-right: 0.3em;" alt="prompting.schule Logo" /> Meistere Prompt Engineering</h1>
   <p>
       Erzielen Sie bessere Ergebnisse mit KI-Modellen wie ChatGPT, indem Sie bewährte Strategien erlernen, klare Anweisungen zu schreiben und komplexe Aufgaben zu vereinfachen.
   </p>

@@ -12,11 +12,12 @@
 
 
   let percentReached = 0; 
+  let promptsTried = 0; 
 
   let userStars = 0;
 
   onMount(() => {
-      getQuizResults();
+      getQuizResultsOrPromptsTried();
       updateUserStars();
     });
 
@@ -39,17 +40,24 @@
     userStars = result.stars;
   }
 
-  async function getQuizResults() {
+  async function getQuizResultsOrPromptsTried() {
     try {
       const answerData = {
         userId: userId,
         lessonId: lesson.id
       };
+
+      let action = "getQuizResults";
+      if (lesson.starsNeeded == 0) {
+        action = "getPromptsTried";
+      }
+
+
       const response = await fetch('/api/quiz' , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "getQuizResults",
+          action: action,
           answerData
         })
       });
@@ -59,6 +67,10 @@
       if (result.success && result.percentReached) {
         // console.log("getQuizResults:", result);
         percentReached = result.percentReached;
+      } 
+      if (result.success && result.promptsTried) {
+        // console.log("getPromptsTried:", result);
+        promptsTried = result.promptsTried;
       } 
     } catch (error) {
       console.error('Error checking user progress:', error);
@@ -98,19 +110,26 @@
 </a>
 
 <div class="badges">
-  <label>Digital Badge</label>
+  <p class="badge-label">Digital Badge</p>
   
   {#if latestBadge}
     <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
     Badge vom {new Date(latestBadge.createdAt).toLocaleDateString('de-DE')} anzeigen
     </a>
-  {:else if percentReached >= 75}
+  {:else if percentReached >= 75 && lesson.starsNeeded > 0}
     <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
     Badge erstellen
     </a>
-  {:else}
+  {:else if lesson.starsNeeded > 0}
     <p>Schließe das Quiz mit mindestens 75&nbsp;% für den Badge ab.</p>
+  {:else if promptsTried > 0 && lesson.starsNeeded == 0}
+    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    Badge erstellen ({promptsTried})
+    </a>
+  {:else}
+    <p>Bearbeite die Lektion für einen Badge.</p>
   {/if}
+
   
 
 </div>

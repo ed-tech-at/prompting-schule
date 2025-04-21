@@ -80,7 +80,7 @@ model Lesson {
   URL     String   @unique
   active  Int     @default(0)
   starsNeeded  Int     @default(0)
-
+  
   position        Int @default(0)
 
 
