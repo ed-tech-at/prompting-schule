@@ -119,8 +119,8 @@
 {#each data.quizQuestions as question}
 
 <section>
-  <h2>{question.question}</h2>
-  
+  <fieldset>
+  <legend>{question.question}</legend>
   {#each question.options as answer}
     {#if question.type === "s"}
       <label>
@@ -137,6 +137,7 @@
       {/if}
       
   {/each}
+  </fieldset>
     
   {#if quizResults}
     <!-- Display results for this question -->
@@ -227,11 +228,13 @@
     border-color: var(--color-link-darkest);
     display: inline-block;
   }
-  h1, h2 {
+  h1, h2, legend {
     color: var(--color-link);
   }
-  h2 {
+  legend {
     margin-bottom: 0.3em;
+    font-size: 1.5em;
+    font-weight: bold;
   }
   button:hover, .button:hover {
     background-color: var(--color-link-light);

@@ -416,14 +416,18 @@ header .logo-tugraz img {
 
 header .logo a {
   text-decoration: none;
+  /* color: white; */
 }
 
 header .logo h3 {
   margin: 0;
   display: flex;
   align-items: center;
-  color: white;
+  color: inherit;
+  /* color: white; */
 }
+
+/* header .logo  */
 
 header .logo {
   order: 1;
@@ -458,6 +462,14 @@ nav {
   justify-content: space-between;
   gap: 1em;
 
+}
+
+nav .seperator {
+  color: var(--color-background);
+}
+
+.high-contrast nav .seperator {
+  color: var(--color-white);
 }
 
 main {
@@ -557,6 +569,10 @@ mark h2, mark h3 {
   color: var(--color-secondary-dark);
 }
 
+.high-contrast .star mark h2, .high-contrast .star mark h3 {
+  color: var(--color-secondary-darkest);
+}
+
 .star-wrapper {
   display: flex;
   justify-content: center;
@@ -601,6 +617,12 @@ mark h2, mark h3 {
 
 .quiz-link h2 {
   color: var(--color-link);
+}
+
+.quiz-questions fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 mark p {
@@ -699,6 +721,14 @@ form.ai label {
   color: white;
 }
 
+.high-contrast .lessonWrapper .badges {
+  background-color: var(--color-primary-hc);
+}
+.high-contrast .lessonWrapper .button {
+  border-color: var(--color-primary-lightest);
+  background: var(--color-primary-light);
+  color: black;
+}
 
 @media (max-width: 500px) {
   .lessonWrapper {
@@ -769,6 +799,9 @@ form.ai .result label {
 code {
   font-family: 'Jetbrains Mono', monospace;
   color: var(--color-primary);
+}
+.high-contrast code {
+  color: var(--color-primary-hc);
 }
 
 
@@ -911,6 +944,13 @@ button, .button {
 
 }
 
+.high-contrast button, .high-contrast .button {
+  background: var(--color-primary-hc);
+  /* color: white; */
+  /* border: 2px solid var(--color-primary-darkest); */
+}
+
+
 button.large, .button.large {
   padding: 0.5em 1em;
   font-size: 1.2em;
@@ -925,6 +965,11 @@ button:hover, .button:hover {
   background: var(--color-primary-light);
   color: white;
 
+}
+
+.high-contrast button:hover, .high-contrast .button:hover {
+  background: var(--color-primary);
+  color: white;
 }
 
 button.secondary, .button.secondary {
@@ -1106,4 +1151,289 @@ th {
 .registerBlock .checkbox-form label {
   color: black;
   font-weight: 400;
+}
+
+#frontpage {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#frontpage h1,
+#frontpage h2 {
+    color: white;
+}
+
+#frontpage section {
+    margin: 0;
+}
+
+/* Hero Section */
+#frontpage .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(to bottom, #2f929a, #B5E3E8);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+.high-contrast #frontpage .hero, .high-contrast #frontpage .cta-section {
+    background: linear-gradient(to bottom, #24747a, #1e5055);
+    background: var(--color-primary-hc);
+}
+.high-contrast #frontpage .dimmed-text {
+    color: rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.high-contrast #frontpage .benefits-section {
+
+    background: var(--color-background);
+}
+
+#frontpage .hero h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+}
+
+#frontpage .hero p {
+    font-size: 1em;
+    margin-bottom: 30px;
+    max-width: 800px;
+    line-height: 1.6;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+}
+
+/* CTA Section */
+#frontpage .cta-section {
+    text-align: center;
+    padding: 50px 20px;
+    background: linear-gradient(to bottom, #B5E3E8, #2f929a);
+    color: white;
+}
+
+#frontpage .cta-section h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#frontpage .cta-section p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#frontpage .cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+#frontpage .cta-button {
+    background-color: var(--color-secondary-light);
+    color: var(--color-primary-dark);
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.2s, color 0.3s;
+}
+
+.high-contrast #frontpage  .cta-button {
+    color: var(--color-black);
+}
+
+#frontpage .cta-button:hover {
+    color: var(--color-primary);
+    transform: scale(1.05);
+}
+.high-contrast #frontpage  .cta-button:hover {
+  color: var(--color-black);
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #frontpage .cta-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #frontpage .cta-button {
+        width: 100%;
+    }
+}
+
+/* Dimmed Background Letters */
+#frontpage .dimmed-text {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 180px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.1);
+    z-index: 0;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Benefits Section */
+#frontpage .benefits-section {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(to bottom, #B5E3E8, #f9f9f9);
+}
+
+#frontpage .benefits-section h2 {
+    font-size: 32px;
+    color: #2f929a;
+    margin-bottom: 20px;
+}
+
+#frontpage .benefits-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    gap: 20px;
+    max-width: 1220px;
+    margin: 0 auto;
+}
+
+#frontpage .benefit-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 290px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#frontpage .benefit-icon {
+    font-size: 48px;
+    color: #2f929a;
+    margin-bottom: 15px;
+}
+
+#frontpage .benefit-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#frontpage .benefit-description {
+    font-size: 16px;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    #frontpage .benefits-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #frontpage .benefit-icon {
+        font-size: 40px;
+    }
+
+    #frontpage .benefit-title {
+        font-size: 18px;
+    }
+
+    #frontpage .benefit-description {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    #frontpage .benefits-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* About Section */
+#frontpage .about-section {
+    padding: 50px 20px;
+    text-align: center;
+    background: linear-gradient(to bottom, #f9f9f9, #B5E3E8);
+}
+
+#frontpage .about-section h2 {
+    font-size: 32px;
+    color: #2f929a;
+    margin-bottom: 20px;
+}
+
+#frontpage .about-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    max-width: 1220px;
+    margin: 0 auto;
+}
+
+#frontpage .about-card {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#frontpage .about-icon {
+    font-size: 48px;
+    color: #2f929a;
+    margin-right: 20px;
+}
+
+#frontpage .about-content {
+    text-align: left;
+}
+
+#frontpage .about-title {
+    font-size: 20px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#frontpage .about-description {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    #frontpage .about-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #frontpage .about-icon {
+        margin: 0 0 20px;
+    }
+
+    #frontpage .about-content {
+        text-align: center;
+    }
 }

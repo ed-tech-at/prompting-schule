@@ -731,7 +731,7 @@ function copyWorsePrompt() {
             
       <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -750,7 +750,7 @@ function copyWorsePrompt() {
       <label for="ai2">{@html element.taskB}</label>
       <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div>
       
-      <button type="submit" class="submit" disabled={ai2running}>
+      <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
 
@@ -786,7 +786,7 @@ function copyWorsePrompt() {
       <div class="prompt" placeholder="Prompt">{@html element.devPromptB}</div>
       </div>
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -830,7 +830,7 @@ function copyWorsePrompt() {
 
       
 
-      <button type="submit" class="submit" disabled={ai2running}>
+      <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -876,7 +876,7 @@ function copyWorsePrompt() {
 
       
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -920,7 +920,7 @@ function copyWorsePrompt() {
 
       
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -973,7 +973,7 @@ function copyWorsePrompt() {
 
       
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -1008,7 +1008,7 @@ function copyWorsePrompt() {
 
       <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div>
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -1056,7 +1056,7 @@ function copyWorsePrompt() {
 
      
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
 

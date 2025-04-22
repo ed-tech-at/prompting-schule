@@ -43,7 +43,7 @@
                 password,
             };
 
-          const response = await fetch(`/voranmeldung/`, { 
+          const response = await fetch(`/registrierung/`, { 
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -213,12 +213,12 @@
   }
 </style> -->
 
-<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Voranmeldung', href: '/voranmeldung' }]} />
+<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Registrierung', href: '/registrierung' }]} />
 
 
 <div class="registerBg">
   <div class="registerBlock">
-      <h2>Voranmeldung</h2>
+      <h2>Registrierung</h2>
       {#if error}
           <div class="error-message">{error}</div>
       {/if}
@@ -257,7 +257,7 @@
               {#if loading}
                   <div class="loader"></div>
               {/if}
-              {!loading ? "Voranmeldung" : ""}
+              {!loading ? "Registrierung" : "Registrierung..."}
           </button>
       </form>
       <div class="alt-links">

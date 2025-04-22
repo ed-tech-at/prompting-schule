@@ -50,7 +50,7 @@
     {#each navItems as item, i}
       <a href={item.href}>{item.name}</a>
       {#if i < navItems.length - 1}
-        <span> / </span>
+        <span class="seperator"> / </span>
       {/if}
     {/each}
   </nav>

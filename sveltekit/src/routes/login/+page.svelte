@@ -224,7 +224,7 @@ if (browser) {
               {#if loading}
                   <div class="loader"></div>
               {/if}
-              {!loading ? "Anmelden" : ""}
+              {!loading ? "Anmelden" : "Anmelden..."}
           </button>
       </form>
       <div class="alt-links">
@@ -232,7 +232,7 @@ if (browser) {
           <a style="color: var(--color-complementary);"  href='/passwort'>Passwort vergessen</a>
 
           <p>Sie haben noch kein Konto?</p>
-          <a href="/voranmeldung" class="button invert">Voranmeldung zur Beta</a>
+          <a href="/registrierung" class="button invert">Registrierung</a>
       </div>
   </div>
 </div>
