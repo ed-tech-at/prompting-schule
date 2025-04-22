@@ -101,7 +101,7 @@
     
     {/each}
     {#if percentReached > 0}
-    <p>Dein bester Quiz-Versuch liegt bei {percentReached}%.</p>
+    <p>Ihr bester Quiz-Versuch liegt bei {percentReached}%.</p>
 
 
     {/if}

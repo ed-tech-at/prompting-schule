@@ -272,7 +272,7 @@
   if (!response.ok || !response.body) {
     
     if (response.status == 451) {
-      onError?.("<i>⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.</i>");
+      onError?.("<i>⚠️ Ihre Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.</i>");
     } else {
       onError?.('<i>Fehler beim Laden der Antwort.</i>');
     }

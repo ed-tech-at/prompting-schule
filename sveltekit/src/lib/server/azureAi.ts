@@ -33,7 +33,7 @@ export async function streamAiResponse({ messages, saveToDb, maxTokens = 1000 }:
     if (err.code === 'content_filter') {
       const errorMessage =
         // json({error: '⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.'});
-         '⚠️ Deine Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.';
+         '⚠️ Ihre Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.';
 
       // Optional: log the actual filtered message for moderation/debugging
       // const userInput = messages.map((m) => `[${m.role}] ${m.content}`).join('\n');
