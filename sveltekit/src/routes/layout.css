@@ -53,6 +53,7 @@ a:hover {
   --color-primary: #01abbb;
   --color-primary: #00a1af;
   --color-primary: #0097a4;
+  --color-primary-hc: #03646d;
   --color-primary-light: #05C2D3;
   --color-primary-light: #04a4b3;
   --color-primary-lightest: #34c5d27c;
@@ -800,6 +801,12 @@ form.ai .prompt {
 
   font-weight: 500;
   font-size: 1em;
+  
+}
+
+
+.high-contrast form.ai .prompt {
+  background-color: var(--color-primary-hc);
   
 }
 

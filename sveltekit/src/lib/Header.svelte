@@ -1,10 +1,28 @@
 <script lang="ts">
   
   import type { JwtUserPayload } from './server/jwt';
-  // import { browser } from '$app/environment';
+  import { onMount } from 'svelte';
+  
   
   export let navItems: { name: string; href: string }[] = [];
   export let user: JwtUserPayload | null;
+
+
+  let showEnableContrastButton = false;
+
+  onMount(() => {
+    const mediaQuery = window.matchMedia('(prefers-contrast: more)');
+
+    const updateBodyClass = () => {
+      if (mediaQuery.matches) {
+        document.body.classList.add('high-contrast');
+      } else {
+        document.body.classList.remove('high-contrast');
+      }
+    };
+
+    updateBodyClass();
+  });
 
   // let userEmail = "";
   // if (browser) {

@@ -1025,7 +1025,7 @@ function copyWorsePrompt() {
       {#if showStar}
       <div class="star-wrapper">
       <div class="star-block">
-        Stern erhalten <i class="fas fa-star star-color"></i>
+        Sie haben einen Stern erhalten <i class="fas fa-star star-color"></i>
       </div>
       </div>
     {/if}

@@ -366,7 +366,7 @@ h1, h2 {
 
     <div class="benefit-card">
       <div class="benefit-icon">💰</div>
-      <div class="benefit-title">Kostenlos starten</div>
+      <div class="benefit-title">Kostenlos lernen</div>
       <div class="benefit-description">
         Unsere Kurse sind Offene Bildungsressourcen (OER). Daher frei verfügbar – bereitgestellt von der TU Graz.
       </div>
@@ -426,7 +426,7 @@ h1, h2 {
       <div class="benefit-icon">🎖️</div>
       <div class="benefit-title">Digitales Lernabzeichen</div>
       <div class="benefit-description">
-        Testen Sie Ihr Wissen direkt nach jeder Lektion. Für Ihren Lernerfolg erhalten Sie eine Digital Badge.
+        Testen Sie Ihr Wissen direkt nach jeder Lektion. Für Ihren Lernerfolg erhalten Sie einen Digital Badge.
       </div>
     </div>
 

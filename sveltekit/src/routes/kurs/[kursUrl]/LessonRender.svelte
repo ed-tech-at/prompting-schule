@@ -124,7 +124,7 @@
     <p>Schließe das Quiz mit mindestens 75&nbsp;% für den Badge ab.</p>
   {:else if promptsTried > 0 && lesson.starsNeeded == 0}
     <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
-    Badge erstellen ({promptsTried})
+    Badge erstellen
     </a>
   {:else}
     <p>Bearbeite die Lektion für einen Badge.</p>

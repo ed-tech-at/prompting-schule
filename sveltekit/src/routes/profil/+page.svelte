@@ -119,7 +119,7 @@
 
     <div style="margin-bottom: 3em;">
 
-      <a href="/kurse" class="button large secondary">Zur den Kursen</a>
+      <a href="/kurse" class="button large secondary">Zu den Kursen</a>
     </div>
 
     

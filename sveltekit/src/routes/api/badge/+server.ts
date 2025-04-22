@@ -114,7 +114,7 @@ export async function POST({ request, cookies }) {
     let textSelbstueberpruefung = '';
 
     if (lesson?.starsNeeded > 0) {
-      textSelbstueberpruefung = 'und die Selbstüberprüfung bestanden';
+      textSelbstueberpruefung = ' und die Selbstüberprüfung bestanden';
     }
     
 

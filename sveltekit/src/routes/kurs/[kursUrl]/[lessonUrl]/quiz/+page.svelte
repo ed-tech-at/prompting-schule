@@ -179,7 +179,7 @@
       <a class="button" href="/kurs/{data.course.URL}">Zur Kurs-Seite {data.course.name}</a>
     {:else}
       <p><i class="fas fa-exclamation-circle" style="color: red;"></i> Diese Quiz-Leistung reicht für den Digital Badge noch nicht aus. </p>
-      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehen Sie zur Lektion zurück und schauen Sie sich die Inhalte erneut an. Sobald Sie 75&nbsp;% beim Quiz erreichen, erhalten Sie die Digital Badge.</a>
+      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehen Sie zur Lektion zurück und schauen Sie sich die Inhalte erneut an. Sobald Sie 75&nbsp;% beim Quiz erreichen, erhalten Sie den Digital Badge.</a>
     {/if}
   </section>
 {/if}
