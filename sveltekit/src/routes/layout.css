@@ -606,6 +606,17 @@ mark p {
   margin: 0;
 }
 
+mark p + p {
+  margin-top: 0.5em;
+}
+
+.red {
+  color: var(--color-red)
+}
+.red-dark {
+  color: var(--color-red-dark);
+}
+
 form.ai {
   /* background-color: var(--color-background-light); */
   border: 5px solid var(--color-white);
