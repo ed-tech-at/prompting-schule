@@ -224,11 +224,11 @@
       {/if}
       <form on:submit|preventDefault={handleSubmit}>
           <div class="form-group">
-              <label for="email">E-Mail Addresse</label>
+              <label for="email">E-Mail-Adresse</label>
               <input
                   id="email"
                   type="email"
-                  placeholder="Geben Sie Ihre E-Mail ein"
+                  placeholder="Geben Sie Ihre E-Mail-Adresse ein"
                   bind:value={email}
                   required
               />
