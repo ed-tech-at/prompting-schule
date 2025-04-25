@@ -173,11 +173,11 @@
       
         <form on:submit|preventDefault={handleDel}>
           
-          <p> Nach dem Absenden der Löschung wird die Verknüpfung Ihres Kontos mit Ihrer E-Mail-Adresse dauerhaft gelöscht und sie werden abgemeldet.<br>
+          <p> Nach dem Absenden der Löschung wird die Verknüpfung Ihres Kontos mit Ihrer E-Mail-Adresse dauerhaft gelöscht und Sie werden abgemeldet.<br>
             <strong>Wichtig:</strong> Danach ist keine Anmeldung mit dieser E-Mail-Adresse und Ihrem Passwort mehr möglich, ein neuer Account mit dieser E-Mail Adresse kann danach jedoch bei Bedarf wieder erstellt werden. <br>
             <strong>Achtung:</strong> Zertifikate und Digital Badges können nach der Löschung nicht mehr heruntergeladen werden, und bereits ausgestellte Zertifikate und Digital Badges lassen sich nicht mehr validieren oder auf Echtheit überprüfen.</p>
             
-            <br><label for="email">Ihre E-Mail Adresse:</label>
+            <br><label for="email">Ihre E-Mail-Adresse:</label>
             <input type="email" id="email" bind:value={email} name="email">
             
             <br>

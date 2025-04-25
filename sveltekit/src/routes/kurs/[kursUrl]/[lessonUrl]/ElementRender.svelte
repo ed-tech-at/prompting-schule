@@ -706,7 +706,7 @@ function copyWorsePrompt() {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für dich" role="textbox" aria-labelledby="label-{element.id}" ></div>
+      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div>
 
       <button type="submit" class="submit" disabled={ai1running}>
         <i class="fas fa-save"></i>
