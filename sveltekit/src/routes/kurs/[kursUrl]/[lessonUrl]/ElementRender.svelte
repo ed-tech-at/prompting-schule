@@ -736,7 +736,7 @@ function copyWorsePrompt() {
       </button>
       
       <div class="result">
-        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <label class="">Antwort {#if ai1running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -755,7 +755,7 @@ function copyWorsePrompt() {
       </button>
 
       <div class="result">
-        <label>Antwort {#if ai2completionTokens} besteht aus {ai2completionTokens} Tokens und {ai2promptTokens} Anfrage-Tokens {/if} {#if ai2running} wird generiert{/if}</label>
+        <label>Antwort {#if ai2running}wird generiert{/if}</label>
         <div class="clearfix"></div>
         <div class="generated">
           {#if ai2Result}
@@ -791,7 +791,7 @@ function copyWorsePrompt() {
       </button>
       
       <div class="result">
-        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <label class="">Antwort {#if ai1running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -835,7 +835,7 @@ function copyWorsePrompt() {
       </button>
       
       <div class="result">
-        <label class="">Antwort {#if ai2completionTokens} besteht aus {ai2completionTokens} Tokens und {ai2promptTokens} Anfrage-Tokens {/if} {#if ai2running} wird generiert{/if}</label>
+        <label class="">Antwort {#if ai2running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai2Result}
@@ -881,7 +881,7 @@ function copyWorsePrompt() {
       </button>
       
       <div class="result">
-        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <label class="">Antwort {#if ai1running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1013,7 +1013,7 @@ function copyWorsePrompt() {
       </button>
       
       <div class="result">
-        <label class="">Feedback {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <label class="">Feedback {#if ai1running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1096,7 +1096,7 @@ function copyWorsePrompt() {
       {/if}
 
       <div class="result">
-        <label class="">Antwort {#if ai1completionTokens} besteht aus {ai1completionTokens} Tokens und {ai1promptTokens} Anfrage-Tokens {/if} {#if ai1running} wird generiert{/if}</label>
+        <label class="">Antwort {#if ai1running}wird generiert{/if}</label>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}

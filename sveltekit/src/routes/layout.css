@@ -1017,6 +1017,27 @@ button.danger:hover, .button.danger:hover {
   color: black !important;
 }
 
+
+.prompt * {
+  margin: 0;
+  
+}
+
+form.ai .aiLaborWorse label {
+  color: #ffdede;
+}
+form.ai .aiLabelBetter label {
+  color: #d5ffdf;
+}
+
+form.ai.note label {
+  color: #fcddc2;
+}
+
+.high-contrast form.ai .aiLaborWorse label, .high-contrast form.ai .aiLabelBetter label, .high-contrast form.ai.note label {
+  color: white;
+}
+
 .generated p, .generated ul, .generated h1, .generated h2, .generated h3, .generated h4, .generated h5, .generated h6 {
   margin-top: 0.1em;
   margin-bottom: 0.2em;
