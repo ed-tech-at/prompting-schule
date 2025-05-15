@@ -687,8 +687,7 @@ function copyWorsePrompt() {
 
 <div class="{user.isAdmin > 0 ? 'adminView element' : 'element'}">
  
-  <!-- {element.title} as {element.type} for User: {userId} -->
-
+  
   {#if element.type === "text"}
     {@html element.description}
   {/if}

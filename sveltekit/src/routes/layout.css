@@ -1015,12 +1015,15 @@ button.danger:hover, .button.danger:hover {
 
 .generated * {
   color: black !important;
+  word-wrap: break-word;
 }
 
+.generated pre {
+  white-space: pre-wrap;
+}
 
 .prompt * {
   margin: 0;
-  
 }
 
 form.ai .aiLaborWorse label {

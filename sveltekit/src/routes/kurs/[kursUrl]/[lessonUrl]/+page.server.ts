@@ -17,12 +17,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   
   const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
 
-  const elements = await prisma.element.findMany({
+  let elements = await prisma.element.findMany({
     where: { lessonId: lesson?.id },
     orderBy: { position: 'asc' }
   });
 
-  
+  elements = elements.map(({ devPromptA, ...rest }) => ({ ...rest, devPromptA: null }));
 
   return {
     course,
