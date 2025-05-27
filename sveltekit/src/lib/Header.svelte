@@ -7,6 +7,12 @@
   export let navItems: { name: string; href: string }[] = [];
   export let user: JwtUserPayload | null;
 
+  export let lang: 'en' | 'de' = 'de';
+
+  let siteName = 'prompting.schule';
+  if (lang === 'en') {
+    siteName = 'prompting.school';
+  }
 
   let showEnableContrastButton = false;
 
@@ -30,17 +36,17 @@
   // }
 </script>
 <svelte:head>
+ 
   {#if navItems.length > 0}
-    
-    <title>{navItems[navItems.length - 1].name} | prompting.schule</title>
+    <title>{navItems[navItems.length - 1].name} | {siteName}</title>
   {:else}
-    <title>prompting.schule</title>
+    <title>{siteName}</title>
   {/if}
 </svelte:head>
 <header>
   <div class="logo">
     <a href='/'>
-      <h3><img src="/logo-prompting.schule-bg.png" alt="prompting.schule Logo" /> prompting.schule</h3>
+      <h3><img src="/logo-prompting.schule-bg.png" alt="{siteName} Logo" /> {siteName}</h3>
     </a>
   </div>
 
@@ -57,12 +63,27 @@
   {/if}
 
   <div class="login">
-  {#if user?.email}
-  <a href='/profil'>Profil {user?.email}</a>
-  {:else}
-    <a href="/login">🔑 Anmelden</a>
-  {/if}
+    {#if lang == 'de'}
+      {#if user?.email}
+        <a href='/profil'>Profil {user?.email}</a>
+        {:else}
+          <a href="/login">🔑 Anmelden</a>
+        {/if}
+    {:else}
+        {#if user?.email}
+        <a href='/profil'>Profile {user?.email}</a>
+        {:else}
+          <a href="/login">🔑 Login</a>
+        {/if}
+    {/if}
+    
+  
   </div>
-  <div class="logo-tugraz"><img src="/logo-tugraz-white.svg" alt="TU Graz Logo"></div>
+  <div class="logo-tugraz">
+    {#if lang == 'en'}
+    <div class="langSelect"><a href="https://prompting.schule/">🇦🇹</a> <a href="https://prompting.school/en/">🇬🇧</a></div>
+    {/if}
+
+    <img src="/logo-tugraz-white.svg" alt="TU Graz Logo"></div>
   <div class='flex-full'></div>
 </header>

@@ -1461,3 +1461,18 @@ th {
         text-align: center;
     }
 }
+
+.langSelect {
+  font-size: 1.7em;
+  margin-right: .3em;
+
+}
+.langSelect a {
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+.langSelect a:hover {
+  /* text-decoration: underline; */
+  opacity: 1;
+}

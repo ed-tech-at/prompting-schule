@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [sveltekit()],
     preview: {
-        allowedHosts: ['prompting.schule']
+        allowedHosts: ['prompting.schule', 'prompting.school'],
     },
     test: {
         workspace: [{

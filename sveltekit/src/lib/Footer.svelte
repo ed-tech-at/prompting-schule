@@ -1,4 +1,3 @@
-
 <footer>
   <div class="logo">
     
