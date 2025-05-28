@@ -45,7 +45,7 @@
 </button>
 </div> -->
   <section class="benefits-section">
-    <h2>How prompting.schule works</h2>
+    <h2>How prompting.school works</h2>
     <div class="benefits-container">
       <div class="benefit-card">
         <div class="benefit-icon">💰</div>
@@ -87,40 +87,35 @@
     <div class="benefits-container">
       <div class="benefit-card">
         <div class="benefit-icon">✨</div>
-        <div class="benefit-title">
-          Understand prompting
-          <div class="benefit-description">
-            Discover the concepts for creating prompts that deliver accurate
-            results.
-          </div>
+        <div class="benefit-title">Understand prompting</div>
+        <div class="benefit-description">
+          Discover the concepts for creating prompts that deliver accurate
+          results.
         </div>
       </div>
       <div class="benefit-card">
-          <div class="benefit-icon">🚀</div>
-          <div class="benefit-title">Increase productivity</div>
-          <div class="benefit-description">
-            Use AI tools to improve your efficiency in everyday tasks.
-          </div>
+        <div class="benefit-icon">🚀</div>
+        <div class="benefit-title">Increase productivity</div>
+        <div class="benefit-description">
+          Use AI tools to improve your efficiency in everyday tasks.
         </div>
-        <div class="benefit-card">
-          <div class="benefit-icon">📚</div>
-          <div class="benefit-title">Proven strategies</div>
-          <div class="benefit-description">
-            Discover techniques based on recommendations from OpenAI, UNESCO and
-            experts.
-          </div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📚</div>
+        <div class="benefit-title">Proven strategies</div>
+        <div class="benefit-description">
+          Discover techniques based on recommendations from OpenAI, UNESCO and
+          experts.
         </div>
-        <div class="benefit-card">
-          <div class="benefit-icon">🎖️</div>
-          <div class="benefit-title">
-            Digital learning badge
-            <div class="benefit-description">
-              Test your knowledge immediately after each lesson. You will
-              receive a digital badge for your learning success.
-            </div>
-          </div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🎖️</div>
+        <div class="benefit-title">Digital learning badge</div>
+        <div class="benefit-description">
+          Test your knowledge immediately after each lesson. You will receive a
+          digital badge for your learning success.
         </div>
-      
+      </div>
     </div>
   </section>
   <section class="about-section">
@@ -179,7 +174,9 @@
       in the Fundamentals course!
     </p>
     <div class="cta-buttons">
-      <a href="/login" class="cta-button" style="margin-bottom: 5em;">Sign up now</a>
+      <a href="/login" class="cta-button" style="margin-bottom: 5em;"
+        >Sign up now</a
+      >
     </div>
   </section>
 </main>

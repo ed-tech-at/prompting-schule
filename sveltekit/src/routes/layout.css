@@ -1465,14 +1465,20 @@ th {
 .langSelect {
   font-size: 1.7em;
   margin-right: .3em;
-
+  display: flex;
+  gap: 0.3em;
 }
 .langSelect a {
   text-decoration: none;
   opacity: 0.8;
   transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 .langSelect a:hover {
   /* text-decoration: underline; */
   opacity: 1;
+}
+.langSelect a img {
+  height: 1em;
 }

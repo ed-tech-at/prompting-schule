@@ -5,7 +5,7 @@
   
   
   export let navItems: { name: string; href: string }[] = [];
-  export let user: JwtUserPayload | null;
+  export let user: JwtUserPayload | null = null;
 
   export let lang: 'en' | 'de' = 'de';
 
@@ -81,7 +81,10 @@
   </div>
   <div class="logo-tugraz">
     {#if lang == 'en'}
-    <div class="langSelect"><a href="https://prompting.schule/">🇦🇹</a> <a href="https://prompting.school/en/">🇬🇧</a></div>
+    <div class="langSelect">
+      <a href="https://prompting.schule/"><img src="/fonts/noto-emoji/emoji_u1f1e6_1f1f9.svg" alt="Austria Flag"></a>
+      <a href="https://prompting.school/en/"><img src="/fonts/noto-emoji/emoji_u1f1ec_1f1e7.svg" alt="UK Flag"></a>
+    </div>
     {/if}
 
     <img src="/logo-tugraz-white.svg" alt="TU Graz Logo"></div>
