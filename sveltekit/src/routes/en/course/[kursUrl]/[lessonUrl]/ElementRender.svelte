@@ -263,7 +263,7 @@
 }) {
   startTimer(timerKey);
 
-  const response = await fetch(`/api/aiAnswer`, {
+  const response = await fetch(`/api/en/aiAnswer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, data })
@@ -272,9 +272,9 @@
   if (!response.ok || !response.body) {
     
     if (response.status == 451) {
-      onError?.("<i>⚠️ Ihre Eingabe konnte leider nicht verarbeitet werden, da sie gegen die Inhaltsrichtlinien verstößt.</i>");
+      onError?.("<i>⚠️ Your input could not be processed because it violates content policies.</i>");
     } else {
-      onError?.('<i>Fehler beim Laden der Antwort.</i>');
+      onError?.('<i>Error loading response.</i>');
     }
 
     stopTimer(timerKey);
