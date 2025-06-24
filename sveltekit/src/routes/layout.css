@@ -799,7 +799,9 @@ form.ai .result label {
 code {
   font-family: 'Jetbrains Mono', monospace;
   color: var(--color-primary);
+  font-variant-ligatures: no-contextual;
 }
+
 .high-contrast code {
   color: var(--color-primary-hc);
 }
@@ -835,6 +837,10 @@ form.ai .prompt {
   font-weight: 500;
   font-size: 1em;
   
+}
+
+form.ai .prompt code {
+  color: white;
 }
 
 
