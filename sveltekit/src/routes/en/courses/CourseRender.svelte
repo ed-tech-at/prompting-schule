@@ -15,7 +15,7 @@
 </script>
 
 {#if course.active == 1}
-  <a href="/kurs/{course.URL}" class="course-link course"><h2>{course.name}</h2>
+  <a href="/en/course/{course.URL}" class="course-link course"><h2>{course.name}</h2>
     {@html course.description}
   </a>
 {/if}
