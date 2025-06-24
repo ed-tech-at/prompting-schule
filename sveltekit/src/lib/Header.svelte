@@ -71,9 +71,9 @@
         {/if}
     {:else}
         {#if user?.email}
-        <a href='/profil'>Profile {user?.email}</a>
+        <a href='/en/profile'>Profile {user?.email}</a>
         {:else}
-          <a href="/login">🔑 Login</a>
+          <a href="/en/login">🔑 Login</a>
         {/if}
     {/if}
     
