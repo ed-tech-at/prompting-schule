@@ -32,7 +32,7 @@
       Achieve better results with AI models such as ChatGPT by learning proven
       strategies for writing clear instructions and simplifying complex tasks.
     </p>
-    <a href="/login" class="cta-button">Sign up now</a>
+    <a href="/en/login" class="cta-button">Sign up now</a>
   </section>
   <!-- Language Selector -->
   <!-- <div class='language-selector'>
@@ -174,7 +174,7 @@
       in the Fundamentals course!
     </p>
     <div class="cta-buttons">
-      <a href="/login" class="cta-button" style="margin-bottom: 5em;"
+      <a href="/en/login" class="cta-button" style="margin-bottom: 5em;"
         >Sign up now</a
       >
     </div>

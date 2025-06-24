@@ -12,7 +12,7 @@
   let password = "";
   let newPassword = "";
   let showPwChangeForm = false;
-  let buttonText = "Passwort ändern";
+  let buttonText = "Change Password";
   let pwChangeResult = "";
   
   let showDelFrom = false;
@@ -22,8 +22,8 @@
   async function handlePwChange() {
       
       if (!oldPassword || !newPassword) {
-        pwChangeResult = "Beide Felder sind erforderlich.";
-          
+        pwChangeResult = "Both fields are required.";
+
           return;
       }
 
@@ -47,8 +47,8 @@
           
           if (response.ok && data.success) {
 
-            pwChangeResult = "Passwort erfolgreich geändert.";
-            // buttonText = "Passwort erfolgreich geändert. Passwort ändern";
+            pwChangeResult = "Password successfully changed.";
+            // buttonText = "Password successfully changed. Change password";
             oldPassword = "";
             newPassword = "";
             showPwChangeForm = false;
@@ -57,10 +57,10 @@
               pwChangeResult = data.error;
             
           } else {
-              pwChangeResult = data.error || "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+              pwChangeResult = data.error || "An error occurred. Please try again later.";
           }
       } catch (err) {
-          pwChangeResult = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+          pwChangeResult = "An error occurred. Please try again later.";
           console.error(err);
       }
   }
@@ -70,8 +70,8 @@
   async function handleDel() {
       
       if (!password || !email) {
-        delResult = "Beide Felder sind erforderlich.";
-          
+        delResult = "Both fields are required.";
+
           return;
       }
 
@@ -101,25 +101,25 @@
               delResult = data.error;
             
           } else {
-              delResult = data.error || "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+              delResult = data.error || "An error occurred. Please try again later.";
           }
       } catch (err) {
-          delResult = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+          delResult = "An error occurred. Please try again later.";
           console.error(err);
       }
   }
     
 </script>
   
-<Header navItems={[{ name: 'Courses', href: '/en/courses' }]} user={data.user} />
+<Header navItems={[{ name: 'Courses', href: '/en/courses' }]} user={data.user} lang="en"  />
 <!-- <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: 'Profil', href: '/profil' }]} user={data.user} /> -->
   <main>
-    <h1>Profil</h1>
-    <p>E-Mail: {data.user.email}</p>
+    <h1>Profile</h1>
+    <p>Email: {data.user.email}</p>
 
     <div style="margin-bottom: 3em;">
 
-      <a href="/kurse" class="button large secondary">Zu den Kursen</a>
+      <a href="/en/courses" class="button large secondary">Go to Courses</a>
     </div>
 
     
@@ -127,7 +127,7 @@
     <div style="margin-bottom: 2em;">
 
     <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}  style="margin-bottom: 1em;">
-      {showPwChangeForm ? 'Passwort ändern —' : 'Passwort ändern +'}
+      {showPwChangeForm ? 'Change Password —' : 'Change Password +'}
     </button>
 
     {#if pwChangeResult}
@@ -138,11 +138,11 @@
     
     
       <form on:submit|preventDefault={handlePwChange}>
-        
-        <label for="old">Ihr Passwort:</label>
+
+        <label for="old">Your old password:</label>
         <input type="password" bind:value={oldPassword} name="old">
         <br>
-        <label for="password">Neues Passwort:</label>
+        <label for="password">New password:</label>
         <input type="password" id="password" bind:value={newPassword} name="new">
         <br><button type="submit" class="medium">{buttonText}</button>
       </form>
@@ -160,7 +160,7 @@
     <div style="margin-top: 3em; margin-bottom: 2em;">
 
       <button class="large danger" on:click={() => showDelFrom = !showDelFrom}>
-        {showDelFrom ? 'Account löschen —' : 'Account löschen +'}
+        {showDelFrom ? 'Delete Account —' : 'Delete Account +'}
       </button>
   
      {#if delResult}
@@ -172,22 +172,22 @@
       
       
         <form on:submit|preventDefault={handleDel}>
-          
-          <p> Nach dem Absenden der Löschung wird die Verknüpfung Ihres Kontos mit Ihrer E-Mail-Adresse dauerhaft gelöscht und Sie werden abgemeldet.<br>
-            <strong>Wichtig:</strong> Danach ist keine Anmeldung mit dieser E-Mail-Adresse und Ihrem Passwort mehr möglich, ein neuer Account mit dieser E-Mail Adresse kann danach jedoch bei Bedarf wieder erstellt werden. <br>
-            <strong>Achtung:</strong> Zertifikate und Digital Badges können nach der Löschung nicht mehr heruntergeladen werden, und bereits ausgestellte Zertifikate und Digital Badges lassen sich nicht mehr validieren oder auf Echtheit überprüfen.</p>
-            
-            <br><label for="email">Ihre E-Mail-Adresse:</label>
+
+          <p> After submitting the deletion, the link between your account and your email address will be permanently deleted, and you will be logged out.<br>
+            <strong>Important:</strong> After that, it will not be possible to log in with this email address and your password. However, a new account with this email address can be created again if necessary.<br>
+            <strong>Note:</strong> Certificates and digital badges cannot be downloaded after deletion, and already issued certificates and digital badges can no longer be validated or verified for authenticity.</p>
+
+            <br><label for="email">Your email address:</label>
             <input type="email" id="email" bind:value={email} name="email">
             
             <br>
-          <label for="password">Ihr Passwort:</label>
+          <label for="password">Your password:</label>
           <input type="password" bind:value={password} name="password">
 
           
           <br>
-          
-          <button type="submit" class="danger medium">Benutzeraccount löschen</button>
+
+          <button type="submit" class="danger medium">Delete user account</button>
         </form>
       {/if}
   

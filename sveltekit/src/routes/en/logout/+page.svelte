@@ -24,11 +24,11 @@
 
 </script>
 
-<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Logout', href: '/en/logout' }]} user={null} />
+<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Logout', href: '/en/logout' }]} user={null} lang="en"  />
 <main>
   <h1>Logout</h1>
   
   <p>You were logged out.</p>
 
-  <a href="/">Frontpage</a>
+  <a href="/en">Frontpage</a>
 </main>

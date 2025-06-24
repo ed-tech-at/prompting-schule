@@ -213,32 +213,32 @@
   }
 </style> -->
 
-<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Registrierung', href: '/en/register' }]} />
+<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Registration', href: '/en/register' }]}  lang="en"  />
 
 
 <div class="registerBg">
   <div class="registerBlock">
-      <h2>Registrierung</h2>
+      <h2>Registration</h2>
       {#if error}
           <div class="error-message">{error}</div>
       {/if}
       <form on:submit|preventDefault={handleSubmit}>
           <div class="form-group">
-              <label for="email">E-Mail-Adresse</label>
+              <label for="email">Email Address</label>
               <input
                   id="email"
                   type="email"
-                  placeholder="Geben Sie Ihre E-Mail-Adresse ein"
+                  placeholder="Enter your email address"
                   bind:value={email}
                   required
               />
           </div>
           <div class="form-group">
-              <label for="password">Passwort</label>
+              <label for="password">Password</label>
               <input
                   id="password"
                   type="password"
-                  placeholder="Passwort erstellen"
+                  placeholder="Create a password"
                   bind:value={password}
                   required
               />
@@ -246,10 +246,10 @@
           <!-- Checkbox for Terms and Conditions -->
           <div class="checkbox-form">
               <label>
-                Die Teilnahme ist freiwillig.<br>
-                Die eingegebenen Daten werden für wissenschaftliche Zwecke ausgewertet.<br>
+                Participation is voluntary.<br>
+                The data provided will be evaluated for scientific purposes.<br>
                   <input type="checkbox" bind:checked={agree} required>
-                  Ich habe den  <a href="/mehr/datenschutz" target="_blank">Datenschutz und die Teilnahmebedingungen</a> gelesen und akzeptiere sie.
+                  I have read and accept the <a href="/mehr/datenschutz" target="_blank">data protection and participation conditions</a>.
 
               </label>
           </div>
@@ -257,13 +257,13 @@
               {#if loading}
                   <div class="loader"></div>
               {/if}
-              {!loading ? "Registrierung" : "Registrierung..."}
+              {!loading ? "Registration" : "Registration..."}
           </button>
       </form>
       <div class="alt-links">
-          <p>Haben Sie bereits ein Konto?</p>
-          <a href="/login" class="button invert">Einloggen
-          </a>
+          <p>Already have an account?</p>
+          <a href="/en/login" class="button invert">Log in</a>
+      
       </div>
   </div>
 </div>

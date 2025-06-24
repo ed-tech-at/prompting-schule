@@ -34,7 +34,7 @@ if (browser) {
                 email,
                 password,
             };
-          const response = await fetch("/login", {
+          const response = await fetch("/en/login", {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -52,10 +52,10 @@ if (browser) {
             window.location.href = "/en/courses";
            
           } else {
-              error = data.error || "Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.";
+              error = data.error || "Invalid login credentials. Please try again.";
           }
       } catch (err) {
-          error = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.";
+          error = "An error occurred. Please try again later.";
           console.error(err);
       } finally {
           loading = false;
@@ -64,7 +64,7 @@ if (browser) {
 </script>
 
 
-<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Login', href: '/en/login' }]} user={null} />
+<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Login', href: '/en/login' }]} user={null} lang="en"  />
 
 
 <div class="registerBg">
@@ -89,7 +89,7 @@ if (browser) {
               <input
                   id="password"
                   type="password"
-                  placeholder="Enter your password
+                  placeholder="Enter your password"
                   bind:value={password}
                   required
               />

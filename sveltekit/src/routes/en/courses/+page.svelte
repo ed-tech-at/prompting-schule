@@ -25,10 +25,10 @@
   
   </script>
   
-  <Header navItems={[{ name: 'Kurse', href: '/kurse' }]} user={data.user} />
+  <Header navItems={[{ name: 'Courses', href: '/en/courses' }]} user={data.user} lang="en" />
   <main>
-  <h1>Übersicht der Kurse</h1>
-  
+  <h1>Overview of Courses</h1>
+
   <div class="courses">
   {#each data.courses as course}
     <CourseRender course={course}  {userId} />
