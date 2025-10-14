@@ -1,6 +1,8 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
 import type { PageServerLoad, Actions } from './$types';
+import { prisma } from '$lib/server/db';
+
 
 import { redirect } from '@sveltejs/kit';
 import { requireLogin, type JwtUserPayload } from '$lib/server/jwt';

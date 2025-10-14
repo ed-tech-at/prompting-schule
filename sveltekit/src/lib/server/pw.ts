@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt';
 import { env } from '$env/dynamic/private';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 import { createJWT } from './jwt';
 import { json } from '@sveltejs/kit';

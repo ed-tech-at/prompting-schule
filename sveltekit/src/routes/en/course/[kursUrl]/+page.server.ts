@@ -1,6 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import type { PageServerLoad, Actions } from './$types';
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 import { requireLogin } from '$lib/server/jwt';
 import type { Badge } from '@prisma/client';

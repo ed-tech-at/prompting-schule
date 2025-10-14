@@ -1,10 +1,12 @@
 import { json } from '@sveltejs/kit';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 
 
 
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 import type { User } from '@prisma/client';
 

@@ -1,8 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { json } from '@sveltejs/kit';
 import { hashPasswordV2, login } from '$lib/server/pw.js';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 export async function POST({ request }) {
     try {

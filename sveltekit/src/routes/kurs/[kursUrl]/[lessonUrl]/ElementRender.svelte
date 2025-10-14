@@ -649,7 +649,8 @@ async function submitFormStar() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      console.log(chunk)
+      // console.log(chunk)
+      // chunking
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       try {
@@ -705,7 +706,9 @@ function copyWorsePrompt() {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div>
+      <textarea class="prompt" bind:value={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" >
+      </textarea>
+      <!-- <div contenteditable="plaintext-only" ></div> -->
 
       <button type="submit" class="submit" disabled={ai1running}>
         <i class="fas fa-save"></i>
@@ -726,9 +729,10 @@ function copyWorsePrompt() {
     
   <form class="ai" on:submit|preventDefault={submitFormAiSide1}>
 
-      <label for="ai1">{element.taskA}</label>
+      <label for="ai1">{element.taskA} <i class="fas fa-pencil-alt"></i></label>
             
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea contenteditable="plaintext-only" class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
@@ -746,8 +750,9 @@ function copyWorsePrompt() {
     </form>
     
     <form class="ai" on:submit|preventDefault={submitFormAiSide2}>
-      <label for="ai2">{@html element.taskB}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div>
+      <label for="ai2">{@html element.taskB} <i class="fas fa-pencil-alt"></i></label>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
       
       <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
@@ -776,12 +781,13 @@ function copyWorsePrompt() {
     
   <form class="ai" on:submit|preventDefault={submitFormAi1}>
 
-      <label for="ai1">{element.taskA}</label>
+      <label for="ai1">{element.taskA} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <div class="ai1prompt2">
-      <label for="ai2">{@html element.taskB}</label>
+      <label for="ai2">{@html element.taskB} <i class="fas fa-pencil-ruler"></i></label>
       <div class="prompt" placeholder="Prompt">{@html element.devPromptB}</div>
       </div>
 
@@ -816,15 +822,16 @@ function copyWorsePrompt() {
 
     
     <div class="ai2prompt1">
-      <label for="ai1">{@html element.taskA}</label>
+      <label for="ai1">{@html element.taskA} <i class="fas fa-pencil-ruler"></i></label>
       <div class="prompt" placeholder="Prompt">{@html element.devPromptB}</div>
       </div>
 
       <div class="ai2prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
     </div>
 
       
@@ -862,15 +869,17 @@ function copyWorsePrompt() {
 
     
     <div class="ai12prompt1">
-      <label for="ai1">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <label for="ai1">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
     </div>
 
       <div class="ai12prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
     </div>
 
       
@@ -906,15 +915,17 @@ function copyWorsePrompt() {
 
     
     <div class="aiDevPrompt1">
-      <label for="aiDev">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+      <label for="aiDev">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
     </div>
 
       <div class="prompt2">
 
-      <label for="ai1">{element.taskB}</label>
+      <label for="ai1">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
     </div>
 
       
@@ -952,22 +963,25 @@ function copyWorsePrompt() {
 
     
     <div class="aiDevPrompt1">
-      <label for="aiDev">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+      <label for="aiDev">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
     </div>
 
       <div class="prompt2">
 
-      <label for="ai1">{element.taskB}</label>
+      <label for="ai1">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
     </div>
     
     <div class="prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
     </div>
 
       
@@ -1005,7 +1019,8 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Antwort"></textarea>
 
       <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
@@ -1020,13 +1035,23 @@ function copyWorsePrompt() {
           {/if}
         </div>
       </div>
-
+       
       {#if showStar}
-      <div class="star-wrapper">
-      <div class="star-block">
-        Sie haben einen Stern erhalten <i class="fas fa-star star-color"></i>
-      </div>
-      </div>
+
+        {#if course.displayType && course.displayType.includes("aufgabe")}
+          <div class="star-wrapper">
+          <div class="star-block">
+            Aufgabe erfolgreich abgeschlossen <i class="fas fa-clipboard-check star-color"></i>
+          </div>
+          </div>
+        {:else}
+
+          <div class="star-wrapper">
+          <div class="star-block">
+            Sie haben einen Stern erhalten <i class="fas fa-star star-color"></i>
+          </div>
+          </div>
+        {/if}
     {/if}
 
     </form>

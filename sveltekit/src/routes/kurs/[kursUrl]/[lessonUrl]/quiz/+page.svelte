@@ -121,6 +121,12 @@
 <section>
   <fieldset>
   <legend>{question.question}</legend>
+    {#if question.type === "s"}
+    <p class="questionType">Wählen sie eine Antwort</p>
+    {:else if question.type === "m"}
+    <p class="questionType">Wählen sie eine oder mehrere Antworten</p>
+      {/if}
+
   {#each question.options as answer}
     {#if question.type === "s"}
       <label>
@@ -233,8 +239,13 @@
   }
   legend {
     margin-bottom: 0.3em;
+    margin-bottom: 0em;
     font-size: 1.5em;
     font-weight: bold;
+  }
+  p.questionType {
+    font-style: italic;
+    font-size: 0.8em;
   }
   button:hover, .button:hover {
     background-color: var(--color-link-light);
