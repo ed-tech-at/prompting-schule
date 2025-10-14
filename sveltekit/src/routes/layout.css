@@ -596,6 +596,10 @@ mark h2, mark h3 {
   color: var(--color-secondary);
 }
 
+.link-color {
+  color: var(--color-link);
+}
+
 .quiz-btn {
   display: inline-block;
   background: var(--color-link);
@@ -836,6 +840,9 @@ form.ai .prompt {
 
   font-weight: 500;
   font-size: 1em;
+
+  field-sizing: content;
+  display: block;
   
 }
 
@@ -858,6 +865,11 @@ form.ai.note .submit {
   border: 2px solid var(--color-complementary-darkest);
 }
 
+form.ai.note .submit:hover {
+  background-color: var(--color-complementary-dark);
+  border: 2px solid var(--color-complementary-darkest);
+}
+
 /* form.ai .prompt::placeholder {
   color: var(--color-background);
 } */
@@ -866,6 +878,14 @@ form.ai .prompt:empty::before {
   content: attr(placeholder);
   color: var(--color-background);
 }
+
+
+form.ai .prompt::placeholder {
+  /* content: attr(placeholder); */
+  color: var(--color-background);
+}
+
+
 
 form.ai .submit {
   cursor: pointer;

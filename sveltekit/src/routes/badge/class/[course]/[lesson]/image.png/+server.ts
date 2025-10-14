@@ -1,9 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 export async function GET({ params }) {
 	const { course, lesson } = params;

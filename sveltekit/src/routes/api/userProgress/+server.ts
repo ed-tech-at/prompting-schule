@@ -1,5 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 import { error, json } from '@sveltejs/kit';
 import { AZURE_API_VERSION, AZURE_KEY, AZURE_MODEL, AZURE_URL, OPENAI_API_KEY } from '$env/static/private';

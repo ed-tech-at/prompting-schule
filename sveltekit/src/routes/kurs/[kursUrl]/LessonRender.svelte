@@ -87,25 +87,43 @@
  
   {#if lesson.starsNeeded > 0}  
   
-    <p>Zum Abschluss dieser Lektion benötigen Sie:
-    {#each Array(lesson.starsNeeded) as _, i}
-      <i class="fa fa-star" aria-hidden="true"></i>
-    {/each}
+    {#if course.displayType && course.displayType.includes("aufgabe")}
+
+      <p>Diese Lektion enthält:
+      {#each Array(lesson.starsNeeded) as _, i}
+        <i class="fas fa-clipboard" aria-hidden="true"></i>
+      {/each}
+      </p>
+      
+      <p>
+      Von Ihnen absolvierte Aufgaben:
+      {#each Array(userStars) as _, i}
+        <i class="fa fa-clipboard-check star-color" aria-hidden="true"></i>
+      {/each}
     </p>
-    
-    <p>
-    Gesammelte Sterne:
-    {#each Array(userStars) as _, i}
-      <i class="fa fa-star star-color" aria-hidden="true"></i>
 
     
-    {/each}
-    {#if percentReached > 0}
-    <p>Ihr bester Quiz-Versuch liegt bei {percentReached}%.</p>
-
+    {:else}
+      <p>Zum Abschluss dieser Lektion benötigen Sie:
+      {#each Array(lesson.starsNeeded) as _, i}
+        <i class="fa fa-star" aria-hidden="true"></i>
+      {/each}
+      </p>
+      
+      <p>
+      Gesammelte Sterne:
+      {#each Array(userStars) as _, i}
+        <i class="fa fa-star star-color" aria-hidden="true"></i>
+      {/each}
+     </p>
 
     {/if}
-    </p>
+
+
+    {#if percentReached > 0}
+      <p>Ihr bester Quiz-Versuch liegt bei {percentReached}%.</p>
+    {/if}
+
     {/if}
 </a>
 

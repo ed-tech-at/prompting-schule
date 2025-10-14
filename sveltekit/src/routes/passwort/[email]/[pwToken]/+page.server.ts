@@ -1,7 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { error, json } from '@sveltejs/kit';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 export async function load({ params }) {
     const { email, pwToken } = params;

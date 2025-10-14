@@ -1,6 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import type { PageServerLoad, Actions } from './$types';
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from '$lib/server/db';
+
 
 import { requireLogin } from '$lib/server/jwt';
 
@@ -19,7 +21,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
 
   const quizQuestions = await prisma.quizQuestion.findMany({
-    where: { lessonId: lesson?.id }
+    where: { lessonId: lesson?.id },
+    orderBy: { id: 'asc' }
   });
 
   quizQuestions.forEach((question) => {
