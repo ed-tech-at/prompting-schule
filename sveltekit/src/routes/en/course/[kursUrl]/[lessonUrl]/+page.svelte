@@ -60,7 +60,7 @@
     const section = sender.closest('section');
     const textAreas = section.querySelectorAll('.prompt');
     if (textAreas.length >= 2) {
-  textAreas[0].textContent = b;
+  textAreas[0].value = b;
   // textAreas[1].textContent = b;
 textAreas[0].dispatchEvent(new Event('input'));
 // textAreas[1].dispatchEvent(new Event('input'));
@@ -77,7 +77,7 @@ textAreas[0].dispatchEvent(new Event('input'));
     const textAreas = section.querySelectorAll('.prompt');
     if (textAreas.length >= 2) {
       // textAreas[0].textContent = b;
-      textAreas[1].textContent = b;
+      textAreas[1].value = b;
       // textAreas[0].dispatchEvent(new Event('input'));
       textAreas[1].dispatchEvent(new Event('input'));
     }
@@ -91,7 +91,7 @@ textAreas[0].dispatchEvent(new Event('input'));
     const section = sender.closest('section');
     const textAreas = section.querySelectorAll('.prompt');
     if (textAreas.length >= 1) {
-      textAreas[0].textContent = b;
+      textAreas[0].value = b;
       // textAreas[1].textContent = b;
       textAreas[0].dispatchEvent(new Event('input'));
       // textAreas[1].dispatchEvent(new Event('input'));
@@ -105,8 +105,8 @@ textAreas[0].dispatchEvent(new Event('input'));
     const section = sender.closest('section');
     const textAreas = section.querySelectorAll('.prompt');
     if (textAreas.length >= 2) {
-      textAreas[0].textContent = a;
-      textAreas[1].textContent = b;
+      textAreas[0].value = a;
+      textAreas[1].value = b;
       textAreas[0].dispatchEvent(new Event('input'));
       textAreas[1].dispatchEvent(new Event('input'));
     }

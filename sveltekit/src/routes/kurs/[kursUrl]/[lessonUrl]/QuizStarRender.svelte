@@ -56,16 +56,17 @@
   
 
     {#if course.displayType && course.displayType.includes("aufgabe")}
-      <p>Zum Abschluss dieser Lektion benötigen Sie:
-      {#each Array(lesson.starsNeeded) as _, i}
-        <i class="fas fa-clipboard-check" aria-hidden="true"></i>
-      {/each}
-      </p>
+    
+      {#if lesson.starsNeeded == 1}
+        <p>Zum Abschluss dieser Lektion muss <b>{lesson.starsNeeded}</b> <span class="star-color" style="color:var(--color-secondary-darkest)"><i class="fas fa-clipboard" aria-hidden="true"></i> Aufgabe</span> gelöst werden.</p>
+        {:else}
+        <p>Zum Abschluss dieser Lektion müssen <b>{lesson.starsNeeded}</b> <span class="star-color" style="color:var(--color-secondary-darkest)"><i class="fas fa-clipboard" aria-hidden="true"></i> Aufgaben</span> gelöst werden.</p>
+      {/if}
       <p>
-    Von Ihnen absolvierte Aufgaben:
-      {#each Array(userStars) as _, i}
+    Von Ihnen absolvierte Aufgaben: <b>{userStars}</b>
+      <!-- {#each Array(userStars) as _, i}
         <i class="fas fa-clipboard-check link-color"></i>
-      {/each}
+      {/each} -->
 
       </p>
     {:else}
