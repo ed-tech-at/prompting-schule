@@ -732,7 +732,7 @@ function copyWorsePrompt() {
       <label for="ai1">{element.taskA} <i class="fas fa-pencil-alt"></i></label>
             
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
-      <textarea contenteditable="plaintext-only" class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
@@ -1076,7 +1076,8 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
      
 
@@ -1088,7 +1089,9 @@ function copyWorsePrompt() {
 
         <label for="ai2">{element.taskB}</label>
   
-        <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+        <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+        <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
+        
       </div>
   
 
