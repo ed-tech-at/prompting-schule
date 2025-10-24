@@ -1050,6 +1050,8 @@ button.danger:hover, .button.danger:hover {
 
 .prompt * {
   margin: 0;
+  word-wrap: normal;
+  white-space: pre-wrap;
 }
 
 form.ai .aiLaborWorse label {
