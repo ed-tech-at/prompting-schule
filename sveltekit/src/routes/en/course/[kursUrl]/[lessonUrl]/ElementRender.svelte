@@ -672,12 +672,17 @@ async function submitFormStar() {
   });
 }
 
+
+function stripTagsAndDecode(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || '';
+}
   
 function copyBetterPrompt() {
-  ai1 = betterPrompt;
+  ai1 = stripTagsAndDecode(betterPrompt);
 }
 function copyWorsePrompt() {
-  ai1 = ai2Result;
+  ai1 = stripTagsAndDecode(ai2Result);
 }
 
 
@@ -705,7 +710,10 @@ function copyWorsePrompt() {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div>
+      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" role="textbox" aria-labelledby="label-{element.id}" >
+      </textarea>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
 
       <button type="submit" class="submit" disabled={ai1running}>
         <i class="fas fa-save"></i>
@@ -728,7 +736,8 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
             
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
@@ -747,8 +756,10 @@ function copyWorsePrompt() {
     
     <form class="ai" on:submit|preventDefault={submitFormAiSide2}>
       <label for="ai2">{@html element.taskB}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
       
+
       <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -778,7 +789,8 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <div class="ai1prompt2">
       <label for="ai2">{@html element.taskB}</label>
@@ -824,7 +836,9 @@ function copyWorsePrompt() {
 
       <label for="ai2">{element.taskB}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
+
     </div>
 
       
@@ -863,14 +877,18 @@ function copyWorsePrompt() {
     
     <div class="ai12prompt1">
       <label for="ai1">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
+
     </div>
 
       <div class="ai12prompt2">
 
       <label for="ai2">{element.taskB}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
+
     </div>
 
       
@@ -907,14 +925,18 @@ function copyWorsePrompt() {
     
     <div class="aiDevPrompt1">
       <label for="aiDev">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
+
     </div>
 
       <div class="prompt2">
 
       <label for="ai1">{element.taskB}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
+
     </div>
 
       
@@ -953,21 +975,27 @@ function copyWorsePrompt() {
     
     <div class="aiDevPrompt1">
       <label for="aiDev">{@html element.taskA}</label>
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
+
     </div>
 
       <div class="prompt2">
 
       <label for="ai1">{element.taskB}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
+
     </div>
     
     <div class="prompt2">
 
       <label for="ai2">{element.taskB}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
+
     </div>
 
       
@@ -1005,9 +1033,10 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Answer"></textarea>
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Submit">
         <i class="fas fa-paper-plane"></i>
       </button>
       
@@ -1051,7 +1080,8 @@ function copyWorsePrompt() {
 
       <label for="ai1">{element.taskA}</label>
 
-      <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div>
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
      
 
@@ -1063,7 +1093,9 @@ function copyWorsePrompt() {
 
         <label for="ai2">{element.taskB}</label>
   
-        <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div>
+        <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
+        <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
+
       </div>
   
 

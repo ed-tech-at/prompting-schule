@@ -673,12 +673,17 @@ async function submitFormStar() {
   });
 }
 
+function stripTagsAndDecode(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || '';
+}
+
   
 function copyBetterPrompt() {
-  ai1 = betterPrompt;
+  ai1 = stripTagsAndDecode(betterPrompt);
 }
 function copyWorsePrompt() {
-  ai1 = ai2Result;
+  ai1 = stripTagsAndDecode(ai2Result);
 }
 
 
