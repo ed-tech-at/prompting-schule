@@ -24,6 +24,15 @@ function fontToBase64(filePath: string) {
 	return fontBuffer.toString('base64');
 }
 
+function escapeXml(input: unknown) {
+  return String(input ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 export async function POST({ request, cookies }) {
 
   
@@ -132,6 +141,12 @@ const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls 
    );
 
 	// SVG-Overlay erzeugen
+const createdAtStr = badgeDb?.createdAt.toLocaleDateString('de-DE');
+const emailEsc = escapeXml(user.email);
+const lessonEsc = escapeXml(lesson?.lessonName);
+const courseEsc = escapeXml(course?.name);
+
+
 	const svg = `
 	<svg width="1000" height="1000"  xmlns="http://www.w3.org/2000/svg">
 	  <defs>
@@ -174,13 +189,13 @@ const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls 
       
 		</style>
 	  </defs>
-	  <text x="165" y="320" class="cert">Zertifikat ${badgeDb?.hash} vom ${badgeDb?.createdAt.toLocaleDateString('de-DE')}</text>
+	  <text x="165" y="320" class="cert">Zertifikat ${badgeDb?.hash} vom ${escapeXml(createdAtStr)}</text>
 
 	  
-	  <text x="50%" y="420" class="email">${user.email}</text>
+	  <text x="50%" y="420" class="email">${emailEsc}</text>
 	  
-    <text x="50%" y="490" class="lesson">hat die Lektion <tspan class='bold'> ${lesson?.lessonName}</tspan></text>
-    <text x="50%" y="550" class="lesson">im Kurs <tspan class='bold'> ${course?.name}</tspan></text>
+    <text x="50%" y="490" class="lesson">hat die Lektion <tspan class='bold'> ${lessonEsc}</tspan></text>
+    <text x="50%" y="550" class="lesson">im Kurs <tspan class='bold'> ${courseEsc}</tspan></text>
 	  
 	  <text x="50%" y="610" class="lesson"> absolviert${textSelbstueberpruefung}.</text>
 	  <text x="100" y="720" class="used">Es wurden ${badgeDb?.promptsTried} Prompts</text>
