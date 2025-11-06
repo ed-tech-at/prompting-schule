@@ -818,6 +818,41 @@ function copyWorsePrompt() {
   {/if}
 
 
+  {#if element.type === "ai1only"}
+
+<section>
+  {@html element.description}
+  <div class="ai1">
+    
+  <form class="ai" on:submit|preventDefault={submitFormAiSide1}>
+
+      <label for="ai1">{element.taskA}</label>
+
+      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
+      <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
+
+
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      
+      <div class="result">
+        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <!-- <div class="clearboth"></div> -->
+        <div class="generated">
+          {#if ai1Result}
+            {@html ai1Result}
+          {/if}
+        </div>
+      </div>
+    </form>
+    
+    
+  </div>      
+</section>  
+  {/if}
+
+
   {#if element.type === "ai2" || element.type === "ai2only"}
 
 <section>

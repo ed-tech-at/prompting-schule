@@ -89,6 +89,7 @@ a:hover {
   --color-green: #43A047;
   --color-green-light: #66BB6A;
   --color-green-lightest: #bce8c574;
+  --color-green-lightest: #a9dbab;
   --color-green-dark: #2E7D32;
   --color-green-darkest: #1B5E20;
 
@@ -559,6 +560,22 @@ mark {
 
 mark h2, mark h3 {
   color: var(--color-complementary-dark);
+}
+
+
+mark.green {
+  
+  background-color: var(--color-green-lightest);
+  /* color: var(--color-green-darkest); */
+
+  border-left: 5px solid var(--color-green-darkest);
+  /* padding: 1em 1.5em 0.8em 1.5em; */
+  /* margin: 2em 0em 1em 0em; */
+  /* border-radius: 1em; */
+}
+
+mark.green h2, mark.green h3 {
+  color: var(--color-green-darkest);
 }
 
 .star mark {
