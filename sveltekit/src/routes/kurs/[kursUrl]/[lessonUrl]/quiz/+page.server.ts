@@ -27,6 +27,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
   quizQuestions.forEach((question) => {
     delete question.correct;
+    if (Array.isArray(question.options) && question.options.length > 1) {
+      for (let i = question.options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [question.options[i], question.options[j]] = [question.options[j], question.options[i]];
+      }
+    }
   });
 
   return {
