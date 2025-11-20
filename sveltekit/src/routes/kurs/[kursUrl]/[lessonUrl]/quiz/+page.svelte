@@ -115,7 +115,7 @@
 
 <p>Beantworten Sie die Quizfragen.</p>
 
-<form class="quiz-questions" on:submit|preventDefault={handleSubmit} disabled={quizSubmitted}>
+<form class="quiz-questions" on:submit|preventDefault={handleSubmit} disabled={quizSubmitted} autocomplete="off">
 {#each data.quizQuestions as question}
 
 <section>
@@ -130,13 +130,13 @@
   {#each question.options as answer}
     {#if question.type === "s"}
       <label>
-        <input type="radio" name="{question.id}" value="{answer}" disabled={quizSubmitted} />
+        <input type="radio" name="{question.id}" value="{answer}" disabled={quizSubmitted} autocomplete="off"/>
         {@html answer}
       </label>
       {:else if question.type === "m"}
       
       <label>
-        <input type="checkbox" name="{question.id}" value="{answer}" disabled={quizSubmitted} />
+        <input type="checkbox" name="{question.id}" value="{answer}" disabled={quizSubmitted} autocomplete="off"/>
         {@html answer}
       </label>
 
