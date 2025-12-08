@@ -111,7 +111,7 @@
 <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: data.course.name, href: '/kurs/' + data.course.URL }, { name: data.lesson.lessonName, href: '/kurs/' + data.course.URL + '/' + data.lesson.URL }, {name: "Quiz",  href: '/kurs/' + data.course.URL + '/' + data.lesson.URL + "/quiz" }]} user={data.user} />
 
 <main>
-<h1>Quiz zur Lektion {data.lesson.lessonName}</h1>
+<h1>Quiz zu {data.lesson.lessonName}</h1>
 
 <p>Beantworten Sie die Quizfragen.</p>
 
@@ -122,9 +122,9 @@
   <fieldset>
   <legend>{question.question}</legend>
     {#if question.type === "s"}
-    <p class="questionType">Wählen sie eine Antwort</p>
+    <p class="questionType">Wählen Sie eine Antwort</p>
     {:else if question.type === "m"}
-    <p class="questionType">Wählen sie eine oder mehrere Antworten</p>
+    <p class="questionType">Wählen Sie eine oder mehrere Antworten</p>
       {/if}
 
   {#each question.options as answer}

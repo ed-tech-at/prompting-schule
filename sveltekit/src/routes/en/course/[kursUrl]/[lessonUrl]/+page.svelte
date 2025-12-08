@@ -124,7 +124,10 @@ textAreas[0].dispatchEvent(new Event('input'));
 <Header navItems={[{ name: 'Courses', href: '/en/courses' }, { name: data.course.name, href: '/en/course/' + data.course.URL }, { name: data.lesson.lessonName, href: '/en/course/' + data.course.URL + '/' + data.lesson.URL }]} user={data.user} lang="en" />
 <main>
 
-<h1>Lesson: {data.lesson.lessonName}</h1>
+{#if data.course.displayType?.includes("labor")}
+  <h1>Lesson: {data.lesson.lessonName}</h1>
+{/if}
+
 <!-- {#if data.course.displayType != "labor"}
 <QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if} -->
