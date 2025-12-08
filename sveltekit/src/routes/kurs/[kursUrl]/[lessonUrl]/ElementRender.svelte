@@ -687,14 +687,17 @@ function copyWorsePrompt() {
 }
 
 
-
+let sepcialClass = "";
+if (element.type.includes('negativeMarginTop')) {
+  sepcialClass += ' negativeMarginTop';
+}
 
 </script>
 
-<div class="{user.isAdmin > 0 ? 'adminView element' : 'element'}">
+<div class="{user.isAdmin > 0 ? 'adminView element' : 'element'} {sepcialClass}">
  
   
-  {#if element.type === "text"}
+  {#if element.type === "text" || element.type === "text-negativeMarginTop"}
     {@html element.description}
   {/if}
 

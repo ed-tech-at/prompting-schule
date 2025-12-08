@@ -16,6 +16,8 @@ import { onMount } from 'svelte';
 <main>
 <h1>Course: {data.course.name}</h1>
 
+<div>{@html data.course.introDescription}</div>
+
 <div class={"displayType-" + data.course.displayType + " lessons"}>
 {#each data.lessons as lesson}
   <LessonRender course={data.course} {lesson} userId={data.user.id} latestBadge={data.latestBadge[lesson.id]} />

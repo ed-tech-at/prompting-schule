@@ -12,10 +12,10 @@
           <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener noreferrer" style="display: inline-block;">CC BY 4.0 <img decoding="async" style="    height: 1.2em !important;
     margin-left: 3px;
     vertical-align: sub;
-    " src="/img/cc.svg"><img decoding="async" style="    height: 1.2em !important;
+    " src="/img/cc.svg" alt="CC"><img decoding="async" style="    height: 1.2em !important;
     margin-left: 3px;
     vertical-align: sub;
-    " src="/img/by.svg"></a><br>
+    " src="/img/by.svg" alt="BY"></a><br>
           Lehr- und Lerntechnologien, TU Graz</p>
       </div>
 

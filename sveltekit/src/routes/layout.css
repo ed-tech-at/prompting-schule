@@ -547,6 +547,10 @@ section {
   margin-bottom: 120px;
 }
 
+.element.negativeMarginTop {
+  margin-top: -120px;
+}
+
 mark {
   display: block;
   background-color: var(--color-complementary-lightest);
