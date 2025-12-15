@@ -140,10 +140,11 @@ export function createJWTResponse(user: { id: string; email: string; isAdmin: nu
     isAdmin: user.isAdmin
   });
 
+  // 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
     headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
+      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
       'Content-Type': 'application/json'
     }
   });
