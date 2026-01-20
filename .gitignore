@@ -1,2 +1,5 @@
 .DS_Store
 .vscode
+
+# git update-index --assume-unchanged sveltekit/svelte.config.js
+sveltekit/svelte.config.js
