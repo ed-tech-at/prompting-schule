@@ -133,6 +133,52 @@ export async function register(email: string, password: string): Promise<Respons
 }
 
 
+type ssoUser
+
+export async function loginSso(user: ): Promise<Response> {
+  
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  
+  if (existingUser) {
+    const loginResult = await login(email, password);
+
+    if ('success' in loginResult && loginResult.success === false) {
+      return json({
+        success: false,
+        error: "Benutzer existiert bereits, aber das Passwort ist falsch."
+      });
+    }
+
+    return loginResult;
+  }
+
+  const uuid = await newUserUUID();
+  const hashedPassword = await hashPasswordV2(password, uuid); // assuming hashPassword handles v2
+  const cryptVersion = 2;
+
+  const newUser = await prisma.user.create({
+    data: {
+      id: uuid,
+      email,
+      password: hashedPassword,
+      cryptVersion
+    }
+  });
+
+  return createJWTResponse(newUser);
+
+  const token = createJWT({ id: newUser.id, email: newUser.email, isAdmin: newUser.isAdmin });
+
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: {
+      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
+
 export function createJWTResponse(user: { id: string; email: string; isAdmin: number }): Response {
   const token = createJWT({
     id: user.id,
