@@ -133,9 +133,16 @@ export async function register(email: string, password: string): Promise<Respons
 }
 
 
-type ssoUser
+// type ssoUser;
+type ssoUser = {
+  preferred_username: string;
+  given_name: string;
+  family_name: string;
+  email: string;
+};
 
-export async function loginSso(user: ): Promise<Response> {
+
+export async function loginSso(user: ssoUser): Promise<Response> {
   
   const existingUser = await prisma.user.findUnique({ where: { email } });
   

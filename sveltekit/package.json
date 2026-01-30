@@ -31,16 +31,21 @@
 	"dependencies": {
 		"@azure/openai": "^2.0.0",
 		"@prisma/client": "^6.5.0",
-		"bcrypt": "^5.1.1",
+		"bcrypt": "^6.0.0",
 		"dotenv": "^16.4.7",
 		"jsonwebtoken": "^9.0.2",
 		"marked": "^15.0.7",
-		"nodemailer": "^6.10.0",
+		"nodemailer": "^7.0.13",
 		"openai": "^4.91.1",
 		"openbadges-bakery-v3": "^1.0.6",
 		"pdf-lib": "^1.17.1",
 		"qrcode": "^1.5.4",
 		"sharp": "^0.34.0",
 		"uuid": "^11.1.0"
+	},
+	"overrides": {
+		"openbadges-bakery-v3": {
+			"jws": "^3.2.3"
+		}
 	}
 }
