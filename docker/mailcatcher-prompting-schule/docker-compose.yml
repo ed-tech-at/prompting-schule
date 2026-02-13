@@ -1,0 +1,7 @@
+services:
+  mailcatcher-prompting-schule:
+    image: sj26/mailcatcher:latest
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+

@@ -1,42 +1,28 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
 const prisma = new PrismaClient()
 
+// recreate __dirname in ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 async function main() {
-    // Insert course
-    const course = await prisma.course.create({
-        data: {
-            name: "Grundlagen",
-            lessons: {
-                create: [
-                    { lessonName: "Einführung in KI Ethik" },
-                    { lessonName: "Klare Anweisungen schreiben"},
-                    { lessonName: "Referenztext bereitstellen" },
-                    { lessonName: "Komplexe Aufgaben aufteilen" },
-                    { lessonName: "Der KI Zeit zum Nachdenken geben" },
-                  ]
-                }
-            }
-        }
-    })
+  const filePath = path.join(__dirname, 'seed.sql')
+  const sql = fs.readFileSync(filePath, 'utf8')
 
-    const course2 = await prisma.course.create({
-      data: {
-          name: "Prompt Labor",
-          lessons: {
-              create: [
-                  { lessonName: "Grammatik-Korrektur" },
-                  { lessonName: "Meeting-Notizen zusammenfassen"},
-                  { lessonName: "Schlüsselwörter extrahieren" },
-                  { lessonName: "Pro- und Kontra-Diskussio" },
-                  { lessonName: "Übersetzung" },
-                ]
-              }
-          }
-      }
-  })
+  const statements = sql
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
 
-    console.log("Seeded database with courses and lessons:", course)
-    console.log("Seeded database with courses and lessons 2:", course2)
+  for (const statement of statements) {
+    await prisma.$executeRawUnsafe(statement)
+  }
+
+  console.log('Seeding finished.')
 }
 
 main()

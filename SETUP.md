@@ -46,8 +46,11 @@ GRANT ALL PRIVILEGES ON DATABASE prompting_schule_migrations TO prompting_schule
 
 ## .env 
 
+```
 DATABASE_URL="postgresql://prompting_schule_main:PASSWORT_NOGIT@localhost:5432/prompting_schule_main"
 SHADOW_DATABASE_URL="postgresql://prompting_schule_main:PASSWORT_NOGIT@localhost:5432/prompting_schule_migrations"
+```
+
 
 ## prisma/schema.prisma
 datasource db {

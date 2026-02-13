@@ -1,0 +1,29 @@
+services:
+  postgresql-prompting-schule:
+    image: postgres:latest
+    container_name: postgresql-container-prompting-schule
+    restart: unless-stopped
+    # networks:
+      # - postgresql_net
+    environment:
+      POSTGRES_USER: prompting_schule_main
+      POSTGRES_PASSWORD: PASSWORT_NOGIT
+      POSTGRES_DB: prompting_schule_main
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-container
+    restart: unless-stopped
+    depends_on:
+      - postgresql-prompting-schule
+    # networks:
+      # - postgresql_net
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pg@local.dev
+      PGADMIN_DEFAULT_PASSWORD: adminPass
+    ports:
+      - 8085:80

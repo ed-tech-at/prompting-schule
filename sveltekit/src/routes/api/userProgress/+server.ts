@@ -2,9 +2,7 @@
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
 
-
 import { error, json } from '@sveltejs/kit';
-import { AZURE_API_VERSION, AZURE_KEY, AZURE_MODEL, AZURE_URL, OPENAI_API_KEY } from '$env/static/private';
 
 import OpenAI, { AzureOpenAI } from 'openai';
 
@@ -12,12 +10,8 @@ import { marked } from 'marked';
 
 
 import { requireLogin } from '$lib/server/jwt';
-import { streamAiResponse } from '$lib/server/azureAi';
 
 
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY
-});
 
 export async function POST({ request, cookies }) {
 	let { data,  action } = await request.json();
