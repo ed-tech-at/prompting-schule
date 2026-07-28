@@ -71,6 +71,10 @@
   <div class="login">
     {#if lang == 'de'}
       {#if user?.email}
+        {#if user.isAdmin >= 6}
+          <a href={resolve('/admin')}>Benutzerverwaltung</a>
+          <span aria-hidden="true"> · </span>
+        {/if}
         <a href={resolve('/profil')}>Profil {user?.email}</a>
         {:else}
           <a href={resolve("/login")}>🔑 Anmelden</a>

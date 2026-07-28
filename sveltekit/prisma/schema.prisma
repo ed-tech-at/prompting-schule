@@ -26,6 +26,8 @@ model User {
 
   isDeleted Int @default(0)
 
+  blockedAt DateTime?
+
   createdAt       DateTime? @default(now())
 
 
@@ -43,11 +45,26 @@ model UserPasswordReset {
   userId         String
 
   createdAt       DateTime? @default(now())
+
+  expiresAt       DateTime?
   
   finishedAt       DateTime?
 
 
 
+}
+
+model AdminAuditLog {
+  id           Int      @id @default(autoincrement())
+  actorUserId  String
+  targetUserId String
+  action       String
+  outcome      String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([targetUserId, createdAt])
 }
 
 model Course {
@@ -211,6 +228,5 @@ model Badge {
 
   createdAt      DateTime @default(now())
 }
-
 
 

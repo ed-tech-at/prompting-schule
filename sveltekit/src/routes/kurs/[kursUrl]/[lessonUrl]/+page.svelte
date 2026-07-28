@@ -142,7 +142,7 @@ textAreas[0].dispatchEvent(new Event('input'));
 <QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if}
 
-{#if data.user.isAdmin > 0}
+{#if data.user.isAdmin >= 2}
   <!-- <a href={resolve(`/kurs/${data.course.URL}/${data.lesson.URL}/edit`)}>Lektion bearbeiten</a> -->
   <pre>Lektion ID {data.lesson.id}</pre>
 {/if}

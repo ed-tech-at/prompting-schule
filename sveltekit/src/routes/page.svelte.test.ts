@@ -5,7 +5,15 @@ import Page from './+page.svelte';
 
 describe('/+page.svelte', () => {
 	test('should render h1', () => {
-		render(Page);
+		render(Page, {
+			data: {
+				user: {
+					id: 'test-user',
+					email: '',
+					isAdmin: 0
+				}
+			}
+		});
 		expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
 	});
 });

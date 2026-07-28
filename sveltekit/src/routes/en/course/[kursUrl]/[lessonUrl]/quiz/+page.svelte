@@ -141,7 +141,7 @@
   {/if}
 
 
-  {#if data.user.isAdmin > 0}
+  {#if data.user.isAdmin >= 2}
     <pre><strong>Question ID:</strong> {question.id}</pre>
   {/if}
     

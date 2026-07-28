@@ -1184,7 +1184,7 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 
-  {#if user.isAdmin > 0}
+  {#if user.isAdmin >= 2}
     <pre>Element ID: {element.id}</pre>
   {/if}
   

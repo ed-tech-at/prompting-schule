@@ -48,6 +48,10 @@ export async function login(email: string, password: string): Promise<Response> 
     return json({ success: false, error: "Benutzer existiert nicht." });
   }
 
+  if (user.blockedAt) {
+    return json({ success: false, error: "Dieses Benutzerkonto ist gesperrt." }, { status: 403 });
+  }
+
   let passwordMatch = false;
 
   if (user.cryptVersion === 1) {
@@ -78,17 +82,6 @@ export async function login(email: string, password: string): Promise<Response> 
   }
 
   return createJWTResponse(user);
-
-
-  const token = createJWT({ id: user.id, email: user.email, isAdmin: user.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
 }
 
 export async function register(email: string, password: string): Promise<Response> { /* | { success: false; error: string }*/
@@ -121,16 +114,6 @@ export async function register(email: string, password: string): Promise<Respons
   });
 
   return createJWTResponse(newUser);
-
-  const token = createJWT({ id: newUser.id, email: newUser.email, isAdmin: newUser.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
 }
 
 
@@ -151,20 +134,17 @@ export async function loginSso(user: ssoUser): Promise<Response> {
       password: user.preferred_username
     }
   });
-  
+
   if (existingUser) {
-    return createJWTResponseSSO(existingUser);
-
-    const loginResult = await login(user.email, password);
-
-    if ('success' in loginResult && loginResult.success === false) {
-      return json({
-        success: false,
-        error: "Benutzer existiert bereits, aber das Passwort ist falsch."
-      });
+    if (existingUser.isDeleted) {
+      return json({ success: false, error: "Benutzer existiert nicht." }, { status: 403 });
     }
 
-    return loginResult;
+    if (existingUser.blockedAt) {
+      return json({ success: false, error: "Dieses Benutzerkonto ist gesperrt." }, { status: 403 });
+    }
+
+    return createJWTResponseSSO(existingUser);
   }
 
   const uuid = await newUserUUID();
@@ -185,16 +165,6 @@ export async function loginSso(user: ssoUser): Promise<Response> {
   });
 
   return createJWTResponseSSO(newUser);
-
-  const token = createJWT({ id: newUser.id, email: newUser.email, isAdmin: newUser.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
 }
 
 
