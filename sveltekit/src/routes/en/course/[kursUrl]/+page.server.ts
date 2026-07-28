@@ -1,24 +1,18 @@
-// import { PrismaClient } from '@prisma/client';
-import type { PageServerLoad, Actions } from './$types';
-// const prisma = new PrismaClient();
+import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
-
-
 import { requireLogin } from '$lib/server/jwt';
 import type { Badge } from '@prisma/client';
-
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
-
   const user = requireLogin(cookies);
-
-
-  const courseUrl = params.kursUrl as String;
-
-  const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
+  const course = await prisma.course.findUnique({ where: { URL: params.kursUrl } });
+  if (!course) {
+    throw error(404, 'Course not found');
+  }
 
   const lessons = await prisma.lesson.findMany({
-    where: { courseId: course?.id, active: 1 },
+    where: { courseId: course.id, active: 1 },
     orderBy: { position: 'asc' }
   });
 
@@ -28,9 +22,9 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     orderBy: { createdAt: 'desc' }
   });
 
-  let latestBadge = [] as Badge[];
+  const latestBadge: Record<number, Badge> = {};
   for (const badge of badges) {
-    if (!latestBadge[badge.lessonId]) {
+    if (badge.lessonId !== null && !latestBadge[badge.lessonId]) {
       latestBadge[badge.lessonId] = badge;
     }
   }
@@ -39,6 +33,6 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     course,
     lessons,
     user,
-    latestBadge: latestBadge
+    latestBadge
   };
 };

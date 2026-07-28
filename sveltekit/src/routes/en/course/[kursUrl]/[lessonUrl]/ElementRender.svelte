@@ -3,7 +3,7 @@
 
   import { resolve } from '$app/paths';
 
-  import type { Element, Course, Lesson, User } from '@prisma/client';
+  import type { Element, Course, Lesson } from '@prisma/client';
 
   import { marked } from 'marked';
 
@@ -148,7 +148,7 @@
   let ai1Result = "";
   let ai1RawText = "";
 
-  let ai1timer = null;
+  let ai1timer: ReturnType<typeof setTimeout> | undefined;
   let ai1running = false;
   let showStar = false;
 
@@ -160,7 +160,7 @@
   let ai2RawText = "";
 
   
-  let ai2timer = null;
+  let ai2timer: ReturnType<typeof setTimeout> | undefined;
   let ai2running = false; 
   
   let ai2promptTokens = 0;
@@ -169,30 +169,32 @@
   let betterPrompt = "";
   
 
-  function startTimer (number) {
+  function startTimer (number: 1 | 2) {
     if (number == 1) {
       ai1running = true;
       ai1timer = setTimeout(() => {
         ai1Result += ".";
-        clearTimeout(ai1timer);
+        if (ai1timer) clearTimeout(ai1timer);
         startTimer(1);
       }, 500);
     } else if (number == 2) {
       ai2running = true; 
       ai2timer = setTimeout(() => {
         ai2Result += ".";
-        clearTimeout(ai2timer);
+        if (ai2timer) clearTimeout(ai2timer);
         startTimer(2);
       }, 500);
     }
   }
 
-  function stopTimer (number) {
+  function stopTimer (number: 1 | 2) {
     if (number == 1) {
-      clearTimeout(ai1timer);
+      if (ai1timer) clearTimeout(ai1timer);
+      ai1timer = undefined;
       ai1running = false;
     } else if (number == 2) {
-      clearTimeout(ai2timer);
+      if (ai2timer) clearTimeout(ai2timer);
+      ai2timer = undefined;
       ai2running = false; 
     }
   }
@@ -257,7 +259,7 @@
 }: {
   action: string;
   data: Record<string, any>;
-  timerKey: number;
+  timerKey: 1 | 2;
   onChunk: (textChunk: string) => void;
   onFooter: (tokens: { promptTokens: number; completionTokens: number }) => void;
   onError?: (msg: string) => void;
@@ -348,7 +350,7 @@ async function submitFormAiSide1() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -378,7 +380,7 @@ async function submitFormAiSide2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai2promptTokens = promptTokens;
@@ -410,7 +412,7 @@ async function submitFormAi1() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -440,7 +442,7 @@ async function submitFormAi2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai2promptTokens = promptTokens;
@@ -471,7 +473,7 @@ async function submitFormAi12() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -502,7 +504,7 @@ async function submitFormDirectDevUser() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -534,7 +536,7 @@ async function submitFormDirectDevUserUser() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -591,7 +593,7 @@ async function labor2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: () => {
       labor3(); // ⏭ automatisch weiter zu labor3
@@ -619,7 +621,7 @@ async function labor3() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -655,7 +657,7 @@ async function submitFormStar() {
     onFooter: ({ promptTokens, completionTokens }) => {
       try {
         const parsed = JSON.parse(ai1RawText);
-        ai1Result = marked.parse(parsed.feedback || '');
+        ai1Result = marked.parse(parsed.feedback || '', { async: false });
         showStar = parsed.star;
       } catch (e) {
         ai1Result = 'Fehler beim Parsen der Rückgabe';
@@ -674,7 +676,7 @@ async function submitFormStar() {
 }
 
 
-function stripTagsAndDecode(html) {
+function stripTagsAndDecode(html: string) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body.textContent || '';
 }
@@ -715,12 +717,12 @@ if (element.type.includes('negativeMarginTop')) {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" role="textbox" aria-labelledby="label-{element.id}" >
+      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" aria-labelledby="label-{element.id}" >
       </textarea>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Save note">
         <i class="fas fa-save"></i>
       </button>
       
@@ -749,7 +751,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -770,7 +772,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
 
       <div class="result">
-        <label>Answer {#if ai2running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
         <div class="clearfix"></div>
         <div class="generated">
           {#if ai2Result}
@@ -807,7 +809,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -842,7 +844,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -888,7 +890,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai2running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai2Result}
@@ -938,7 +940,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -986,7 +988,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1045,7 +1047,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1081,7 +1083,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Feedback {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Feedback {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1145,9 +1147,9 @@ if (element.type.includes('negativeMarginTop')) {
           <label for="ai2">Better Prompt</label>
           <div class="prompt" placeholder="Prompt">{@html betterPrompt}</div>
 
-          <span type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt}>
+          <button type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt} aria-label="Use better prompt">
             <i class="fas fa-copy"></i>
-          </span>
+          </button>
 
           
 
@@ -1157,9 +1159,9 @@ if (element.type.includes('negativeMarginTop')) {
           <label for="ai2">Worse Prompt</label>
           <div class="prompt" placeholder="...">{@html ai2Result}</div>
 
-          <span type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt}>
+          <button type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt} aria-label="Use worse prompt">
             <i class="fas fa-copy"></i>
-          </span>
+          </button>
         </div>
 
       </div>
@@ -1167,7 +1169,7 @@ if (element.type.includes('negativeMarginTop')) {
       {/if}
 
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}

@@ -1,29 +1,27 @@
-// import { PrismaClient } from '@prisma/client';
-import type { PageServerLoad, Actions } from './$types';
+import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
-// const prisma = new PrismaClient();
-
 import { requireLogin } from '$lib/server/jwt';
-
-import { redirect, type Cookies } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
-
   const user = requireLogin(cookies);
+  const course = await prisma.course.findUnique({ where: { URL: params.kursUrl } });
+  if (!course) {
+    throw error(404, 'Course not found');
+  }
 
-
-  const courseUrl = params.kursUrl as String;
-  const lessonUrl = params.lessonUrl as String;
-
-  const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
-
-  
-  const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
+  const lesson = await prisma.lesson.findFirst({
+    where: { URL: params.lessonUrl, courseId: course.id }
+  });
+  if (!lesson) {
+    throw error(404, 'Lesson not found');
+  }
 
   const bestQuiz = await prisma.userQuizAttempt.findFirst({
     where: {
       userId: user.id,
-      lessonId: lesson?.id
+      lessonId: lesson.id
     },
     orderBy: {
       percentReached: 'desc'
@@ -32,25 +30,21 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
   const badges = await prisma.badge.findMany({
     where: {
-      lessonId: lesson?.id,
+      lessonId: lesson.id,
       userId: user.id
     },
     orderBy: { createdAt: 'desc' }
   });
 
 
-  if (lesson?.starsNeeded > 0) {
-    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, '/kurse');
-    //  TODO 75
-  } 
-
-  
+  if (lesson.starsNeeded > 0 && (!bestQuiz || bestQuiz.percentReached < 75)) {
+    throw redirect(302, resolve('/en/courses'));
+  }
 
   const aggregate = await prisma.userProgress.aggregate({
-
     where: {
       userId: user.id,
-      lessonId: lesson?.id
+      lessonId: lesson.id
     },
     _sum: {
       promptsTried: true,
@@ -60,7 +54,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const maxPrompts = aggregate._sum.promptsTried || 0;
 
   if (maxPrompts == 0) {
-    throw redirect(302, '/kurse'); 
+    throw redirect(302, resolve('/en/courses'));
   }
 
   return {

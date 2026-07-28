@@ -6,7 +6,7 @@
   <div class="">
   <div class="logo">
     
-    <a href={resolve('/')}><h3><img src={asset("/logo-prompting.schule-bg.png")}  alt="prompting.school Logo"> prompting.school</h3></a>
+    <a href={resolve('/en')}><h3><img src={asset("/logo-prompting.schule-bg.png")}  alt="prompting.school Logo"> prompting.school</h3></a>
     <p>Become a prompt engineering champion</p>
   </div>
 

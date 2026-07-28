@@ -6,6 +6,7 @@
 
   import { asset } from '$app/paths';
 
+  $: isEnglish = data.pathname?.endsWith('/en') || data.pathname?.includes('/en/');
 </script>
 <svelte:head>
   <link rel="stylesheet" href={asset("/fonts/fontawesome-free-5.15.3-web/css/all.min.css")} />
@@ -18,7 +19,7 @@
 
 <slot />
 
-{#if data.pathname?.startsWith('/en')}
+{#if isEnglish}
   <script>
     document.documentElement.lang = 'en';
   </script>

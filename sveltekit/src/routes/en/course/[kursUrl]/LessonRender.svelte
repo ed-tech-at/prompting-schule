@@ -95,19 +95,14 @@
     {/each}
     </p>
     
-    <p>
-    Total stars:
+    <p>Total stars:
     {#each Array(userStars) as _, i}
       <i class="fa fa-star star-color" aria-hidden="true"></i>
-
-    
     {/each}
+    </p>
     {#if percentReached > 0}
     <p>Your best quiz attempt is {percentReached}%.</p>
-
-
     {/if}
-    </p>
     {/if}
 </a>
 

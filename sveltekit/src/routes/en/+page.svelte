@@ -3,7 +3,7 @@
   import type { JwtUserPayload } from "$lib/server/jwt";
   export let data: { user: JwtUserPayload };
 
-  import { resolve } from "path";
+  import { resolve } from "$app/paths";
 
 </script>
 

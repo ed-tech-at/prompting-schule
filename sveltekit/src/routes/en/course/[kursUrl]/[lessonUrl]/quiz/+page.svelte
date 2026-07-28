@@ -1,8 +1,6 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
   // import Footer from '$lib/Footer.svelte';
-  import { onMount } from 'svelte';
-  // import { browser } from '$app/environment';
   import type { Course, Lesson, QuizQuestion } from '@prisma/client';
   import type { JwtUserPayload } from '$lib/server/jwt';
 
@@ -10,11 +8,21 @@
 
 
   export let data: {course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], user: JwtUserPayload}; 
-  let userId = "";
-  let userStars = 0;
-  let isAdmin = 0;
+  type QuizResult = {
+    questionId: number;
+    userCorrectResponse: string[];
+    points: number;
+  };
 
-  let quizResults = null; // Reactive variable to store quiz results
+  type QuizResults = {
+    success: true;
+    results: QuizResult[];
+    totalPoints: number;
+    maxPoints: number;
+    percent: number;
+  };
+
+  let quizResults: QuizResults | null = null;
   let quizSubmitted = false; // Reactive variable to track if the quiz is submitted
 
   // if (browser) {
@@ -28,35 +36,8 @@
   //       }
   // }
   
-  onMount(() => {
-    // updateUserStars();
-    // if (userStars >= data.lesson.starsNeeded) {
-    //   console.log("User hat genug Sterne gesammelt");
-    // } else {
-    //   console.log("User hat noch nicht genug Sterne gesammelt");
-    //   // window.location.href = `/kurs/${data.course.URL}/${data.lesson.URL}`;
-    // }
-  });
-
-  async function updateUserStars() {
-    const response = await fetch(resolve('/api/userProgress') , {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: "getLessonStars",
-      data: JSON.stringify({
-        userId: userId,
-        lessonId: data.lesson.id
-      })
-    })
-    });
-    const result = await response.json();
-    userStars = result.stars;
-  }
-
-  export async function handleSubmit (event) {
-    event.preventDefault();
-    const form = event.target;
+  export async function handleSubmit (event: SubmitEvent) {
+    const form = event.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
 
     let answers: Record<string, string | string[]> = {};
@@ -92,7 +73,7 @@
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as QuizResults | { success: false; message?: string };
     
     if (result.success) {
       // console.log("quiz abgeschlossen");
@@ -100,7 +81,7 @@
       quizResults = result; // Store the results in the reactive variable
       quizSubmitted = true; // Mark the quiz as submitted
     } else {
-      console.error("Fehler beim Abschließen von quiz");
+      console.error("Error submitting quiz:", result.message);
     }
 
 
@@ -118,7 +99,7 @@
 
 <p>Please answer the quiz questions.</p>
 
-<form class="quiz-questions" on:submit|preventDefault={handleSubmit} disabled={quizSubmitted}>
+<form class="quiz-questions" on:submit|preventDefault={handleSubmit}>
 {#each data.quizQuestions as question}
 
 <section>
@@ -127,13 +108,13 @@
   {#each question.options as answer}
     {#if question.type === "s"}
       <label>
-        <input type="radio" name="{question.id}" value="{answer}" disabled={quizSubmitted} />
+        <input type="radio" name={String(question.id)} value={String(answer)} disabled={quizSubmitted} />
         {@html answer}
       </label>
       {:else if question.type === "m"}
       
       <label>
-        <input type="checkbox" name="{question.id}" value="{answer}" disabled={quizSubmitted} />
+        <input type="checkbox" name={String(question.id)} value={String(answer)} disabled={quizSubmitted} />
         {@html answer}
       </label>
 
@@ -217,7 +198,7 @@
 
   }
 
-  form[disabled], button[disabled] {
+  button[disabled] {
     pointer-events: none;
     opacity: 0.6;
   }

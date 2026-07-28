@@ -2,8 +2,7 @@
   import Header from "$lib/Header.svelte";
 
   import { page } from '$app/state';
-  import { resolve } from "path";
-  console.log("page:", page);
+  import { resolve } from "$app/paths";
 
 </script>
 <Header  />

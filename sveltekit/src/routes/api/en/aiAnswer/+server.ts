@@ -14,6 +14,23 @@ import { streamAiResponse } from '$lib/server/openAiResponses';
 
 
 
+type PromptMessage = {
+  role: 'developer' | 'user';
+  content: string;
+};
+
+function renderMarkdown(text: string): string {
+  return marked.parse(text, { async: false });
+}
+
+async function getElementOrThrow(elementId: number) {
+  const element = await prisma.element.findUnique({ where: { id: elementId } });
+  if (!element) {
+    throw error(404, 'Lesson element not found');
+  }
+  return element;
+}
+
 export async function POST({ request, cookies }) {
 	let { data,  action } = await request.json();
 
@@ -48,12 +65,12 @@ export async function POST({ request, cookies }) {
   }
 
   if (action === 'aiSide1') {
-    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    const element = await getElementOrThrow(data.elementId);
   
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai1 }
       ],
       saveToDb: async (text, usage) => {
@@ -64,7 +81,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai1: data.ai1,
-            ai1Result: marked.parse(text),
+            ai1Result: renderMarkdown(text),
             ...usage,
             promptsTried: 1
           }
@@ -76,12 +93,12 @@ export async function POST({ request, cookies }) {
 
 
   if (action === 'aiSide2') {
-    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    const element = await getElementOrThrow(data.elementId);
   
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptB },
+        { role: 'developer', content: element.devPromptB ?? '' },
         { role: 'user', content: data.ai2 }
       ],
       saveToDb: async (text, usage) => {
@@ -92,7 +109,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai2: data.ai2,
-            ai2Result: marked.parse(text),
+            ai2Result: renderMarkdown(text),
             ...usage,
             promptsTried: 1
           }
@@ -104,13 +121,13 @@ export async function POST({ request, cookies }) {
 
   if (action === 'ai1') {
 
-    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    const element = await getElementOrThrow(data.elementId);
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai1 },
-        { role: 'user', content: element.devPromptB }
+        { role: 'user', content: element.devPromptB ?? '' }
       ],
       saveToDb: async (text, usage) => {
         await prisma.userProgress.create({
@@ -120,7 +137,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai1: data.ai1,
-            ai1Result: marked.parse(text),
+            ai1Result: renderMarkdown(text),
             ...usage,
             promptsTried: 1
           }
@@ -130,16 +147,16 @@ export async function POST({ request, cookies }) {
   }
   
   if (action === 'ai2') {
-    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    const element = await getElementOrThrow(data.elementId);
 
-    let messages = [
-      { role: 'developer', content: element.devPromptA },
-      { role: 'user', content: element.devPromptB },
+    let messages: PromptMessage[] = [
+      { role: 'developer', content: element.devPromptA ?? '' },
+      { role: 'user', content: element.devPromptB ?? '' },
       { role: 'user', content: data.ai2 }
     ];
     if (element?.type == 'ai2only') {
       messages = [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai2 }
       ];
     }
@@ -154,7 +171,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai2: data.ai2,
-            ai2Result: marked.parse(text),
+            ai2Result: renderMarkdown(text),
             ...usage,
             promptsTried: 1
           }
@@ -165,12 +182,12 @@ export async function POST({ request, cookies }) {
   
 
   if (action === 'ai12') {
-    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    const element = await getElementOrThrow(data.elementId);
   
 
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai1 },
         { role: 'user', content: data.ai2 }
       ],
@@ -183,7 +200,7 @@ export async function POST({ request, cookies }) {
             lessonId: data.lessonId,
             ai1: data.ai1,
             ai2: data.ai2,
-            ai1Result: marked.parse(text),
+            ai1Result: renderMarkdown(text),
             ...usage,
             promptsTried: 1
           }
@@ -249,13 +266,13 @@ export async function POST({ request, cookies }) {
   const laborPrompt = `Develop a new prompt for the AI based on the user prompt, which can be used later. Do not execute the request itself. Integrate the user prompt, the content will follow later. Please output the new prompt in Planetext directly. `
 
   if (action === 'labor1') {
-  const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+  const element = await getElementOrThrow(data.elementId);
 
   const laborPromptBetter = laborPrompt + `Make the prompt BETTER. `;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: laborPromptBetter + element.devPromptB },
+      { role: 'developer', content: laborPromptBetter + (element.devPromptB ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     maxTokens: 2000,
@@ -278,13 +295,13 @@ export async function POST({ request, cookies }) {
 }
 
 if (action === 'labor2') {
-  const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+  const element = await getElementOrThrow(data.elementId);
 
   const laborPromptWorse = laborPrompt + `Make the prompt WORSE. `;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: laborPromptWorse + element.devPromptC },
+      { role: 'developer', content: laborPromptWorse + (element.devPromptC ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     
@@ -308,11 +325,11 @@ if (action === 'labor2') {
 
 
 if (action === 'labor3') {
-  const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+  const element = await getElementOrThrow(data.elementId);
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: element.devPromptA },
+      { role: 'developer', content: element.devPromptA ?? '' },
       { role: 'user', content: data.ai1 },
       { role: 'user', content: data.ai2 }
     ],
@@ -325,7 +342,7 @@ if (action === 'labor3') {
           lessonId: data.lessonId,
           ai1: data.ai1,
           ai2: data.ai2,
-          ai1Result: marked.parse(text),
+          ai1Result: renderMarkdown(text),
           ...usage,
           promptsTried: 1,
           attempts: 3
@@ -337,7 +354,7 @@ if (action === 'labor3') {
 
 
 if (action === 'star') {
-  const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+  const element = await getElementOrThrow(data.elementId);
 
   const starPrompt = `
 If the task is completed by the user, respond only in the following JSON format: {"star": true, "feedback": feedbackText}
@@ -348,7 +365,7 @@ Do not give a solution. No additional text. No Markdown formatting.
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: starPrompt + '\n' + element.devPromptA },
+      { role: 'developer', content: starPrompt + '\n' + (element.devPromptA ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     saveToDb: async (text, usage) => {

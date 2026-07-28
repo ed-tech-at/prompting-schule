@@ -5,7 +5,10 @@
   
   import { asset, resolve } from '$app/paths';
 
-  
+  function resolveNavItem(href: string) {
+    // Navigation entries may contain URLs assembled from database-backed slugs.
+    return resolve(href as '/');
+  }
   
   export let navItems: { name: string; href: string }[] = [];
   export let user: JwtUserPayload | null = null;
@@ -48,7 +51,7 @@
 </svelte:head>
 <header>
   <div class="logo">
-    <a href={resolve('/')}>
+    <a href={lang === 'en' ? resolve('/en') : resolve('/')}>
       <h3><img src={asset("/logo-prompting.schule-bg.png")} alt="{siteName} Logo" /> {siteName}</h3>
     </a>
   </div>
@@ -57,7 +60,7 @@
 
   <nav>
     {#each navItems as item, i}
-      <a href={resolve(item.href)}>{item.name}</a>
+      <a href={resolveNavItem(item.href)}>{item.name}</a>
       {#if i < navItems.length - 1}
         <span class="seperator"> / </span>
       {/if}

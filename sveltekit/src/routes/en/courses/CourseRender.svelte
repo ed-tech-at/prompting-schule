@@ -1,16 +1,9 @@
 <script lang="ts">
 
-  import type { Course, User } from '@prisma/client';
-
-  import { onMount } from 'svelte';
+  import type { Course } from '@prisma/client';
   import { resolve } from '$app/paths';
 
-  onMount(() => {
-    // showCourseForUser();
-  });
-
   export let course: Course ;
-  export let userId: String;
 
 
 </script>
@@ -63,11 +56,4 @@
     opacity: 0.7;
   }
 
-  .emoji {
-    font-size: 3em;
-    text-align: center;
-    margin-bottom: 0em;
-  }
-
-  
 </style>
