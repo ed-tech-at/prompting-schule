@@ -40,7 +40,7 @@ export async function requireAdminManager(
   });
 
   if (!actor || actor.isDeleted || actor.blockedAt || actor.isAdmin < minimumLevel) {
-    throw error(403, 'Für die Benutzerverwaltung ist mindestens Rollenstufe 6 erforderlich.');
+    throw error(403, `Für diesen Bereich ist mindestens Rollenstufe ${minimumLevel} erforderlich.`);
   }
 
   return {

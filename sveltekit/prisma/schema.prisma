@@ -180,6 +180,9 @@ model QuizQuestion {
   type        String   // "single" or "multiple" or "text"
   options     String[] // Array of possible answers
   correct     String[] // Array of correct answers
+
+  position    Int      @default(0)
+
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   lessonId    Int
 }

@@ -71,8 +71,16 @@
   <div class="login">
     {#if lang == 'de'}
       {#if user?.email}
-        {#if user.isAdmin >= 6}
-          <a href={resolve('/admin')}>Benutzerverwaltung</a>
+        {#if user.isAdmin >= 5}
+          <details class="admin-menu">
+            <summary>Admin</summary>
+            <ul>
+              {#if user.isAdmin >= 6}
+                <li><a href={resolve('/admin/users')}>Benutzerverwaltung</a></li>
+              {/if}
+              <li><a href={resolve('/admin/editor')}>Seiten-Editor</a></li>
+            </ul>
+          </details>
           <span aria-hidden="true"> · </span>
         {/if}
         <a href={resolve('/profil')}>Profil {user?.email}</a>

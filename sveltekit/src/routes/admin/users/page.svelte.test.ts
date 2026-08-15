@@ -18,7 +18,7 @@ Object.defineProperties(HTMLDialogElement.prototype, {
 });
 
 const data = {
-  pathname: '/admin',
+  pathname: '/admin/users',
   actor: {
     id: 'manager',
     email: 'manager@example.at',
@@ -63,7 +63,7 @@ const data = {
   }
 };
 
-describe('/admin', () => {
+describe('/admin/users', () => {
   it('shows account information and disables password actions for SSO users', () => {
     render(Page, { data, form: null });
 
@@ -94,6 +94,7 @@ describe('/admin', () => {
 
     expect(screen.getByRole('option', { name: '1 – Show Preview Courses' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: '2 – Show IDs' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '5 – Editor' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: '6 – Manager' })).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole('button', { name: 'Dialog schließen' }));

@@ -18,7 +18,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   }
 
   const questionsWithAnswers = await prisma.quizQuestion.findMany({
-    where: { lessonId: lesson.id }
+    where: { lessonId: lesson.id },
+    orderBy: { position: 'asc' }
   });
   const quizQuestions = questionsWithAnswers.map(({ correct, ...question }) => question);
 
