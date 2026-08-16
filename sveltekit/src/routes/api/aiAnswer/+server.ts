@@ -32,6 +32,30 @@ function formatGermanDate(date: Date): string {
   return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
 }
 
+function delayedToolResponse(chunks: string[], usage: { promptTokens: number; completionTokens: number }): Response {
+  const encoder = new TextEncoder();
+  const delayMs = 800;
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (let index = 0; index < chunks.length; index += 1) {
+        controller.enqueue(encoder.encode(chunks[index]));
+
+        if (index < chunks.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+
+      controller.enqueue(encoder.encode(`\n[__FOOTER__]${JSON.stringify({ __footer: true, ...usage })}`));
+      controller.close();
+    }
+  });
+
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
+}
+
 export async function POST({ request, cookies }) {
 	let { data,  action } = await request.json();
 
@@ -63,6 +87,52 @@ export async function POST({ request, cookies }) {
       }
     });
     return new Response('<i>Anfrage zu lang</i>', { status: 200 });
+  }
+
+  if (action === 'memoryNoHistory' || action === 'memoryWithHistory') {
+    const element = await prisma.element.findUnique({ where: { id: data.elementId } });
+    if (!element?.devPromptA) {
+      return json({ success: false, error: 'Memory exercise not found.' }, { status: 404 });
+    }
+
+    const history: { role: 'user' | 'assistant'; content: string }[] = action === 'memoryWithHistory' && Array.isArray(data.history)
+      ? data.history
+          .filter((message: unknown) =>
+            typeof message === 'object'
+            && message !== null
+            && ('role' in message)
+            && ('content' in message)
+            && ((message as { role: string }).role === 'user' || (message as { role: string }).role === 'assistant')
+            && typeof (message as { content: unknown }).content === 'string'
+          )
+          .map((message: unknown) => ({
+            role: (message as { role: 'user' | 'assistant' }).role,
+            content: (message as { content: string }).content
+          }))
+          .slice(-20)
+      : [];
+
+    return streamAiResponse({
+      messages: [
+        { role: 'developer', content: element.devPromptA },
+        ...history,
+        { role: 'user', content: data.message }
+      ],
+      saveToDb: async (text, usage) => {
+        await prisma.userProgress.create({
+          data: {
+            userId: data.userId,
+            elementId: data.elementId,
+            courseId: data.courseId,
+            lessonId: data.lessonId,
+            ai1: data.message,
+            ai1Result: await marked.parse(text),
+            ...usage,
+            promptsTried: 1
+          }
+        });
+      }
+    });
   }
 
   if (action === 'aiSide1') {
@@ -106,10 +176,18 @@ export async function POST({ request, cookies }) {
       const start = parseGermanDate(data.ai2);
       const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       let text: string;
+      let responseChunks: string[] | null = null;
 
       if (start !== null && start <= end) {
         const days = Math.floor((end.getTime() - start.getTime()) / 86_400_000);
-        text = `🔧 **Werkzeug-Aufruf:** \`calculate_days_between(${data.ai2}, ${formatGermanDate(end)})\`\n\n✅ **Werkzeug-Ergebnis:** ${days.toLocaleString('de-AT')} Tage`;
+        const formattedDays = days.toLocaleString('de-AT');
+        responseChunks = [
+          '**KI:** Ich benötige eine exakte Berechnung. Dafür rufe ich ein Werkzeug auf.\n\n',
+          `<div class="tool-call">🔧 <strong>Werkzeug-Aufruf:</strong> <code>calculate_days_between(${data.ai2}, ${formatGermanDate(end)})</code></div>\n\n`,
+          `<div class="tool-result">✅ <strong>Werkzeug-Ergebnis:</strong> ${formattedDays} Tage</div>\n\n`,
+          `**KI:** Du bist heute ${formattedDays} Tage alt.`
+        ];
+        text = responseChunks.join('');
       } else {
         text = '⚠️ Bitte gib ein gültiges Geburtsdatum im Format TT.MM.JJJJ ein, das nicht in der Zukunft liegt.';
       }
@@ -127,6 +205,10 @@ export async function POST({ request, cookies }) {
           promptsTried: 1
         }
       });
+
+      if (responseChunks !== null) {
+        return delayedToolResponse(responseChunks, usage);
+      }
 
       return new Response(`${text}\n[__FOOTER__]${JSON.stringify({ __footer: true, ...usage })}`, {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' }

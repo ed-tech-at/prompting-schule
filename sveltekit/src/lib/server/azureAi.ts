@@ -6,7 +6,7 @@ import { json } from '@sveltejs/kit';
 import { stringify } from 'openai/internal/qs/stringify.mjs';
 
 type azureAiParams = {
-  messages: { role: 'developer' | 'user'; content: string }[];
+  messages: { role: 'developer' | 'user' | 'assistant'; content: string }[];
   maxTokens?: number;
   saveToDb: (text: string, usage: { promptTokens?: number; completionTokens?: number }) => Promise<void>;
 };
