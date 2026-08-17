@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
   const quizQuestions = await prisma.quizQuestion.findMany({
     where: { lessonId: lesson?.id },
-    orderBy: { id: 'asc' }
+    orderBy: { position: 'asc' }
   });
 
   quizQuestions.forEach((question) => {

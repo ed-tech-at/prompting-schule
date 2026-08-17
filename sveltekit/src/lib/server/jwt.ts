@@ -2,6 +2,8 @@
 import jwt from 'jsonwebtoken';
 import { env } from '$env/dynamic/private';
 import { redirect, type Cookies } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
+
 
 const JWT_SECRET = env.JWT_SECRET;
 
@@ -27,11 +29,11 @@ export function verifyJWT(token: string): JwtUserPayload | null {
 export function requireLogin (cookies: Cookies): JwtUserPayload {
   const token = cookies.get('jwt');
 
-  if (!token) throw redirect(302, '/login');
+  if (!token) throw redirect(302, resolve('/login'));
 
   const user = verifyJWT(token);
 
-  if (!user) throw redirect(302, '/login');
+  if (!user) throw redirect(302, resolve('/login'));
 
   return user;
 }
@@ -39,13 +41,13 @@ export function requireLogin (cookies: Cookies): JwtUserPayload {
 export function requireLoginAdmin (cookies: Cookies): JwtUserPayload {
   const token = cookies.get('jwt');
 
-  if (!token) throw redirect(302, '/login');
+  if (!token) throw redirect(302, resolve('/login'));
 
   const user = verifyJWT(token);
 
-  if (!user) throw redirect(302, '/login');
+  if (!user) throw redirect(302, resolve('/login'));
 
-  if (user.isAdmin < 1) throw redirect(302, '/login');
+  if (user.isAdmin < 1) throw redirect(302, resolve('/login'));
 
   return user;
 }

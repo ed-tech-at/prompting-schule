@@ -1,7 +1,7 @@
 // import { PrismaClient } from '@prisma/client';
 import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+import path from 'node:path';
 
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';

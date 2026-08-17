@@ -3,7 +3,10 @@
   import { onMount } from 'svelte';
   import type { Badge, Lesson } from '@prisma/client';
     import type { JwtUserPayload } from '$lib/server/jwt';
+  import { resolve } from '$app/paths';
+    import { env } from '$env/dynamic/public';
 
+  const PUBLIC_APP_URL = env.PUBLIC_APP_URL;
   export let badge: Badge;
   export let lesson: Lesson;
   export let user: JwtUserPayload;
@@ -15,7 +18,7 @@
       lessonId: lesson.id,
       hash: badgeHash
     }
-    const response = await fetch('/api/badge', {
+    const response = await fetch(resolve('/api/badge'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -52,7 +55,7 @@
 <div class="badge-container">
   Badge ausgestellt am: {new Date(badge.createdAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })} 
   <br>
-  Link zum öffentlichen Digital Badge: <a href='https://prompting.schule/badge/{badge.hash}/{user.email}' target="_blank">https://prompting.schule/badge<span class="break-word">/</span>{badge.hash}/{user.email}</a>
+  Link zum öffentlichen Digital Badge: <a href={(PUBLIC_APP_URL + `/badge/${badge.hash}/${user.email}`)} target="_blank">{PUBLIC_APP_URL}/badge<span class="break-word">/</span>{badge.hash}/{user.email}</a>
 
   <br>
   

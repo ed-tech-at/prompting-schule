@@ -2,6 +2,9 @@
   import type { JwtUserPayload } from '$lib/server/jwt';
     import type { Course, Lesson } from '@prisma/client';
 
+  import { resolve } from '$app/paths';
+
+
   export let course: Course;
   export let lesson: Lesson;
   export let user: JwtUserPayload;
@@ -25,7 +28,7 @@
       };
 
 
-      const response = await fetch('/api/quiz' , {
+      const response = await fetch(resolve('/api/quiz') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,9 +71,9 @@
 
     {#if percentReached > 0}
       <p>Your best attempt is at {percentReached}%.</p>
-      <a class="quiz-btn" href="/en/course/{course.URL}/{lesson.URL}/quiz">Restart quiz</a>
+      <a class="quiz-btn" href={resolve(`/en/course/${course.URL}/${lesson.URL}/quiz`)}>Restart quiz</a>
     {:else}
-      <a class="quiz-btn" href="/en/course/{course.URL}/{lesson.URL}/quiz">Start quiz</a>
+      <a class="quiz-btn" href={resolve(`/en/course/${course.URL}/${lesson.URL}/quiz`)}>Start quiz</a>
 
     {/if}
 

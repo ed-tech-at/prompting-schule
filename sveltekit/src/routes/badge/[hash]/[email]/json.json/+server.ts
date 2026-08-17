@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/public';
 
 export async function GET({ params }) {
 	const { hash, email } = params;
@@ -43,20 +43,20 @@ export async function GET({ params }) {
 	const assertion = {
 		'@context': 'https://w3id.org/openbadges/v2',
 		type: 'Assertion',
-		id: env.APP_URL + `/badge/${hash}/${email}/json.json`,
+		id: env.PUBLIC_APP_URL + `/badge/${hash}/${email}/json.json`,
 		recipient: {
 			type: 'email',
 			hashed: false,
 			identity: email
 		},
-		badge: env.APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/json.json`,
+		badge: env.PUBLIC_APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/json.json`,
 		issuedOn: badge.createdAt.toISOString(),
 		verification: {
 			type: 'HostedBadge',
-      url: env.APP_URL + `/badge/${hash}/${email}/json.json`
+      url: env.PUBLIC_APP_URL + `/badge/${hash}/${email}/json.json`
 		},
-		image: env.APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/image.png`,
-		evidence: env.APP_URL + `/badge/${hash}/${email}`,
+		image: env.PUBLIC_APP_URL + `/badge/class/${courseUrl}/${lessonUrl}/image.png`,
+		evidence: env.PUBLIC_APP_URL + `/badge/${hash}/${email}`,
 	};
 
 	return new Response(JSON.stringify(assertion), {

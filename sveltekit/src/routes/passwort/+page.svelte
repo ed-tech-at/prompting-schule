@@ -1,5 +1,6 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
+  import { resolve } from '$app/paths';
 
 let email = "";
 let error = "";
@@ -14,7 +15,7 @@ import { browser } from '$app/environment';
 
 if (browser) {
 if (data.user) {
-  window.location.href = "/profil";
+  window.location.href = resolve("/profil");
 }
 }
 
@@ -36,7 +37,7 @@ async function handleSubmit() {
             email
         };
 
-      const response = await fetch(`/passwort/`, { 
+      const response = await fetch(resolve('/passwort/'), { 
           method: "POST",
           headers: {
               "Content-Type": "application/json",
@@ -105,7 +106,7 @@ async function handleSubmit() {
 
   <div class="alt-links">
       <p>Sie kennen Ihr Passwort?</p>
-      <a href="/login" class="button invert">Einloggen
+      <a href={resolve("/login")} class="button invert">Einloggen
       </a>
   </div>
 </div>

@@ -9,6 +9,7 @@ import { createJWT } from './jwt';
 import { json } from '@sveltejs/kit';
 import { newUserUUID } from '$lib/server/dbUtils.js';
 
+import { resolve } from '$app/paths';
 
 
 export async function hashPassword(password: string) {
@@ -47,6 +48,10 @@ export async function login(email: string, password: string): Promise<Response> 
     return json({ success: false, error: "Benutzer existiert nicht." });
   }
 
+  if (user.blockedAt) {
+    return json({ success: false, error: "Dieses Benutzerkonto ist gesperrt." }, { status: 403 });
+  }
+
   let passwordMatch = false;
 
   if (user.cryptVersion === 1) {
@@ -77,17 +82,6 @@ export async function login(email: string, password: string): Promise<Response> 
   }
 
   return createJWTResponse(user);
-
-
-  const token = createJWT({ id: user.id, email: user.email, isAdmin: user.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
 }
 
 export async function register(email: string, password: string): Promise<Response> { /* | { success: false; error: string }*/
@@ -120,16 +114,6 @@ export async function register(email: string, password: string): Promise<Respons
   });
 
   return createJWTResponse(newUser);
-
-  const token = createJWT({ id: newUser.id, email: newUser.email, isAdmin: newUser.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
 }
 
 
@@ -144,45 +128,43 @@ type ssoUser = {
 
 export async function loginSso(user: ssoUser): Promise<Response> {
   
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  
-  if (existingUser) {
-    const loginResult = await login(email, password);
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      cryptVersion: { in: [3, 4] },
+      password: user.preferred_username
+    }
+  });
 
-    if ('success' in loginResult && loginResult.success === false) {
-      return json({
-        success: false,
-        error: "Benutzer existiert bereits, aber das Passwort ist falsch."
-      });
+  if (existingUser) {
+    if (existingUser.isDeleted) {
+      return json({ success: false, error: "Benutzer existiert nicht." }, { status: 403 });
     }
 
-    return loginResult;
+    if (existingUser.blockedAt) {
+      return json({ success: false, error: "Dieses Benutzerkonto ist gesperrt." }, { status: 403 });
+    }
+
+    return createJWTResponseSSO(existingUser);
   }
 
   const uuid = await newUserUUID();
-  const hashedPassword = await hashPasswordV2(password, uuid); // assuming hashPassword handles v2
-  const cryptVersion = 2;
+  // const hashedPassword = await hashPasswordV2(password, uuid); // assuming hashPassword handles v2
+
+  const obKey = 'CO-OBFUSCATED-C-BD';
+  const hasObfuscated = obKey in user && !!(user as Record<string, any>)[obKey];
+
+  let cryptVersion = hasObfuscated ? 4 : 3; // 4: has BD, else 3
 
   const newUser = await prisma.user.create({
     data: {
       id: uuid,
-      email,
-      password: hashedPassword,
+      email: user.email,
+      password: user.preferred_username,
       cryptVersion
     }
   });
 
-  return createJWTResponse(newUser);
-
-  const token = createJWT({ id: newUser.id, email: newUser.email, isAdmin: newUser.isAdmin });
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
-      'Content-Type': 'application/json'
-    }
-  });
+  return createJWTResponseSSO(newUser);
 }
 
 
@@ -193,12 +175,39 @@ export function createJWTResponse(user: { id: string; email: string; isAdmin: nu
     isAdmin: user.isAdmin
   });
 
+  const SUBFOLDER = env.SUBFOLDER ?? "";
+  const path = "/" + SUBFOLDER;
+
   // 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
     headers: {
-      'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
+      'Set-Cookie': `jwt=${token}; Path=${path}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`,
       'Content-Type': 'application/json'
+    }
+  });
+}
+
+
+export function createJWTResponseSSO(user: { id: string; email: string; isAdmin: number }): Response {
+  const token = createJWT({
+    id: user.id,
+    email: user.email,
+    isAdmin: user.isAdmin
+  });
+
+  const SUBFOLDER = env.SUBFOLDER ?? "";
+
+  const path = "/" + SUBFOLDER;
+  const pathProfil = resolve('/profil');
+
+  // 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`,
+  return new Response(null, {
+    status: 302,
+    headers: {
+      'Set-Cookie': `jwt=${token}; Path=${path}; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`,
+      // 'Content-Type': 'application/json',
+      Location: pathProfil
     }
   });
 }

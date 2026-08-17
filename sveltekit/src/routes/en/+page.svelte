@@ -1,11 +1,17 @@
 <script lang="ts">
   import Header from "$lib/Header.svelte";
+  import InfoBlocks from "$lib/InfoBlocks.svelte";
   import type { JwtUserPayload } from "$lib/server/jwt";
-  export let data: { user: JwtUserPayload };
+  import type { InfoBlockView } from "$lib/infoblocks";
+  export let data: { user: JwtUserPayload; infoBlocks: InfoBlockView[] };
+
+  import { resolve } from "$app/paths";
+
 </script>
 
 <Header user={data.user} lang={"en"} />
 <main id="frontpage">
+  <InfoBlocks blocks={data.infoBlocks ?? []} />
   <!--
 <div class='header'>
     <div class='title'>PROMPTING SCHOOL</div>
@@ -32,16 +38,16 @@
       Achieve better results with AI models such as ChatGPT by learning proven
       strategies for writing clear instructions and simplifying complex tasks.
     </p>
-    <a href="/en/login" class="cta-button">Sign up now</a>
+    <a href={resolve("/en/login")} class="cta-button">Sign up now</a>
   </section>
   <!-- Language Selector -->
   <!-- <div class='language-selector'>
   <p>Language:</p>
   <button class='language-button'>
-    <a href='https://a-i.education/'> English </a>
+    <a href={resolve('https://prompting.school/'> English </a>
 </button>
 <button class='language-button'>
-    <a href='https://prompting.schule'> German </a>
+    <a href={resolve('https://prompting.schule'> German </a>
 </button>
 </div> -->
   <section class="benefits-section">
@@ -174,7 +180,7 @@
       in the Fundamentals course!
     </p>
     <div class="cta-buttons">
-      <a href="/en/login" class="cta-button" style="margin-bottom: 5em;"
+      <a href={resolve("/en/login")} class="cta-button" style="margin-bottom: 5em;"
         >Sign up now</a
       >
     </div>

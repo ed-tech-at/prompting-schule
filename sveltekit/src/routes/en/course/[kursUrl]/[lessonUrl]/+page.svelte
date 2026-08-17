@@ -1,16 +1,22 @@
 <script lang="ts">
-  import type { Course, Lesson } from '@prisma/client';
+  import type { Course, Element as LessonElement, Lesson } from '@prisma/client';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import ElementRender from './ElementRender.svelte';
   import Header from '$lib/Header.svelte';
-  import Footer from '$lib/Footer.svelte'; 
   import QuizStarRender from './QuizStarRender.svelte';
-  import { on } from 'svelte/events';
   
+  import { resolve } from '$app/paths';
+
+
   import type { JwtUserPayload } from '$lib/server/jwt';
 
-  export let data: {course: Course, lesson: Lesson, elements: Element[], user: JwtUserPayload}; 
+  export let data: {
+    course: Course;
+    lesson: Lesson;
+    elements: LessonElement[];
+    user: JwtUserPayload;
+  };
 
   // let userId = "";
   // let isAdmin = 0;
@@ -39,7 +45,7 @@
       userId: data.user.id,
       lessonId: data.lesson.id
     };
-    const response = await fetch('/api/userProgress' , {
+    const response = await fetch(resolve('/api/userProgress') , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -53,12 +59,11 @@
 
  
   // Define a function that can be called from the site
-  export function fill1(sender) {
+  export function fill1(sender: HTMLElement) {
     const row = sender.closest('tr');
-    // const a = row.children[0].textContent.trim();
-    const b = row.children[1].textContent.trim();
+    const b = row?.children[1]?.textContent?.trim() ?? '';
     const section = sender.closest('section');
-    const textAreas = section.querySelectorAll('.prompt');
+    const textAreas = section?.querySelectorAll<HTMLTextAreaElement>('.prompt') ?? [];
     if (textAreas.length >= 2) {
   textAreas[0].value = b;
   // textAreas[1].textContent = b;
@@ -69,12 +74,11 @@ textAreas[0].dispatchEvent(new Event('input'));
   }
 
   // Define a function that can be called from the site
-  export function fill2(sender) {
+  export function fill2(sender: HTMLElement) {
     const row = sender.closest('tr');
-    // const a = row.children[0].textContent.trim();
-    const b = row.children[1].textContent.trim();
+    const b = row?.children[1]?.textContent?.trim() ?? '';
     const section = sender.closest('section');
-    const textAreas = section.querySelectorAll('.prompt');
+    const textAreas = section?.querySelectorAll<HTMLTextAreaElement>('.prompt') ?? [];
     if (textAreas.length >= 2) {
       // textAreas[0].textContent = b;
       textAreas[1].value = b;
@@ -84,12 +88,11 @@ textAreas[0].dispatchEvent(new Event('input'));
 
   }
   // Define a function that can be called from the site
-  export function fillMono(sender) {
+  export function fillMono(sender: HTMLElement) {
     const row = sender.closest('tr');
-    // const a = row.children[0].textContent.trim();
-    const b = row.children[1].textContent.trim();
+    const b = row?.children[1]?.textContent?.trim() ?? '';
     const section = sender.closest('section');
-    const textAreas = section.querySelectorAll('.prompt');
+    const textAreas = section?.querySelectorAll<HTMLTextAreaElement>('.prompt') ?? [];
     if (textAreas.length >= 1) {
       textAreas[0].value = b;
       // textAreas[1].textContent = b;
@@ -98,12 +101,12 @@ textAreas[0].dispatchEvent(new Event('input'));
     }
 
   }
-  export function fillSide(sender) {
+  export function fillSide(sender: HTMLElement) {
     const row = sender.closest('tr');
-    const a = row.children[0].textContent.trim();
-    const b = row.children[1].textContent.trim();
+    const a = row?.children[0]?.textContent?.trim() ?? '';
+    const b = row?.children[1]?.textContent?.trim() ?? '';
     const section = sender.closest('section');
-    const textAreas = section.querySelectorAll('.prompt');
+    const textAreas = section?.querySelectorAll<HTMLTextAreaElement>('.prompt') ?? [];
     if (textAreas.length >= 2) {
       textAreas[0].value = a;
       textAreas[1].value = b;
@@ -114,10 +117,16 @@ textAreas[0].dispatchEvent(new Event('input'));
   }
 
   if (browser) {
-    window.fillSide = fillSide;
-    window.fill1 = fill1;
-    window.fill2 = fill2;
-    window.fillMono = fillMono;
+    const appWindow = window as typeof window & {
+      fillSide: typeof fillSide;
+      fill1: typeof fill1;
+      fill2: typeof fill2;
+      fillMono: typeof fillMono;
+    };
+    appWindow.fillSide = fillSide;
+    appWindow.fill1 = fill1;
+    appWindow.fill2 = fill2;
+    appWindow.fillMono = fillMono;
   }
 
 </script>
@@ -142,8 +151,8 @@ textAreas[0].dispatchEvent(new Event('input'));
 <QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if}
 
-{#if data.user.isAdmin > 0}
-  <!-- <a href="/kurs/{data.course.URL}/{data.lesson.URL}/edit">Lektion bearbeiten</a> -->
+{#if data.user.isAdmin >= 2}
+  <!-- <a href={resolve(`/kurs/${data.course.URL}/${data.lesson.URL}/edit`)}>Lektion bearbeiten</a> -->
   <pre>Lektion ID {data.lesson.id}</pre>
 {/if}
 

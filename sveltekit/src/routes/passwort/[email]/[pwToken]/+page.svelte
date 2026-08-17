@@ -2,6 +2,9 @@
   import Header from '$lib/Header.svelte';
     import type { UserPasswordReset } from '.prisma/client';
 
+  import { resolve } from '$app/paths';
+
+
   export let data: { resetEntry: UserPasswordReset };
 
   let password = "";
@@ -28,7 +31,7 @@
                 password,
             };
 
-          const response = await fetch(`/api/passwort`, { 
+          const response = await fetch(resolve('/api/passwort'), { 
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -50,7 +53,7 @@
             //   localStorage.setItem("userId", data.user.id);
             //   localStorage.setItem("userEmail", data.user.email);
 
-              window.location.href = "/profil";
+              window.location.href = resolve("/profil");
               // navigate("/en/login");
           } else {
               error = answerdata.error || "Fehlgeschlagen.";

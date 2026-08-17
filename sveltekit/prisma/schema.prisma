@@ -26,6 +26,8 @@ model User {
 
   isDeleted Int @default(0)
 
+  blockedAt DateTime?
+
   createdAt       DateTime? @default(now())
 
 
@@ -43,11 +45,60 @@ model UserPasswordReset {
   userId         String
 
   createdAt       DateTime? @default(now())
+
+  expiresAt       DateTime?
   
   finishedAt       DateTime?
 
 
 
+}
+
+model AdminAuditLog {
+  id           Int      @id @default(autoincrement())
+  actorUserId  String
+  targetUserId String
+  action       String
+  outcome      String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([targetUserId, createdAt])
+}
+
+model InfoBlock {
+  id      Int      @id @default(autoincrement())
+
+  // Internal label for the admin list, never rendered on the public pages.
+  title   String
+
+  // Raw HTML, rendered with {@html} like Element.description.
+  content String
+
+  // "info" | "warning" | "success"
+  variant String @default("info")
+
+  // "de" | "en" | "both"
+  lang    String @default("both")
+
+  // "startseite" | "kursuebersicht"
+  placements String[] @default([])
+
+  // JavaScript regex source, matched case-insensitively against the logged-in
+  // user's email. NULL means: visible to everyone, including logged-out visitors.
+  emailPattern String?
+
+  validFrom  DateTime?
+  validUntil DateTime?
+
+  active   Int @default(0)
+  position Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, position])
 }
 
 model Course {
@@ -58,6 +109,7 @@ model Course {
   description  String?
   
   introDescription  String?
+  introDescriptionSuffix  String?
 
   active  Int     @default(0)
 
@@ -162,6 +214,9 @@ model QuizQuestion {
   type        String   // "single" or "multiple" or "text"
   options     String[] // Array of possible answers
   correct     String[] // Array of correct answers
+
+  position    Int      @default(0)
+
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   lessonId    Int
 }
@@ -210,6 +265,5 @@ model Badge {
 
   createdAt      DateTime @default(now())
 }
-
 
 

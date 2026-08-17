@@ -2,10 +2,8 @@ import { json } from '@sveltejs/kit';
 // import { PrismaClient } from '@prisma/client';
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
-
-
-import { comparePassword, comparePasswordV2, hashPasswordV2, login } from '$lib/server/pw.js';
-import { createJWT } from '$lib/server/jwt.js';
+import { hasOIDCConfig } from '$lib/sso/oidc';
+import { comparePasswordV2, hashPasswordV2 } from '$lib/server/pw.js';
 import { requireLogin } from '$lib/server/jwt.js';
 
 export async function POST({ request, params, cookies }) {
@@ -48,10 +46,12 @@ export async function POST({ request, params, cookies }) {
               return json({ success: false, error: "E-Mail stimmt nicht überein" }, { status: 401 });
           }
 
-          const pwStatus = await comparePasswordV2(formData.password, userDb.password, user.id);
+          if (!hasOIDCConfig()) {
+              const pwStatus = await comparePasswordV2(formData.password, userDb.password, user.id);
 
-          if (!pwStatus) {
-              return json({ success: false, error: "Passwort ist falsch" }, { status: 401 });
+              if (!pwStatus) {
+                  return json({ success: false, error: "Passwort ist falsch" }, { status: 401 });
+              }
           }
           
           await prisma.user.update({

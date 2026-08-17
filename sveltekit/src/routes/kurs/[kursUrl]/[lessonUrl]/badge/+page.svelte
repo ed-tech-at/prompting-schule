@@ -1,6 +1,9 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
 
+  import { resolve } from '$app/paths';
+
+
   import type { Badge, Course, Lesson, QuizQuestion } from '@prisma/client';
   import type { JwtUserPayload } from '$lib/server/jwt';
   import { onMount } from 'svelte';
@@ -19,7 +22,7 @@
     const formData = {
       lessonId: data.lesson.id,
     }
-    const response = await fetch('/api/badge', {
+    const response = await fetch(resolve('/api/badge'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

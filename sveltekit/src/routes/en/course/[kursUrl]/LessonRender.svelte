@@ -4,6 +4,8 @@
 
   import { onMount } from 'svelte';
 
+  import { resolve } from '$app/paths';
+
 
   export let course: Course ;
   export let lesson: Lesson ;
@@ -28,7 +30,7 @@
         lessonId: lesson.id
       };
 
-    const response = await fetch('/api/userProgress' , {
+    const response = await fetch(resolve('/api/userProgress') , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -53,7 +55,7 @@
       }
 
 
-      const response = await fetch('/api/quiz' , {
+      const response = await fetch(resolve('/api/quiz') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +83,7 @@
 </script>
 
 <div class="lessonWrapper">
- <a href="/en/course/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
+ <a href={resolve(`/en/course/${course.URL}/${lesson.URL}`)} class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
  
@@ -93,19 +95,14 @@
     {/each}
     </p>
     
-    <p>
-    Total stars:
+    <p>Total stars:
     {#each Array(userStars) as _, i}
       <i class="fa fa-star star-color" aria-hidden="true"></i>
-
-    
     {/each}
+    </p>
     {#if percentReached > 0}
     <p>Your best quiz attempt is {percentReached}%.</p>
-
-
     {/if}
-    </p>
     {/if}
 </a>
 
@@ -113,17 +110,17 @@
   <p class="badge-label">Digital Badge</p>
   
   {#if latestBadge}
-    <a href='/en/course/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/en/course/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Show badge from {new Date(latestBadge.createdAt).toLocaleDateString('de-DE')}
     </a>
   {:else if percentReached >= 75 && lesson.starsNeeded > 0}
-    <a href='/en/course/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/en/course/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Create badge
     </a>
   {:else if lesson.starsNeeded > 0}
     <p>Complete the quiz with at least 75% for the badge.</p>
   {:else if promptsTried > 0 && lesson.starsNeeded == 0}
-    <a href='/en/course/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/en/course/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Create badge
     </a>
   {:else}

@@ -3,6 +3,7 @@
   import type { Badge, Course, Lesson, User } from '@prisma/client';
 
   import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
 
 
   export let course: Course ;
@@ -28,7 +29,7 @@
         lessonId: lesson.id
       };
 
-    const response = await fetch('/api/userProgress' , {
+    const response = await fetch(resolve('/api/userProgress') , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -53,7 +54,7 @@
       }
 
 
-      const response = await fetch('/api/quiz' , {
+      const response = await fetch(resolve('/api/quiz') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +82,7 @@
 </script>
 
 <div class="lessonWrapper">
- <a href="/kurs/{course.URL}/{lesson.URL}" class={"lesson-link lesson"}>
+ <a href={resolve(`/kurs/${course.URL}/${lesson.URL}`)} class={"lesson-link lesson"}>
   <h2>{lesson.lessonName}</h2>
   <div class="emoji">{lesson.lessonEmoji}</div>
  
@@ -131,17 +132,17 @@
   <p class="badge-label">Digital Badge</p>
   
   {#if latestBadge}
-    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/kurs/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Badge vom {new Date(latestBadge.createdAt).toLocaleDateString('de-DE')} anzeigen
     </a>
   {:else if percentReached >= 75 && lesson.starsNeeded > 0}
-    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/kurs/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Badge erstellen
     </a>
   {:else if lesson.starsNeeded > 0}
     <p>Schließe das Quiz mit mindestens 75&nbsp;% für den Badge ab.</p>
   {:else if promptsTried > 0 && lesson.starsNeeded == 0}
-    <a href='/kurs/{course.URL}/{lesson.URL}/badge' class="button badge-link">
+    <a href={resolve(`/kurs/${course.URL}/${lesson.URL}/badge`)} class="button badge-link">
     Badge erstellen
     </a>
   {:else}

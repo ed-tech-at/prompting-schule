@@ -1,6 +1,9 @@
 <script lang="ts">
       import Header from '$lib/Header.svelte';
 
+  import { resolve } from '$app/paths';
+
+
   let email = "";
   let password = "";
   let loading = false;
@@ -14,7 +17,7 @@
 
   if (browser) {
     if (data.user) {
-      window.location.href = "/profil";
+      window.location.href = resolve("/profil");
     }
     }
 
@@ -43,7 +46,7 @@
                 password,
             };
 
-          const response = await fetch(`/registrierung/`, { 
+          const response = await fetch(resolve('/registrierung/'), { 
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -64,7 +67,7 @@
 
             //   localStorage.setItem("userId", data.user.id);
             //   localStorage.setItem("userEmail", data.user.email);
-              window.location.href = "/profil";
+              window.location.href = resolve("/profil");
               // navigate("/en/login");
           } else {
               error = data.error || "Failed to register. Please try again.";
@@ -249,7 +252,7 @@
                 Die Teilnahme ist freiwillig.<br>
                 Die eingegebenen Daten werden für wissenschaftliche Zwecke ausgewertet.<br>
                   <input type="checkbox" bind:checked={agree} required>
-                  Ich habe den  <a href="/mehr/datenschutz" target="_blank">Datenschutz und die Teilnahmebedingungen</a> gelesen und akzeptiere sie.
+                  Ich habe den  <a href={resolve("/mehr/datenschutz")} target="_blank">Datenschutz und die Teilnahmebedingungen</a> gelesen und akzeptiere sie.
 
               </label>
           </div>
@@ -262,7 +265,7 @@
       </form>
       <div class="alt-links">
           <p>Haben Sie bereits ein Konto?</p>
-          <a href="/login" class="button invert">Einloggen
+          <a href={resolve("/login")} class="button invert">Einloggen
           </a>
       </div>
   </div>

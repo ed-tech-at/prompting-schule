@@ -1,21 +1,15 @@
 <script lang="ts">
 
-  import type { Course, User } from '@prisma/client';
-
-  import { onMount } from 'svelte';
-
-  onMount(() => {
-    // showCourseForUser();
-  });
+  import type { Course } from '@prisma/client';
+  import { resolve } from '$app/paths';
 
   export let course: Course ;
-  export let userId: String;
 
 
 </script>
 
 {#if course.active == 1}
-  <a href="/en/course/{course.URL}" class="course-link course"><h2>{course.name}</h2>
+  <a href={resolve(`/en/course/${course.URL}`)} class="course-link course"><h2>{course.name}</h2>
     {@html course.description}
   </a>
 {/if}
@@ -62,11 +56,4 @@
     opacity: 0.7;
   }
 
-  .emoji {
-    font-size: 3em;
-    text-align: center;
-    margin-bottom: 0em;
-  }
-
-  
 </style>

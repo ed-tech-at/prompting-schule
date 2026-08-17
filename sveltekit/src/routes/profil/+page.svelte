@@ -1,10 +1,14 @@
 <script lang="ts">
       
-  import Header from '$lib/Header.svelte';  
-  
+  import Header from '$lib/Header.svelte';
+  import InfoBlocks from '$lib/InfoBlocks.svelte';
+
+  import { resolve } from '$app/paths';
+
   import type { JwtUserPayload } from '$lib/server/jwt';
-  
-  export let data: { user: JwtUserPayload };
+  import type { InfoBlockView } from '$lib/infoblocks';
+
+  export let data: { user: JwtUserPayload; hasKeycloakIssuer: boolean; infoBlocks: InfoBlockView[] };
 
 
   let oldPassword = "";
@@ -32,7 +36,7 @@
                 oldPassword,
                 newPassword,
             };
-          const response = await fetch("/profil", {
+          const response = await fetch(resolve("/profil"), {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -69,8 +73,8 @@
 
   async function handleDel() {
       
-      if (!password || !email) {
-        delResult = "Beide Felder sind erforderlich.";
+      if (!email || (!data.hasKeycloakIssuer && !password)) {
+        delResult = data.hasKeycloakIssuer ? "Die E-Mail-Adresse ist erforderlich." : "Beide Felder sind erforderlich.";
           
           return;
       }
@@ -80,7 +84,7 @@
               password,
                 email,
             };
-          const response = await fetch("/profil", {
+          const response = await fetch(resolve("/profil"), {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -95,7 +99,7 @@
           
           if (response.ok && data.success) {
 
-            window.location.href = "/logout";
+            window.location.href = resolve("/logout");
 
           } else if (data.error) {
               delResult = data.error;
@@ -115,15 +119,18 @@
 <!-- <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: 'Profil', href: '/profil' }]} user={data.user} /> -->
   <main>
     <h1>Profil</h1>
+
+    <InfoBlocks blocks={data.infoBlocks ?? []} />
     <p>E-Mail: {data.user.email}</p>
 
     <div style="margin-bottom: 3em;">
 
-      <a href="/kurse" class="button large secondary">Zu den Kursen</a>
+      <a href={resolve("/kurse")} class="button large secondary">Zu den Kursen</a>
     </div>
 
     
 
+    {#if !data.hasKeycloakIssuer}
     <div style="margin-bottom: 2em;">
 
     <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}  style="margin-bottom: 1em;">
@@ -149,10 +156,11 @@
     {/if}
 
   </div>
+  {/if}
     
   <div style="margin-bottom: 2em;">
 
-    <a href="/logout" class="button large complementary" data-sveltekit-reload rel="external">Logout</a>
+    <a href={resolve("/logout")} class="button large complementary" data-sveltekit-reload rel="external">Logout</a>
 
     </div>
 
@@ -174,15 +182,17 @@
         <form on:submit|preventDefault={handleDel}>
           
           <p> Nach dem Absenden der Löschung wird die Verknüpfung Ihres Kontos mit Ihrer E-Mail-Adresse dauerhaft gelöscht und Sie werden abgemeldet.<br>
-            <strong>Wichtig:</strong> Danach ist keine Anmeldung mit dieser E-Mail-Adresse und Ihrem Passwort mehr möglich, ein neuer Account mit dieser E-Mail Adresse kann danach jedoch bei Bedarf wieder erstellt werden. <br>
+            <strong>Wichtig:</strong> Danach ist keine Anmeldung mit dieser E-Mail-Adresse{#if !data.hasKeycloakIssuer} und Ihrem Passwort{/if} mehr möglich, ein neuer Account mit dieser E-Mail Adresse kann danach jedoch bei Bedarf wieder erstellt werden. <br>
             <strong>Achtung:</strong> Zertifikate und Digital Badges können nach der Löschung nicht mehr heruntergeladen werden, und bereits ausgestellte Zertifikate und Digital Badges lassen sich nicht mehr validieren oder auf Echtheit überprüfen.</p>
             
             <br><label for="email">Ihre E-Mail-Adresse:</label>
             <input type="email" id="email" bind:value={email} name="email">
             
+            {#if !data.hasKeycloakIssuer}
             <br>
           <label for="password">Ihr Passwort:</label>
           <input type="password" bind:value={password} name="password">
+          {/if}
 
           
           <br>

@@ -6,6 +6,7 @@
   let loading = false;
   import Header from '$lib/Header.svelte';
   import { browser } from '$app/environment';
+  import { resolve } from '$app/paths';
 
   import type { JwtUserPayload } from '$lib/server/jwt';
 
@@ -15,7 +16,7 @@
 let userId = "";
 if (browser) {
     if (data.user) {
-      window.location.href = "/profil";
+      window.location.href = resolve("/profil");
     }
 //   userId = localStorage.getItem("userId");
 //   console.log("Benutzer-ID:", userId);
@@ -39,7 +40,7 @@ if (browser) {
                 email,
                 password,
             };
-          const response = await fetch("/login", {
+          const response = await fetch(resolve("/login"), {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -54,7 +55,7 @@ if (browser) {
           
           if (response.ok && data.success) {
 
-            window.location.href = "/kurse";
+            window.location.href = resolve("/kurse");
             // console.log("Benutzer erfolgreich angemeldet:", data.user);
             //   localStorage.setItem("userId", data.user.id);
             //   localStorage.setItem("userEmail", data.user.email);
@@ -190,49 +191,29 @@ if (browser) {
   }
 </style> -->
 
-<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Login', href: '/login' }]} user={null} />
+<Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Login', href: '/login-sso' }]} user={null} />
 
 
 <div class="registerBg">
   <div class="registerBlock">
-      <h2>Anmeldung</h2>
+      <h2>Anmeldung mit Single-Sign-On</h2>
       {#if error}
           <div class="error-message">{error}</div>
       {/if}
-      <form on:submit|preventDefault={handleLogin}>
-          <div class="form-group">
-              <label for="email">E-Mail-Adresse</label>
-              <input
-                  id="email"
-                  type="text"
-                  placeholder="Geben Sie Ihre E-Mail ein"
-                  bind:value={email}
-                  required
-              />
-          </div>
-          <div class="form-group">
-              <label for="password">Passwort</label>
-              <input
-                  id="password"
-                  type="password"
-                  placeholder="Geben Sie Ihr Passwort ein"
-                  bind:value={password}
-                  required
-              />
-          </div>
-          <button type="submit" class="login-button" disabled={loading}>
-              {#if loading}
-                  <div class="loader"></div>
-              {/if}
-              {!loading ? "Anmelden" : "Anmelden..."}
-          </button>
-      </form>
-      <div class="alt-links">
-        
-          <a style="color: var(--color-complementary);"  href='/passwort'>Passwort vergessen</a>
+      
 
-          <p>Sie haben noch kein Konto?</p>
-          <a href="/registrierung" class="button invert">Registrierung</a>
-      </div>
+      <a href={resolve('/login-sso/start-login')}  data-sveltekit-preload-data="false" class="button">SSO Login</a>
+
+      <div class="checkbox-form">
+              <label>
+                Die Teilnahme ist freiwillig. 
+                <!-- Die eingegebenen Daten werden für wissenschaftliche Zwecke ausgewertet.<br> -->
+                  <!-- <input type="checkbox" bind:checked={agree} required> -->
+                  Sie stimmen den  <a href={resolve("/mehr/benutzerrichtlinien")} target="_blank">Benutzerrichtlinien</a> zu.
+
+              </label>
+          </div>
+
+
   </div>
 </div>

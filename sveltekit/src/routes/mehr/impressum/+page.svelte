@@ -1,5 +1,6 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
+    import { resolve } from '$app/paths';
 </script>
   
 <Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Impressum', href: '/mehr/impressum' }]} />
@@ -33,12 +34,12 @@
   <p>Bundesministerium für Bildung, Wissenschaft und Forschung<br>Web: <a href="https://www.bmbwf.gv.at/" target="_blank" rel="noreferrer noopener">https://www.bmbwf.gv.at</a></p>
 
   
-  Datenschutzinformationen finden Sie auf <a href="https://prompting.schule/mehr/datenschutz/">https://prompting.schule/mehr/datenschutz/</a>.
+  Datenschutzinformationen finden Sie auf <a href={resolve("/mehr/datenschutz/")}>/mehr/datenschutz/</a>.
 
   <br>
   Weitere Informationen finden Sie auf <a href="https://ed-tech.at/imprint/">https://ed-tech.at/imprint/</a>.
 
 </div>
 
-  <a href="/">Zur Startseite</a>
+  <a href={resolve("/")}>Zur Startseite</a>
 </main>

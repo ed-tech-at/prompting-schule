@@ -3,7 +3,7 @@
 import { prisma } from '$lib/server/db';
 
 
-import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/public';
 
 
 import { error, json } from '@sveltejs/kit';
@@ -15,8 +15,8 @@ import { newBadgeHash } from '$lib/server/dbUtils';
 import { requireLogin } from '$lib/server/jwt';
 
 import QRCode from 'qrcode';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import sharp from 'sharp';
 
 function fontToBase64(filePath: string) {
@@ -129,7 +129,7 @@ export async function POST({ request, cookies }) {
     }
     
 
-const certUrl = env.APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
+const certUrl = env.PUBLIC_APP_URL + `/badge/${badgeDb?.hash}/${user.email}`; // falls QR auf externe Assertion zeigt
 	const qrBuffer = await QRCode.toBuffer(certUrl, {
     color: {
       dark: "#009CB1",
@@ -266,20 +266,20 @@ const courseEsc = escapeXml(course?.name);
 const assertion = {
   "@context": "https://w3id.org/openbadges/v2",
   "type": "Assertion",
-  "id": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json",
+  "id": env.PUBLIC_APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json",
   "recipient": {
     "type": "email",
     "hashed": false,
     "identity": user.email
   },
-  "badge": env.APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/json.json",
+  "badge": env.PUBLIC_APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/json.json",
   "issuedOn": badgeDb?.createdAt.toISOString(),
   "verification": {
     "type": "HostedBadge",
-    "url": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json"
+    "url": env.PUBLIC_APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email + "/json.json"
   },
-  "image": env.APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/image.png",
-  "evidence": env.APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email
+  "image": env.PUBLIC_APP_URL + "/badge/class/" + course?.URL + "/" + lesson?.URL + "/image.png",
+  "evidence": env.PUBLIC_APP_URL + "/badge/" + badgeDb?.hash + "/" + user.email
   };
 
   // console.log('Assertion:', assertion);

@@ -4,7 +4,7 @@ import { prisma } from '$lib/server/db';
 
 import { error, json } from '@sveltejs/kit';
 
-import OpenAI, { AzureOpenAI } from 'openai';
+// import OpenAI, { AzureOpenAI } from 'openai';
 
 import { marked } from 'marked';
 

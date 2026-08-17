@@ -4,6 +4,7 @@ import { hashPasswordV2, login } from '$lib/server/pw.js';
 
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
+import { isPasswordResetExpired } from '$lib/server/passwordReset';
 
 
 export async function POST({ request }) {
@@ -24,7 +25,14 @@ export async function POST({ request }) {
             include: { user: true }
         });
 
-        if (!resetEntry || resetEntry.finishedAt) {
+        if (
+            !resetEntry ||
+            resetEntry.finishedAt ||
+            isPasswordResetExpired(resetEntry) ||
+            resetEntry.user.isDeleted ||
+            resetEntry.user.blockedAt ||
+            ![1, 2].includes(resetEntry.user.cryptVersion)
+        ) {
             return json({ success: false, error: 'Ungültiger oder abgelaufener Token.' }, { status: 400 });
         }
 
@@ -34,22 +42,41 @@ export async function POST({ request }) {
         // console.log('hashedPassword', hashedPassword);
 
         // Update the user's password and mark the token as used
-        await prisma.$transaction([
-            prisma.user.update({
+        await prisma.$transaction(async (transaction) => {
+            const claimedReset = await transaction.userPasswordReset.updateMany({
+                where: {
+                    token: resetEntry.token,
+                    userId: resetEntry.userId,
+                    finishedAt: null,
+                    OR: [
+                        { expiresAt: { gt: new Date() } },
+                        {
+                            expiresAt: null,
+                            createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) }
+                        }
+                    ]
+                },
+                data: { finishedAt: new Date() }
+            });
+
+            if (claimedReset.count !== 1) {
+                throw new Error('RESET_TOKEN_INVALID');
+            }
+
+            await transaction.user.update({
                 where: { id: resetEntry.userId },
                 data: { password: hashedPassword, cryptVersion: 2 }
-            }),
-            prisma.userPasswordReset.update({
-                where: { token: formData.token },
-                data: { finishedAt: new Date() }
-            })
-        ]);
+            });
+        });
 
         return login(resetEntry.user.email, formData.password);
         
         return json({ success: true, message: 'Passwort erfolgreich zurückgesetzt.' });
       }
     } catch (error) {
+        if (error instanceof Error && error.message === 'RESET_TOKEN_INVALID') {
+            return json({ success: false, error: 'Ungültiger oder abgelaufener Token.' }, { status: 400 });
+        }
         console.error('Error resetting password:', error);
         return json({ success: false, error: 'Ein Fehler ist aufgetreten.' }, { status: 500 });
     }

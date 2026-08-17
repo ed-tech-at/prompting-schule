@@ -2,7 +2,7 @@
   import Header from "$lib/Header.svelte";
 
   import { page } from '$app/state';
-  console.log("page:", page);
+  import { resolve } from "$app/paths";
 
 </script>
 <Header  />
@@ -18,7 +18,7 @@
       {page.error?.}
     </div> -->
 
-    <a href="/" class="link">Zurück zur Startseite</a>
+    <a href={resolve("/")} class="link">Zurück zur Startseite</a>
   </div>
 </div>
 </main>

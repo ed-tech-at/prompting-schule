@@ -1,8 +1,9 @@
 <script lang="ts">
     import type { JwtUserPayload } from '$lib/server/jwt';
 
+  import { resolve } from '$app/paths';
 
-  import type { Element, Course, Lesson, User } from '@prisma/client';
+  import type { Element, Course, Lesson } from '@prisma/client';
 
   import { marked } from 'marked';
 
@@ -12,7 +13,7 @@
 
 
   onMount(() => {
-    if (element.type === "aiSide") {
+    if (element.type === "aiSide" || element.type === "aiSideTool") {
       getUserProgressElementAi1();
       getUserProgressElementAi2();
     }
@@ -46,7 +47,7 @@
         elementId: element.id
       };
 
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +77,7 @@
         elementId: element.id
       };
 
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +112,7 @@
         elementId: element.id
       };
       
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -147,7 +148,7 @@
   let ai1Result = "";
   let ai1RawText = "";
 
-  let ai1timer = null;
+  let ai1timer: ReturnType<typeof setTimeout> | undefined;
   let ai1running = false;
   let showStar = false;
 
@@ -159,39 +160,126 @@
   let ai2RawText = "";
 
   
-  let ai2timer = null;
+  let ai2timer: ReturnType<typeof setTimeout> | undefined;
   let ai2running = false; 
   
   let ai2promptTokens = 0;
   let ai2completionTokens = 0;
 
   let betterPrompt = "";
-  
 
-  function startTimer (number) {
+  type ConversationMessage = { role: 'user' | 'assistant'; content: string };
+  let noMemoryInput = "";
+  let memoryInput = "";
+  let noMemoryTranscript: ConversationMessage[] = [];
+  let memoryTranscript: ConversationMessage[] = [];
+  let memoryHistory: ConversationMessage[] = [];
+  let noMemoryRunning = false;
+  let memoryRunning = false;
+  let noMemoryResult = "";
+  let memoryResult = "";
+
+  // Both columns talk to the same element, the only difference being whether the
+  // previous turns are sent along. That contrast is the point of the lesson.
+  async function sendPizzaMessage(condition: 'noMemory' | 'memory') {
+    const input = condition === 'noMemory' ? noMemoryInput.trim() : memoryInput.trim();
+    if (!input) return;
+
+    const isMemoryCondition = condition === 'memory';
+    let responseText = '';
+
+    if (isMemoryCondition) {
+      memoryRunning = true;
+      memoryResult = '...';
+    } else {
+      noMemoryRunning = true;
+      noMemoryResult = '...';
+    }
+
+    await streamAiAnswer({
+      action: isMemoryCondition ? 'memoryWithHistory' : 'memoryNoHistory',
+      data: {
+        message: input,
+        history: isMemoryCondition ? memoryHistory : [],
+        userId: user.id,
+        elementId: element.id,
+        courseId: course.id,
+        lessonId: lesson.id
+      },
+      timerKey: isMemoryCondition ? 2 : 1,
+      onChunk: (chunk) => {
+        responseText += chunk;
+        if (isMemoryCondition) {
+          memoryResult = marked.parse(responseText, { async: false });
+        } else {
+          noMemoryResult = marked.parse(responseText, { async: false });
+        }
+      },
+      onFooter: () => {
+        const exchange: ConversationMessage[] = [
+          { role: 'user', content: input },
+          { role: 'assistant', content: responseText }
+        ];
+
+        if (isMemoryCondition) {
+          memoryTranscript = [...memoryTranscript, ...exchange];
+          memoryHistory = [...memoryHistory, ...exchange];
+          memoryInput = '';
+          memoryRunning = false;
+        } else {
+          noMemoryTranscript = exchange;
+          noMemoryInput = '';
+          noMemoryRunning = false;
+        }
+      },
+      onError: (error) => {
+        const exchange: ConversationMessage[] = [
+          { role: 'user', content: input },
+          { role: 'assistant', content: error }
+        ];
+
+        if (isMemoryCondition) {
+          memoryTranscript = [...memoryTranscript, ...exchange];
+          memoryInput = '';
+          memoryRunning = false;
+          memoryResult = error;
+        } else {
+          noMemoryTranscript = exchange;
+          noMemoryInput = '';
+          noMemoryRunning = false;
+          noMemoryResult = error;
+        }
+      }
+    });
+  }
+
+
+  function startTimer (number: 1 | 2) {
     if (number == 1) {
       ai1running = true;
       ai1timer = setTimeout(() => {
         ai1Result += ".";
-        clearTimeout(ai1timer);
+        if (ai1timer) clearTimeout(ai1timer);
         startTimer(1);
       }, 500);
     } else if (number == 2) {
       ai2running = true; 
       ai2timer = setTimeout(() => {
         ai2Result += ".";
-        clearTimeout(ai2timer);
+        if (ai2timer) clearTimeout(ai2timer);
         startTimer(2);
       }, 500);
     }
   }
 
-  function stopTimer (number) {
+  function stopTimer (number: 1 | 2) {
     if (number == 1) {
-      clearTimeout(ai1timer);
+      if (ai1timer) clearTimeout(ai1timer);
+      ai1timer = undefined;
       ai1running = false;
     } else if (number == 2) {
-      clearTimeout(ai2timer);
+      if (ai2timer) clearTimeout(ai2timer);
+      ai2timer = undefined;
       ai2running = false; 
     }
   }
@@ -215,7 +303,7 @@
       lessonId: lesson.id
     };
 
-    const response = await fetch(`/api/userProgress`, {
+    const response = await fetch(resolve('/api/userProgress'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -256,14 +344,14 @@
 }: {
   action: string;
   data: Record<string, any>;
-  timerKey: number;
+  timerKey: 1 | 2;
   onChunk: (textChunk: string) => void;
   onFooter: (tokens: { promptTokens: number; completionTokens: number }) => void;
   onError?: (msg: string) => void;
 }) {
   startTimer(timerKey);
 
-  const response = await fetch(`/api/en/aiAnswer`, {
+  const response = await fetch(resolve('/api/en/aiAnswer'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, data })
@@ -347,7 +435,7 @@ async function submitFormAiSide1() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -377,7 +465,7 @@ async function submitFormAiSide2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai2promptTokens = promptTokens;
@@ -409,7 +497,7 @@ async function submitFormAi1() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -439,7 +527,7 @@ async function submitFormAi2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai2promptTokens = promptTokens;
@@ -470,7 +558,7 @@ async function submitFormAi12() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -501,7 +589,7 @@ async function submitFormDirectDevUser() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -533,7 +621,7 @@ async function submitFormDirectDevUserUser() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -590,7 +678,7 @@ async function labor2() {
     timerKey: 2,
     onChunk: (chunk) => {
       ai2RawText += chunk;
-      ai2Result = marked.parse(ai2RawText);
+      ai2Result = marked.parse(ai2RawText, { async: false });
     },
     onFooter: () => {
       labor3(); // ⏭ automatisch weiter zu labor3
@@ -618,7 +706,7 @@ async function labor3() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      ai1Result = marked.parse(ai1RawText);
+      ai1Result = marked.parse(ai1RawText, { async: false });
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       ai1promptTokens = promptTokens;
@@ -654,7 +742,7 @@ async function submitFormStar() {
     onFooter: ({ promptTokens, completionTokens }) => {
       try {
         const parsed = JSON.parse(ai1RawText);
-        ai1Result = marked.parse(parsed.feedback || '');
+        ai1Result = marked.parse(parsed.feedback || '', { async: false });
         showStar = parsed.star;
       } catch (e) {
         ai1Result = 'Fehler beim Parsen der Rückgabe';
@@ -673,7 +761,7 @@ async function submitFormStar() {
 }
 
 
-function stripTagsAndDecode(html) {
+function stripTagsAndDecode(html: string) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body.textContent || '';
 }
@@ -714,12 +802,12 @@ if (element.type.includes('negativeMarginTop')) {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" role="textbox" aria-labelledby="label-{element.id}" >
+      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" aria-labelledby="label-{element.id}" >
       </textarea>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
 
-      <button type="submit" class="submit" disabled={ai1running}>
+      <button type="submit" class="submit" disabled={ai1running} aria-label="Save note">
         <i class="fas fa-save"></i>
       </button>
       
@@ -730,12 +818,72 @@ if (element.type.includes('negativeMarginTop')) {
   {/if}
 
 
-  {#if element.type === "aiSide"}
+  {#if element.type === "aiSideMemory"}
+<section>
+  {@html element.description}
+  <div class="aiSide">
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('noMemory')}>
+      <label for="no-memory-{element.id}">{element.taskA}</label>
+      <textarea id="no-memory-{element.id}" class="prompt" bind:value={noMemoryInput} placeholder="Enter message"></textarea>
+      <button type="submit" class="submit" disabled={noMemoryRunning} aria-label="Send without memory">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Memory</strong>
+        {#each noMemoryTranscript as message}
+          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
+            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
+          </p>
+        {/each}
+      </div>
+
+      <div class="result">
+        <p class="result-label">Answer {#if noMemoryRunning}is being generated{/if}</p>
+        <div class="generated">
+          {#if noMemoryResult}
+            {@html noMemoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('memory')}>
+      <label for="memory-{element.id}">{element.taskB}</label>
+      <textarea id="memory-{element.id}" class="prompt" bind:value={memoryInput} placeholder="Enter the same message"></textarea>
+      <button type="submit" class="submit" disabled={memoryRunning} aria-label="Send with memory">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Memory</strong>
+        {#each memoryTranscript as message}
+          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
+            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
+          </p>
+        {/each}
+      </div>
+
+      <div class="result">
+        <p class="result-label">Answer {#if memoryRunning}is being generated{/if}</p>
+        <div class="generated">
+          {#if memoryResult}
+            {@html memoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+  {/if}
+
+
+  {#if element.type === "aiSide" || element.type === "aiSideTool"}
 
 <section>
   {@html element.description}
   <div class="aiSide">
-    
+
   <form class="ai" on:submit|preventDefault={submitFormAiSide1}>
 
       <label for="ai1">{element.taskA}</label>
@@ -748,7 +896,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -769,7 +917,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
 
       <div class="result">
-        <label>Answer {#if ai2running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
         <div class="clearfix"></div>
         <div class="generated">
           {#if ai2Result}
@@ -806,7 +954,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -841,7 +989,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -887,7 +1035,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai2running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai2Result}
@@ -937,7 +1085,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -985,7 +1133,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1044,7 +1192,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1080,7 +1228,7 @@ if (element.type.includes('negativeMarginTop')) {
       </button>
       
       <div class="result">
-        <label class="">Feedback {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Feedback {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1144,9 +1292,9 @@ if (element.type.includes('negativeMarginTop')) {
           <label for="ai2">Better Prompt</label>
           <div class="prompt" placeholder="Prompt">{@html betterPrompt}</div>
 
-          <span type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt}>
+          <button type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt} aria-label="Use better prompt">
             <i class="fas fa-copy"></i>
-          </span>
+          </button>
 
           
 
@@ -1156,9 +1304,9 @@ if (element.type.includes('negativeMarginTop')) {
           <label for="ai2">Worse Prompt</label>
           <div class="prompt" placeholder="...">{@html ai2Result}</div>
 
-          <span type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt}>
+          <button type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt} aria-label="Use worse prompt">
             <i class="fas fa-copy"></i>
-          </span>
+          </button>
         </div>
 
       </div>
@@ -1166,7 +1314,7 @@ if (element.type.includes('negativeMarginTop')) {
       {/if}
 
       <div class="result">
-        <label class="">Answer {#if ai1running}is being generated{/if}</label>
+        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1183,7 +1331,7 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 
-  {#if user.isAdmin > 0}
+  {#if user.isAdmin >= 2}
     <pre>Element ID: {element.id}</pre>
   {/if}
   
@@ -1191,6 +1339,37 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 <style>
+  /* The tool call blocks are injected by the aiSideTool response, so they need
+     to be global to survive Svelte's style scoping. */
+  :global(.tool-call),
+  :global(.tool-result) {
+    background-color: #e7f6ea;
+    border: 1px solid #9bcfa5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript {
+    background-color: #f7e2eb;
+    border: 1px solid #df9db7;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    min-height: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript p {
+    margin: 0.4rem 0;
+  }
+
+  .memory-transcript .memory-user {
+    color: #7a2448;
+  }
+
+  .memory-transcript .memory-agent {
+    color: #4f4050;
+  }
+
   .laborSide {
     display: flex;
     gap: 1rem;

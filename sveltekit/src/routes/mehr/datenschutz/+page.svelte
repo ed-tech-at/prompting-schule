@@ -1,5 +1,8 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
+   import { resolve } from '$app/paths';
+
+
 </script>
   
 <Header navItems={[{ name: 'Startseite', href: '/' }, { name: 'Datenschutz', href: '/mehr/datenschutz' }]} />
@@ -87,5 +90,5 @@ Ein Missbrauch der KI-Funktion, insbesondere zur Verarbeitung, Verbreitung oder 
 Weitere Datenschutzinformationen finden Sie auf <a href="https://bildungsinformatik.at/datenschutz/">https://bildungsinformatik.at/datenschutz/</a>.
 
 </div>
-  <a href="/">Zur Startseite</a>
+  <a href={resolve("/")}>Zur Startseite</a>
 </main>

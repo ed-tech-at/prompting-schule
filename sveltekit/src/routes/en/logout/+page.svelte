@@ -5,6 +5,7 @@
 // // import CourseRender from './CourseRender.svelte';
     
     import Header from '$lib/Header.svelte';
+    import { resolve } from '$app/paths';
 
 //   // export let data: {courses: Course[]}; 
 
@@ -24,11 +25,11 @@
 
 </script>
 
-<Header navItems={[{ name: 'Frontpage', href: '/' }, { name: 'Logout', href: '/en/logout' }]} user={null} lang="en"  />
+<Header navItems={[{ name: 'Frontpage', href: '/en' }, { name: 'Logout', href: '/en/logout' }]} user={null} lang="en"  />
 <main>
   <h1>Logout</h1>
   
   <p>You were logged out.</p>
 
-  <a href="/en">Frontpage</a>
+  <a href={resolve("/en")}>Frontpage</a>
 </main>
