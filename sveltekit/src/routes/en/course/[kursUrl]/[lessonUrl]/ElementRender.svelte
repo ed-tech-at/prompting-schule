@@ -13,7 +13,7 @@
 
 
   onMount(() => {
-    if (element.type === "aiSide") {
+    if (element.type === "aiSide" || element.type === "aiSideTool") {
       getUserProgressElementAi1();
       getUserProgressElementAi2();
     }
@@ -167,7 +167,92 @@
   let ai2completionTokens = 0;
 
   let betterPrompt = "";
-  
+
+  type ConversationMessage = { role: 'user' | 'assistant'; content: string };
+  let noMemoryInput = "";
+  let memoryInput = "";
+  let noMemoryTranscript: ConversationMessage[] = [];
+  let memoryTranscript: ConversationMessage[] = [];
+  let memoryHistory: ConversationMessage[] = [];
+  let noMemoryRunning = false;
+  let memoryRunning = false;
+  let noMemoryResult = "";
+  let memoryResult = "";
+
+  // Both columns talk to the same element, the only difference being whether the
+  // previous turns are sent along. That contrast is the point of the lesson.
+  async function sendPizzaMessage(condition: 'noMemory' | 'memory') {
+    const input = condition === 'noMemory' ? noMemoryInput.trim() : memoryInput.trim();
+    if (!input) return;
+
+    const isMemoryCondition = condition === 'memory';
+    let responseText = '';
+
+    if (isMemoryCondition) {
+      memoryRunning = true;
+      memoryResult = '...';
+    } else {
+      noMemoryRunning = true;
+      noMemoryResult = '...';
+    }
+
+    await streamAiAnswer({
+      action: isMemoryCondition ? 'memoryWithHistory' : 'memoryNoHistory',
+      data: {
+        message: input,
+        history: isMemoryCondition ? memoryHistory : [],
+        userId: user.id,
+        elementId: element.id,
+        courseId: course.id,
+        lessonId: lesson.id
+      },
+      timerKey: isMemoryCondition ? 2 : 1,
+      onChunk: (chunk) => {
+        responseText += chunk;
+        if (isMemoryCondition) {
+          memoryResult = marked.parse(responseText, { async: false });
+        } else {
+          noMemoryResult = marked.parse(responseText, { async: false });
+        }
+      },
+      onFooter: () => {
+        const exchange: ConversationMessage[] = [
+          { role: 'user', content: input },
+          { role: 'assistant', content: responseText }
+        ];
+
+        if (isMemoryCondition) {
+          memoryTranscript = [...memoryTranscript, ...exchange];
+          memoryHistory = [...memoryHistory, ...exchange];
+          memoryInput = '';
+          memoryRunning = false;
+        } else {
+          noMemoryTranscript = exchange;
+          noMemoryInput = '';
+          noMemoryRunning = false;
+        }
+      },
+      onError: (error) => {
+        const exchange: ConversationMessage[] = [
+          { role: 'user', content: input },
+          { role: 'assistant', content: error }
+        ];
+
+        if (isMemoryCondition) {
+          memoryTranscript = [...memoryTranscript, ...exchange];
+          memoryInput = '';
+          memoryRunning = false;
+          memoryResult = error;
+        } else {
+          noMemoryTranscript = exchange;
+          noMemoryInput = '';
+          noMemoryRunning = false;
+          noMemoryResult = error;
+        }
+      }
+    });
+  }
+
 
   function startTimer (number: 1 | 2) {
     if (number == 1) {
@@ -733,12 +818,72 @@ if (element.type.includes('negativeMarginTop')) {
   {/if}
 
 
-  {#if element.type === "aiSide"}
+  {#if element.type === "aiSideMemory"}
+<section>
+  {@html element.description}
+  <div class="aiSide">
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('noMemory')}>
+      <label for="no-memory-{element.id}">{element.taskA}</label>
+      <textarea id="no-memory-{element.id}" class="prompt" bind:value={noMemoryInput} placeholder="Enter message"></textarea>
+      <button type="submit" class="submit" disabled={noMemoryRunning} aria-label="Send without memory">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Memory</strong>
+        {#each noMemoryTranscript as message}
+          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
+            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
+          </p>
+        {/each}
+      </div>
+
+      <div class="result">
+        <p class="result-label">Answer {#if noMemoryRunning}is being generated{/if}</p>
+        <div class="generated">
+          {#if noMemoryResult}
+            {@html noMemoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('memory')}>
+      <label for="memory-{element.id}">{element.taskB}</label>
+      <textarea id="memory-{element.id}" class="prompt" bind:value={memoryInput} placeholder="Enter the same message"></textarea>
+      <button type="submit" class="submit" disabled={memoryRunning} aria-label="Send with memory">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Memory</strong>
+        {#each memoryTranscript as message}
+          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
+            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
+          </p>
+        {/each}
+      </div>
+
+      <div class="result">
+        <p class="result-label">Answer {#if memoryRunning}is being generated{/if}</p>
+        <div class="generated">
+          {#if memoryResult}
+            {@html memoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+  {/if}
+
+
+  {#if element.type === "aiSide" || element.type === "aiSideTool"}
 
 <section>
   {@html element.description}
   <div class="aiSide">
-    
+
   <form class="ai" on:submit|preventDefault={submitFormAiSide1}>
 
       <label for="ai1">{element.taskA}</label>
@@ -1194,6 +1339,37 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 <style>
+  /* The tool call blocks are injected by the aiSideTool response, so they need
+     to be global to survive Svelte's style scoping. */
+  :global(.tool-call),
+  :global(.tool-result) {
+    background-color: #e7f6ea;
+    border: 1px solid #9bcfa5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript {
+    background-color: #f7e2eb;
+    border: 1px solid #df9db7;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    min-height: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript p {
+    margin: 0.4rem 0;
+  }
+
+  .memory-transcript .memory-user {
+    color: #7a2448;
+  }
+
+  .memory-transcript .memory-agent {
+    color: #4f4050;
+  }
+
   .laborSide {
     display: flex;
     gap: 1rem;

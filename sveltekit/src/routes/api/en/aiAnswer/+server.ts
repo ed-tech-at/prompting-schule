@@ -15,7 +15,12 @@ import { streamAiResponse } from '$lib/server/openAiResponses';
 
 
 type PromptMessage = {
-  role: 'developer' | 'user';
+  role: 'developer' | 'user' | 'assistant';
+  content: string;
+};
+
+type ConversationMessage = {
+  role: 'user' | 'assistant';
   content: string;
 };
 
@@ -29,6 +34,68 @@ async function getElementOrThrow(elementId: number) {
     throw error(404, 'Lesson element not found');
   }
   return element;
+}
+
+// The English tool lesson asks for an unambiguous date, so ISO (YYYY-MM-DD) is
+// the documented format. The dotted German form is still accepted because the
+// same course content is sometimes copied over from the German version.
+function parseDateInput(value: string): Date | null {
+  const trimmed = value.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  const dotted = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmed);
+
+  let year: number;
+  let month: number;
+  let day: number;
+
+  if (iso) {
+    [, year, month, day] = iso.map(Number) as [number, number, number, number];
+  } else if (dotted) {
+    const [, dottedDay, dottedMonth, dottedYear] = dotted.map(Number) as [number, number, number, number];
+    year = dottedYear;
+    month = dottedMonth;
+    day = dottedDay;
+  } else {
+    return null;
+  }
+
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year
+    && date.getMonth() === month - 1
+    && date.getDate() === day
+    ? date
+    : null;
+}
+
+function formatIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// The tool call is simulated, not streamed from a model. The delay between the
+// chunks is what makes the "the AI calls a tool" step visible to learners.
+function delayedToolResponse(chunks: string[], usage: { promptTokens: number; completionTokens: number }): Response {
+  const encoder = new TextEncoder();
+  const delayMs = 800;
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (let index = 0; index < chunks.length; index += 1) {
+        controller.enqueue(encoder.encode(chunks[index]));
+
+        if (index < chunks.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+
+      controller.enqueue(encoder.encode(`\n[__FOOTER__]${JSON.stringify({ __footer: true, ...usage })}`));
+      controller.close();
+    }
+  });
+
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
 }
 
 export async function POST({ request, cookies }) {
@@ -48,6 +115,7 @@ export async function POST({ request, cookies }) {
   if ((data.ai1 && data.ai1.length > maxLength)
       || (data.ai2 && data.ai2.length > maxLength)
       || (data.developer && data.developer.length > maxLength)
+      || (data.message && data.message.length > maxLength)
       ) {
 
     await prisma.userProgress.create({
@@ -64,14 +132,60 @@ export async function POST({ request, cookies }) {
     return new Response('<i>Request too long</i>', { status: 200 });
   }
 
-  if (action === 'aiSide1') {
+  if (action === 'memoryNoHistory' || action === 'memoryWithHistory') {
     const element = await getElementOrThrow(data.elementId);
-  
-  
+
+    const history: ConversationMessage[] = action === 'memoryWithHistory' && Array.isArray(data.history)
+      ? data.history
+          .filter((message: unknown) =>
+            typeof message === 'object'
+            && message !== null
+            && ('role' in message)
+            && ('content' in message)
+            && ((message as { role: string }).role === 'user' || (message as { role: string }).role === 'assistant')
+            && typeof (message as { content: unknown }).content === 'string'
+          )
+          .map((message: unknown) => ({
+            role: (message as ConversationMessage).role,
+            content: (message as ConversationMessage).content
+          }))
+          .slice(-20)
+      : [];
+
     return streamAiResponse({
       messages: [
         { role: 'developer', content: element.devPromptA ?? '' },
-        { role: 'user', content: data.ai1 }
+        ...history,
+        { role: 'user', content: data.message }
+      ],
+      saveToDb: async (text, usage) => {
+        await prisma.userProgress.create({
+          data: {
+            userId: data.userId,
+            elementId: data.elementId,
+            courseId: data.courseId,
+            lessonId: data.lessonId,
+            ai1: data.message,
+            ai1Result: renderMarkdown(text),
+            ...usage,
+            promptsTried: 1
+          }
+        });
+      }
+    });
+  }
+
+  if (action === 'aiSide1') {
+    const element = await getElementOrThrow(data.elementId);
+    const userInput = element.type === 'aiSideTool'
+      ? `Date of birth: ${data.ai1}\nToday's date: ${formatIsoDate(new Date())}`
+      : data.ai1;
+
+
+    return streamAiResponse({
+      messages: [
+        { role: 'developer', content: element.devPromptA ?? '' },
+        { role: 'user', content: userInput }
       ],
       saveToDb: async (text, usage) => {
         await prisma.userProgress.create({
@@ -94,8 +208,52 @@ export async function POST({ request, cookies }) {
 
   if (action === 'aiSide2') {
     const element = await getElementOrThrow(data.elementId);
-  
-  
+
+    if (element.type === 'aiSideTool') {
+      const today = new Date();
+      const start = parseDateInput(data.ai2 ?? '');
+      const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      let text: string;
+      let responseChunks: string[] | null = null;
+
+      if (start !== null && start <= end) {
+        const days = Math.floor((end.getTime() - start.getTime()) / 86_400_000);
+        const formattedDays = days.toLocaleString('en-GB');
+        responseChunks = [
+          '**AI:** I need an exact calculation, so I am calling a tool.\n\n',
+          `<div class="tool-call">🔧 <strong>Tool call:</strong> <code>calculate_days_between(${formatIsoDate(start)}, ${formatIsoDate(end)})</code></div>\n\n`,
+          `<div class="tool-result">✅ <strong>Tool result:</strong> ${formattedDays} days</div>\n\n`,
+          `**AI:** You are ${formattedDays} days old today.`
+        ];
+        text = responseChunks.join('');
+      } else {
+        text = '⚠️ Please enter a valid date of birth in the format YYYY-MM-DD that is not in the future.';
+      }
+      const usage = { promptTokens: 0, completionTokens: 0 };
+
+      await prisma.userProgress.create({
+        data: {
+          userId: data.userId,
+          elementId: data.elementId,
+          courseId: data.courseId,
+          lessonId: data.lessonId,
+          ai2: data.ai2,
+          ai2Result: renderMarkdown(text),
+          ...usage,
+          promptsTried: 1
+        }
+      });
+
+      if (responseChunks !== null) {
+        return delayedToolResponse(responseChunks, usage);
+      }
+
+      return new Response(`${text}\n[__FOOTER__]${JSON.stringify({ __footer: true, ...usage })}`, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    }
+
+
     return streamAiResponse({
       messages: [
         { role: 'developer', content: element.devPromptB ?? '' },

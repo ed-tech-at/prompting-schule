@@ -13,6 +13,8 @@ export const ELEMENT_TYPES = [
   'text-negativeMarginTop',
   'note',
   'aiSide',
+  'aiSideTool',
+  'aiSideMemory',
   'ai1',
   'ai1only',
   'ai2',
