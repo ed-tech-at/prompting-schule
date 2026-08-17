@@ -1,12 +1,14 @@
 <script lang="ts">
       
-  import Header from '$lib/Header.svelte';  
-  
+  import Header from '$lib/Header.svelte';
+  import InfoBlocks from '$lib/InfoBlocks.svelte';
+
   import { resolve } from '$app/paths';
 
   import type { JwtUserPayload } from '$lib/server/jwt';
-  
-  export let data: { user: JwtUserPayload; hasKeycloakIssuer: boolean };
+  import type { InfoBlockView } from '$lib/infoblocks';
+
+  export let data: { user: JwtUserPayload; hasKeycloakIssuer: boolean; infoBlocks: InfoBlockView[] };
 
 
   let oldPassword = "";
@@ -117,6 +119,8 @@
 <!-- <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: 'Profil', href: '/profil' }]} user={data.user} /> -->
   <main>
     <h1>Profil</h1>
+
+    <InfoBlocks blocks={data.infoBlocks ?? []} />
     <p>E-Mail: {data.user.email}</p>
 
     <div style="margin-bottom: 3em;">

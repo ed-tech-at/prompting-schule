@@ -1,16 +1,20 @@
 <script lang="ts">
   import Header from "$lib/Header.svelte";
+  import InfoBlocks from "$lib/InfoBlocks.svelte";
   import type { JwtUserPayload } from '$lib/server/jwt';
+  import type { InfoBlockView } from '$lib/infoblocks';
 
   import { asset, resolve } from '$app/paths';
-   
 
-  export let data: { user: JwtUserPayload }; 
+
+  export let data: { user: JwtUserPayload, infoBlocks: InfoBlockView[] };
 </script>
 <Header user={data.user}  />
 
 <main id="frontpage">
-  
+
+<InfoBlocks blocks={data.infoBlocks ?? []} />
+
 
 <!--
 <div class="header">

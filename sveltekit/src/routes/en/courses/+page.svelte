@@ -3,9 +3,11 @@
   import CourseRender from './CourseRender.svelte';
       
       import Header from '$lib/Header.svelte';
+    import InfoBlocks from '$lib/InfoBlocks.svelte';
     import type { JwtUserPayload } from '$lib/server/jwt';
-  
-    export let data: {courses: Course[], user: JwtUserPayload}; 
+    import type { InfoBlockView } from '$lib/infoblocks';
+
+    export let data: {courses: Course[], user: JwtUserPayload, infoBlocks: InfoBlockView[]};
   
   
   </script>
@@ -13,6 +15,8 @@
   <Header navItems={[{ name: 'Courses', href: '/en/courses' }]} user={data.user} lang="en" />
   <main>
   <h1>Overview of Courses</h1>
+
+  <InfoBlocks blocks={data.infoBlocks ?? []} />
 
   <div class="courses">
   {#each data.courses as course}

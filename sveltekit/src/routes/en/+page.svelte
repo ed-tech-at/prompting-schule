@@ -1,7 +1,9 @@
 <script lang="ts">
   import Header from "$lib/Header.svelte";
+  import InfoBlocks from "$lib/InfoBlocks.svelte";
   import type { JwtUserPayload } from "$lib/server/jwt";
-  export let data: { user: JwtUserPayload };
+  import type { InfoBlockView } from "$lib/infoblocks";
+  export let data: { user: JwtUserPayload; infoBlocks: InfoBlockView[] };
 
   import { resolve } from "$app/paths";
 
@@ -9,6 +11,7 @@
 
 <Header user={data.user} lang={"en"} />
 <main id="frontpage">
+  <InfoBlocks blocks={data.infoBlocks ?? []} />
   <!--
 <div class='header'>
     <div class='title'>PROMPTING SCHOOL</div>

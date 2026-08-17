@@ -29,6 +29,11 @@
       <p>Kurse, Lektionen, Elemente und Quizfragen bearbeiten, testen sowie als JSON exportieren und importieren.</p>
     </a>
 
+    <a class="admin-card" href={resolve('/admin/infoblocks')}>
+      <h2>Infoblöcke</h2>
+      <p>Hinweise und Banner für Startseite und Kursübersicht verwalten, zeitlich begrenzen und auf E-Mail-Adressen einschränken.</p>
+    </a>
+
     {#if data.actor.isAdmin >= 6}
       <a class="admin-card" href={resolve('/admin/users')}>
         <h2>Benutzerverwaltung</h2>

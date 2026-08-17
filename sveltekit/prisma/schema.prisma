@@ -67,6 +67,40 @@ model AdminAuditLog {
   @@index([targetUserId, createdAt])
 }
 
+model InfoBlock {
+  id      Int      @id @default(autoincrement())
+
+  // Internal label for the admin list, never rendered on the public pages.
+  title   String
+
+  // Raw HTML, rendered with {@html} like Element.description.
+  content String
+
+  // "info" | "warning" | "success"
+  variant String @default("info")
+
+  // "de" | "en" | "both"
+  lang    String @default("both")
+
+  // "startseite" | "kursuebersicht"
+  placements String[] @default([])
+
+  // JavaScript regex source, matched case-insensitively against the logged-in
+  // user's email. NULL means: visible to everyone, including logged-out visitors.
+  emailPattern String?
+
+  validFrom  DateTime?
+  validUntil DateTime?
+
+  active   Int @default(0)
+  position Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, position])
+}
+
 model Course {
   id      Int      @id @default(autoincrement())
   name    String

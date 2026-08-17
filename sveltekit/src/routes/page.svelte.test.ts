@@ -11,7 +11,8 @@ describe('/+page.svelte', () => {
 					id: 'test-user',
 					email: '',
 					isAdmin: 0
-				}
+				},
+				infoBlocks: []
 			}
 		});
 		expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();

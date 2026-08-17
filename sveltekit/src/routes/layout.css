@@ -446,53 +446,6 @@ header .login {
   order: 5;
 }
 
-/* Admin dropdown (details/summary, no JS) in the header login area */
-header .admin-menu {
-  display: inline-block;
-  position: relative;
-  color: white;
-}
-
-header .admin-menu summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-header .admin-menu summary::-webkit-details-marker {
-  display: none;
-}
-
-header .admin-menu summary::after {
-  content: ' ▾';
-  font-size: 0.8em;
-}
-
-header .admin-menu ul {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 100;
-  margin: 4px 0 0;
-  padding: 6px 0;
-  list-style: none;
-  min-width: 200px;
-  background-color: var(--color-primary-dark);
-  border: 1px solid var(--color-primary-darkest);
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-header .admin-menu ul a {
-  display: block;
-  padding: 6px 14px;
-  text-decoration: none;
-}
-
-header .admin-menu ul a:hover,
-header .admin-menu ul a:focus-visible {
-  background-color: var(--color-primary-darkest);
-}
-
 .flex-full {
   flex-basis: 100%;
   height: 0;
@@ -626,6 +579,63 @@ mark.green {
 }
 
 mark.green h2, mark.green h3 {
+  color: var(--color-green-darkest);
+}
+
+/* Info blocks (InfoBlocks.svelte). Their content is injected with {@html},
+   which Svelte's scoped styles do not reach, so the rules live here.
+   The "info" variant uses the primary colour, not the plain mark styling:
+   the complementary colour is reserved for calls to action. */
+.infoblocks {
+  max-width: 60em;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+mark.infoblock {
+  margin-top: 1em;
+  background-color: var(--color-primary-lightest);
+  border-left: 5px solid var(--color-primary-dark);
+}
+
+mark.infoblock h2, mark.infoblock h3 {
+  color: var(--color-primary-dark);
+}
+
+mark.infoblock.variant-warning {
+  background-color: var(--color-red-lightest);
+  border-left: 5px solid var(--color-red-dark);
+}
+
+mark.infoblock.variant-warning h2, mark.infoblock.variant-warning h3 {
+  color: var(--color-red-dark);
+}
+
+mark.infoblock.variant-success {
+  background-color: var(--color-green-lightest);
+  border-left: 5px solid var(--color-green-darkest);
+}
+
+mark.infoblock.variant-success h2, mark.infoblock.variant-success h3 {
+  color: var(--color-green-darkest);
+}
+
+/* #frontpage paints every heading white for its dark hero sections. Info blocks
+   sit on a light background there, so they have to opt out again — and the id
+   selector outranks the plain mark rules above. */
+#frontpage .infoblocks h1,
+#frontpage .infoblocks h2,
+#frontpage .infoblocks h3 {
+  color: var(--color-primary-dark);
+}
+
+#frontpage .infoblocks .variant-warning h2,
+#frontpage .infoblocks .variant-warning h3 {
+  color: var(--color-red-dark);
+}
+
+#frontpage .infoblocks .variant-success h2,
+#frontpage .infoblocks .variant-success h3 {
   color: var(--color-green-darkest);
 }
 
