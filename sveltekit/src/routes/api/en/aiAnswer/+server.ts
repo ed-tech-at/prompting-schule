@@ -187,6 +187,7 @@ export async function POST({ request, cookies }) {
         { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: userInput }
       ],
+      reasoningEffort: element.type === 'aiSideTool' ? 'none' : 'low',
       saveToDb: async (text, usage) => {
         await prisma.userProgress.create({
           data: {
