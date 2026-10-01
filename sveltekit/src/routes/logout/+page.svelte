@@ -6,6 +6,8 @@
     
     import Header from '$lib/Header.svelte';
 
+    import { resolve } from '$app/paths';
+
 //   // export let data: {courses: Course[]}; 
 
 
@@ -30,5 +32,5 @@
   
   <p>Sie wurden erfolgreich abgemeldet.</p>
 
-  <a href="/">Zur Startseite</a>
+  <a href={resolve("/")}>Zur Startseite</a>
 </main>

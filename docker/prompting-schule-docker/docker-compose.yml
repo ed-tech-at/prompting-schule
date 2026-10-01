@@ -1,0 +1,21 @@
+services:
+  prompting-schule-release:
+    container_name: prompting-schule-release
+    image: prompting-schule:release
+    build:
+      # context: .
+      context: ../.. 
+      dockerfile: docker/prompting-schule-docker/Dockerfile.sveltekit
+    env_file:
+      - ../../sveltekit/.env
+    # restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+    networks:
+      - postgresql_net
+
+networks:
+  postgresql_net:
+    external: true
+

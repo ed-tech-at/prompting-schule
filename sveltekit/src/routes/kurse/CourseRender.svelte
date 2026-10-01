@@ -3,6 +3,7 @@
   import type { Course, User } from '@prisma/client';
 
   import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
 
   onMount(() => {
     // showCourseForUser();
@@ -15,7 +16,8 @@
 </script>
 
 {#if course.active == 1}
-  <a href="/kurs/{course.URL}" class="course-link course"><h2>{course.name}</h2>
+
+  <a href={resolve(`/kurs/${course.URL}`)} class="course-link course"><h2>{course.name}</h2>
     {@html course.description}
   </a>
 {/if}

@@ -1,8 +1,9 @@
 // import { PrismaClient } from '@prisma/client';
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
+import { isPasswordResetExpired } from '$lib/server/passwordReset';
 
 
 export async function load({ params }) {
@@ -20,7 +21,7 @@ export async function load({ params }) {
             }
         });
 
-        if (!resetEntry) {
+        if (!resetEntry || isPasswordResetExpired(resetEntry)) {
             throw error(404, 'Ungültiger oder abgelaufener Token.');
         }
 
@@ -30,7 +31,7 @@ export async function load({ params }) {
         };
     } catch (err) {
         
-        if (err.status == "404") {
+        if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
             throw error(404, 'Ungültiger oder abgelaufener Token.');
         }
 

@@ -24,6 +24,8 @@ import { onMount } from 'svelte';
 {/each}
 </div>
 
+<div>{@html data.course.introDescriptionSuffix}</div>
+
 <style>
   .lessons {
     

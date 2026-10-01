@@ -73,6 +73,7 @@ export async function POST({ request, params }) {
 
     } 
   } catch (error) {
-      return json({ success: false, error: error.message }, { status: 500 });
+      const message = error instanceof Error ? error.message : 'Registration failed.';
+      return json({ success: false, error: message }, { status: 500 });
   }
 }

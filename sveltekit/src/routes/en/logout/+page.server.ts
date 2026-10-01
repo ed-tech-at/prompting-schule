@@ -1,12 +1,13 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { getCookiePath } from '$lib/server/subfolder';
 
 export const load: PageServerLoad = async ({ cookies, url }) => {
   const token = cookies.get('jwt');
 
-  // Cookie löschen
+  // Cookie löschen – gleicher Path wie beim Setzen (pw.ts)
   cookies.set('jwt', '', {
-    path: '/',
+    path: getCookiePath(),
     httpOnly: true,
     secure: true,
     sameSite: 'strict',

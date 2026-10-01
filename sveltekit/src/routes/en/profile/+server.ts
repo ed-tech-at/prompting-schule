@@ -2,10 +2,8 @@ import { json } from '@sveltejs/kit';
 // import { PrismaClient } from '@prisma/client';
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
-
-
-import { comparePassword, comparePasswordV2, hashPasswordV2, login } from '$lib/server/pw.js';
-import { createJWT } from '$lib/server/jwt.js';
+import { hasOIDCConfig } from '$lib/sso/oidc';
+import { comparePasswordV2, hashPasswordV2 } from '$lib/server/pw.js';
 import { requireLogin } from '$lib/server/jwt.js';
 
 export async function POST({ request, params, cookies }) {
@@ -19,6 +17,9 @@ export async function POST({ request, params, cookies }) {
           const user = requireLogin(cookies);
         
           const userDb = await prisma.user.findUnique({ where: { id: user.id } });
+          if (!userDb) {
+              return json({ success: false, error: "User not found" }, { status: 404 });
+          }
 
           const pwStatus = await comparePasswordV2(formData.oldPassword, userDb.password, user.id);
 
@@ -43,15 +44,20 @@ export async function POST({ request, params, cookies }) {
           const user = requireLogin(cookies);
         
           const userDb = await prisma.user.findUnique({ where: { id: user.id } });
+          if (!userDb) {
+              return json({ success: false, error: "User not found" }, { status: 404 });
+          }
 
-          if (userDb?.email != formData.email) {
+          if (userDb.email != formData.email) {
               return json({ success: false, error: "E-Mail stimmt nicht überein" }, { status: 401 });
           }
 
-          const pwStatus = await comparePasswordV2(formData.password, userDb.password, user.id);
+          if (!hasOIDCConfig()) {
+              const pwStatus = await comparePasswordV2(formData.password, userDb.password, user.id);
 
-          if (!pwStatus) {
-              return json({ success: false, error: "Passwort ist falsch" }, { status: 401 });
+              if (!pwStatus) {
+                  return json({ success: false, error: "Passwort ist falsch" }, { status: 401 });
+              }
           }
           
           await prisma.user.update({
@@ -68,6 +74,7 @@ export async function POST({ request, params, cookies }) {
 
     } 
   } catch (error) {
-      return json({ success: false, error: error.message }, { status: 500 });
+      const message = error instanceof Error ? error.message : 'Profile update failed.';
+      return json({ success: false, error: message }, { status: 500 });
   }
 }

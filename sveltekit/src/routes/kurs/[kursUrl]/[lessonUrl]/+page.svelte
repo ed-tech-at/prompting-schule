@@ -7,6 +7,7 @@
   import Footer from '$lib/Footer.svelte'; 
   import QuizStarRender from './QuizStarRender.svelte';
   import { on } from 'svelte/events';
+  import { resolve } from '$app/paths';
   
   import type { JwtUserPayload } from '$lib/server/jwt';
 
@@ -39,7 +40,7 @@
       userId: data.user.id,
       lessonId: data.lesson.id
     };
-    const response = await fetch('/api/userProgress' , {
+    const response = await fetch(resolve('/api/userProgress') , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -113,8 +114,46 @@ textAreas[0].dispatchEvent(new Event('input'));
 
   }
 
+  export function fillBoth(sender) {
+    const row = sender.closest('tr');
+    const prompt = row.querySelector('[data-prompt-for-both]')?.textContent?.trim();
+    const section = sender.closest('section');
+    const textAreas = section.querySelectorAll('.prompt');
+    if (prompt && textAreas.length >= 2) {
+      textAreas[0].value = prompt;
+      textAreas[1].value = prompt;
+      textAreas[0].dispatchEvent(new Event('input'));
+      textAreas[1].dispatchEvent(new Event('input'));
+    }
+  }
+
+  export function copyPreviousAiSideOutput(sender: HTMLElement, side: 0 | 1 = 0) {
+    const targetElement = sender.closest('.element');
+    let sourceElement = targetElement?.previousElementSibling;
+    while (sourceElement && !sourceElement.querySelector('.aiSide')) {
+      sourceElement = sourceElement.previousElementSibling;
+    }
+
+    const outputs = sourceElement?.querySelectorAll('.aiSide .generated');
+    const output = outputs?.[side]?.textContent?.trim();
+    if (!output) {
+      window.alert(side === 0
+        ? 'Bitte erstelle zuerst die linke KI-Antwort in der Übung darüber.'
+        : 'Bitte erstelle zuerst die rechte KI-Antwort in der Übung darüber.');
+      return;
+    }
+
+    const prompt = targetElement?.querySelector<HTMLTextAreaElement>('.ai12prompt1 .prompt');
+    if (prompt) {
+      prompt.value = output;
+      prompt.dispatchEvent(new Event('input'));
+    }
+  }
+
   if (browser) {
     window.fillSide = fillSide;
+    window.fillBoth = fillBoth;
+    window.copyPreviousAiSideOutput = copyPreviousAiSideOutput;
     window.fill1 = fill1;
     window.fill2 = fill2;
     window.fillMono = fillMono;
@@ -141,8 +180,8 @@ textAreas[0].dispatchEvent(new Event('input'));
 <QuizStarRender course={data.course} lesson={data.lesson} user={data.user} {userStars} />
 {/if}
 
-{#if data.user.isAdmin > 0}
-  <!-- <a href="/kurs/{data.course.URL}/{data.lesson.URL}/edit">Lektion bearbeiten</a> -->
+{#if data.user.isAdmin >= 2}
+  <!-- <a href={resolve(`/kurs/${data.course.URL}/${data.lesson.URL}/edit`)}>Lektion bearbeiten</a> -->
   <pre>Lektion ID {data.lesson.id}</pre>
 {/if}
 

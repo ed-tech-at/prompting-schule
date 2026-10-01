@@ -5,6 +5,7 @@
   // import { browser } from '$app/environment';
   import type { Course, Lesson, QuizQuestion } from '@prisma/client';
   import type { JwtUserPayload } from '$lib/server/jwt';
+  import { resolve } from '$app/paths';
 
   export let data: {course: Course, lesson: Lesson, quizQuestions: QuizQuestion[], user: JwtUserPayload}; 
   let userId = "";
@@ -36,7 +37,7 @@
   });
 
   async function updateUserStars() {
-    const response = await fetch('/api/userProgress' , {
+    const response = await fetch(resolve('/api/userProgress') , {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -78,7 +79,7 @@
       answers: JSON.stringify(answers)
     };
 
-    const response = await fetch(`/api/quiz`, {
+    const response = await fetch(resolve('/api/quiz'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -163,7 +164,7 @@
   {/if}
 
 
-  {#if data.user.isAdmin > 0}
+  {#if data.user.isAdmin >= 2}
     <pre><strong>Question ID:</strong> {question.id}</pre>
   {/if}
     
@@ -183,10 +184,10 @@
     {#if quizResults.percent >= 75}
       <!-- todo 75 -->
       <p><i class="fas fa-check-circle" style="color: #638e21;"></i> Gut gemacht! Lektion abgeschlossen.</p>
-      <a class="button" href="/kurs/{data.course.URL}">Zur Kurs-Seite {data.course.name}</a>
+      <a class="button" href={resolve(`/kurs/${data.course.URL}`)}>Zur Kurs-Seite {data.course.name}</a>
     {:else}
       <p><i class="fas fa-exclamation-circle" style="color: red;"></i> Diese Quiz-Leistung reicht für den Digital Badge noch nicht aus. </p>
-      <a class="button" href="/kurs/{data.course.URL}/{data.lesson.URL}">Gehen Sie zur Lektion zurück und schauen Sie sich die Inhalte erneut an. Sobald Sie 75&nbsp;% beim Quiz erreichen, erhalten Sie den Digital Badge.</a>
+      <a class="button" href={resolve(`/kurs/${data.course.URL}/${data.lesson.URL}`)}>Gehen Sie zur Lektion zurück und schauen Sie sich die Inhalte erneut an. Sobald Sie 75&nbsp;% beim Quiz erreichen, erhalten Sie den Digital Badge.</a>
     {/if}
   </section>
 {/if}

@@ -1,10 +1,14 @@
 <script lang="ts">
       
-  import Header from '$lib/Header.svelte';  
-  
+  import Header from '$lib/Header.svelte';
+  import InfoBlocks from '$lib/InfoBlocks.svelte';
+
   import type { JwtUserPayload } from '$lib/server/jwt';
-  
-  export let data: { user: JwtUserPayload };
+  import type { InfoBlockView } from '$lib/infoblocks';
+
+  export let data: { user: JwtUserPayload; hasKeycloakIssuer: boolean; infoBlocks: InfoBlockView[] };
+
+  import { resolve } from '$app/paths';
 
 
   let oldPassword = "";
@@ -32,7 +36,7 @@
                 oldPassword,
                 newPassword,
             };
-          const response = await fetch("/en/profile", {
+          const response = await fetch(resolve("/en/profile"), {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -69,8 +73,8 @@
 
   async function handleDel() {
       
-      if (!password || !email) {
-        delResult = "Both fields are required.";
+      if (!email || (!data.hasKeycloakIssuer && !password)) {
+        delResult = data.hasKeycloakIssuer ? "Email is required." : "Both fields are required.";
 
           return;
       }
@@ -80,7 +84,7 @@
               password,
                 email,
             };
-          const response = await fetch("/en/profile", {
+          const response = await fetch(resolve("/en/profile"), {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -95,7 +99,7 @@
           
           if (response.ok && data.success) {
 
-            window.location.href = "/en/logout";
+            window.location.href = resolve("/en/logout");
 
           } else if (data.error) {
               delResult = data.error;
@@ -115,15 +119,18 @@
 <!-- <Header navItems={[{ name: 'Kurse', href: '/kurse' }, { name: 'Profil', href: '/profil' }]} user={data.user} /> -->
   <main>
     <h1>Profile</h1>
+
+    <InfoBlocks blocks={data.infoBlocks ?? []} />
     <p>Email: {data.user.email}</p>
 
     <div style="margin-bottom: 3em;">
 
-      <a href="/en/courses" class="button large secondary">Go to Courses</a>
+      <a href={resolve("/en/courses")} class="button large secondary">Go to Courses</a>
     </div>
 
     
 
+    {#if !data.hasKeycloakIssuer}
     <div style="margin-bottom: 2em;">
 
     <button class="large" on:click={() => showPwChangeForm = !showPwChangeForm}  style="margin-bottom: 1em;">
@@ -149,10 +156,11 @@
     {/if}
 
   </div>
+  {/if}
     
   <div style="margin-bottom: 2em;">
 
-    <a href="/en/logout" class="button large complementary" data-sveltekit-reload rel="external">Logout</a>
+    <a href={resolve("/en/logout")} class="button large complementary" data-sveltekit-reload rel="external">Logout</a>
 
     </div>
 
@@ -174,15 +182,17 @@
         <form on:submit|preventDefault={handleDel}>
 
           <p> After submitting the deletion, the link between your account and your email address will be permanently deleted, and you will be logged out.<br>
-            <strong>Important:</strong> After that, it will not be possible to log in with this email address and your password. However, a new account with this email address can be created again if necessary.<br>
+            <strong>Important:</strong> After that, it will not be possible to log in with this email address{#if !data.hasKeycloakIssuer} and your password{/if}. However, a new account with this email address can be created again if necessary.<br>
             <strong>Note:</strong> Certificates and digital badges cannot be downloaded after deletion, and already issued certificates and digital badges can no longer be validated or verified for authenticity.</p>
 
             <br><label for="email">Your email address:</label>
             <input type="email" id="email" bind:value={email} name="email">
             
+            {#if !data.hasKeycloakIssuer}
             <br>
           <label for="password">Your password:</label>
           <input type="password" bind:value={password} name="password">
+          {/if}
 
           
           <br>

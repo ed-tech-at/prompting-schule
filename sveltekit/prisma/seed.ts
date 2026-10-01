@@ -1,42 +1,77 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'url'
+import bcrypt from 'bcrypt'
+import 'dotenv/config'
+import { randomUUID } from 'node:crypto'
+
 const prisma = new PrismaClient()
 
-async function main() {
-    // Insert course
-    const course = await prisma.course.create({
-        data: {
-            name: "Grundlagen",
-            lessons: {
-                create: [
-                    { lessonName: "Einführung in KI Ethik" },
-                    { lessonName: "Klare Anweisungen schreiben"},
-                    { lessonName: "Referenztext bereitstellen" },
-                    { lessonName: "Komplexe Aufgaben aufteilen" },
-                    { lessonName: "Der KI Zeit zum Nachdenken geben" },
-                  ]
-                }
-            }
-        }
-    })
+// recreate __dirname in ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-    const course2 = await prisma.course.create({
-      data: {
-          name: "Prompt Labor",
-          lessons: {
-              create: [
-                  { lessonName: "Grammatik-Korrektur" },
-                  { lessonName: "Meeting-Notizen zusammenfassen"},
-                  { lessonName: "Schlüsselwörter extrahieren" },
-                  { lessonName: "Pro- und Kontra-Diskussio" },
-                  { lessonName: "Übersetzung" },
-                ]
-              }
-          }
-      }
+async function seedDevelopmentUser() {
+  const email = process.env.DEV_USER_EMAIL
+  const password = process.env.DEV_USER_PASSWORD
+
+  if (!email || !password) {
+    console.log('Development user skipped: DEV_USER_EMAIL and DEV_USER_PASSWORD are not set.')
+    return
+  }
+
+  const pepper = process.env.SERVER_PW_PEPPER
+  if (!pepper) {
+    throw new Error('Development user cannot be seeded: SERVER_PW_PEPPER is not set.')
+  }
+
+  const isAdmin = Number(process.env.DEV_USER_ROLE ?? 0)
+
+  if (!Number.isInteger(isAdmin) || isAdmin < 0 || isAdmin > 7) {
+    throw new Error('DEV_USER_ROLE must be an integer between 0 and 7.')
+  }
+  const existingUser = await prisma.user.findUnique({ where: { email } })
+  const id = existingUser?.id ?? randomUUID()
+  // Must match hashPasswordV2 in src/lib/server/pw.ts: password + pepper + userId.
+  const hashedPassword = await bcrypt.hash(password + pepper + id, 10)
+
+  await prisma.user.upsert({
+    where: { email },
+    update: {
+      password: hashedPassword,
+      cryptVersion: 2,
+      isAdmin,
+      isDeleted: 0
+    },
+    create: {
+      id,
+      email,
+      password: hashedPassword,
+      cryptVersion: 2,
+      isAdmin
+    }
   })
 
-    console.log("Seeded database with courses and lessons:", course)
-    console.log("Seeded database with courses and lessons 2:", course2)
+  console.log(`Development user seeded: ${email}`)
+}
+
+async function main() {
+  const filePath = path.join(__dirname, 'seed.sql')
+  const sql = fs.readFileSync(filePath, 'utf8')
+
+  const statements = sql
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+
+  for (const statement of statements) {
+    await prisma.$executeRawUnsafe(statement)
+  }
+
+  await seedDevelopmentUser()
+
+  console.log('Seeding finished.')
 }
 
 main()

@@ -7,12 +7,13 @@
   import { marked } from 'marked';
 
   import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
     
   
 
 
   onMount(() => {
-    if (element.type === "aiSide") {
+    if (element.type === "aiSide" || element.type === "aiSideTool") {
       getUserProgressElementAi1();
       getUserProgressElementAi2();
     }
@@ -46,7 +47,7 @@
         elementId: element.id
       };
 
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +77,7 @@
         elementId: element.id
       };
 
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +112,7 @@
         elementId: element.id
       };
       
-      const response = await fetch('/api/userProgress' , {
+      const response = await fetch(resolve('/api/userProgress') , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -166,6 +167,125 @@
   let ai2completionTokens = 0;
 
   let betterPrompt = "";
+  let noMemoryInput = "";
+  let memoryInput = "";
+  let noMemorySummary = "";
+  let memorySummary = "";
+  let noMemoryRunning = false;
+  let memoryRunning = false;
+  let noMemoryResult = "";
+  let memoryResult = "";
+
+  async function sendPizzaMessage(condition: 'noMemory' | 'memory') {
+    const input = condition === 'noMemory' ? noMemoryInput.trim() : memoryInput.trim();
+    if (!input) return;
+
+    const isMemoryCondition = condition === 'memory';
+    let responseText = '';
+
+    if (isMemoryCondition) {
+      memoryRunning = true;
+      memoryResult = '...';
+    } else {
+      noMemoryRunning = true;
+      noMemoryResult = '...';
+    }
+
+    await streamAiAnswer({
+      action: isMemoryCondition ? 'memoryWithHistory' : 'memoryNoHistory',
+      data: {
+        message: input,
+        summary: isMemoryCondition ? memorySummary : '',
+        userId: user.id,
+        elementId: element.id,
+        courseId: course.id,
+        lessonId: lesson.id
+      },
+      timerKey: isMemoryCondition ? 2 : 1,
+      onChunk: (chunk) => {
+        responseText += chunk;
+        if (isMemoryCondition) {
+          memoryResult = marked.parse(responseText);
+        } else {
+          noMemoryResult = marked.parse(responseText);
+        }
+      },
+      onFooter: () => {
+        if (isMemoryCondition) {
+          memoryInput = '';
+        } else {
+          noMemoryInput = '';
+        }
+      },
+      onError: (error) => {
+        if (isMemoryCondition) {
+          memoryInput = '';
+          memoryRunning = false;
+          memoryResult = error;
+        } else {
+          noMemoryInput = '';
+          noMemoryRunning = false;
+          noMemoryResult = error;
+        }
+      }
+    });
+
+    if (responseText) {
+      const summary = await createMemorySummary(
+        isMemoryCondition ? memorySummary : '',
+        input,
+        responseText
+      );
+
+      if (summary) {
+        if (isMemoryCondition) {
+          memorySummary = summary;
+        } else {
+          noMemorySummary = summary;
+        }
+      }
+    }
+
+    if (isMemoryCondition) {
+      memoryRunning = false;
+    } else {
+      noMemoryRunning = false;
+    }
+  }
+
+  async function createMemorySummary(previousSummary: string, message: string, assistantResponse: string): Promise<string | null> {
+    try {
+      const response = await fetch(resolve('/api/aiAnswer'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'memorySummarize',
+          data: {
+            summary: previousSummary,
+            message,
+            assistantResponse,
+            userId: user.id,
+            elementId: element.id,
+            courseId: course.id,
+            lessonId: lesson.id
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok && typeof result.summary === 'string') {
+        return result.summary;
+      }
+    } catch (error) {
+      console.error('Memory summary could not be updated:', error);
+    }
+
+    return null;
+  }
+
+  function clearMemory() {
+    memorySummary = '';
+  }
   
 
   function startTimer (number) {
@@ -215,7 +335,7 @@
       lessonId: lesson.id
     };
 
-    const response = await fetch(`/api/userProgress`, {
+    const response = await fetch(resolve('/api/userProgress'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -263,7 +383,7 @@
 }) {
   startTimer(timerKey);
 
-  const response = await fetch(`/api/aiAnswer`, {
+  const response = await fetch(resolve('/api/aiAnswer'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, data })
@@ -701,8 +821,6 @@ if (element.type.includes('negativeMarginTop')) {
     {@html element.description}
   {/if}
 
-  
-
   {#if element.type === "note"}
 
 <section>
@@ -729,7 +847,71 @@ if (element.type.includes('negativeMarginTop')) {
   {/if}
 
 
-  {#if element.type === "aiSide"}
+  {#if element.type === "aiSideMemory"}
+<section>
+  {@html element.description}
+  <div class="aiSide">
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('noMemory')}>
+      <label for="no-memory-{element.id}">{element.taskA}</label>
+      <textarea id="no-memory-{element.id}" class="prompt" bind:value={noMemoryInput} placeholder="Nachricht eingeben"></textarea>
+      <button type="submit" class="submit" disabled={noMemoryRunning} aria-label="Ohne Gedächtnis senden">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Gedächtnis</strong>
+        {#if noMemorySummary}
+          <p>{noMemorySummary}</p>
+        {/if}
+      </div>
+
+      <div class="result">
+        <label>Antwort {#if noMemoryRunning}wird generiert{/if}</label>
+        <div class="generated">
+          {#if noMemoryResult}
+            {@html noMemoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+
+    <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('memory')}>
+      <label for="memory-{element.id}">{element.taskB}</label>
+      <textarea id="memory-{element.id}" class="prompt" bind:value={memoryInput} placeholder="Dieselbe Nachricht eingeben"></textarea>
+      <button type="submit" class="submit" disabled={memoryRunning} aria-label="Mit Gedächtnis senden">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
+      <div class="generated memory-transcript">
+        <strong>Gedächtnis</strong>
+        {#if memorySummary}
+          <p>{memorySummary}</p>
+        {/if}
+        <button
+          type="button"
+          class="clear-memory"
+          disabled={!memorySummary || memoryRunning}
+          on:click={clearMemory}
+        >
+          Gedächtnis löschen
+        </button>
+      </div>
+
+      <div class="result">
+        <label>Antwort {#if memoryRunning}wird generiert{/if}</label>
+        <div class="generated">
+          {#if memoryResult}
+            {@html memoryResult}
+          {/if}
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+  {/if}
+
+
+  {#if element.type === "aiSide" || element.type === "aiSideTool"}
 
 <section>
   {@html element.description}
@@ -1183,7 +1365,7 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 
-  {#if user.isAdmin > 0}
+  {#if user.isAdmin >= 2}
     <pre>Element ID: {element.id}</pre>
   {/if}
   
@@ -1191,6 +1373,55 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 <style>
+  :global(.tool-call),
+  :global(.tool-result) {
+    background-color: #e7f6ea;
+    border: 1px solid #9bcfa5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript {
+    background-color: #f7e2eb;
+    border: 1px solid #df9db7;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    min-height: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .memory-transcript p {
+    margin: 0.4rem 0;
+  }
+
+  .memory-transcript h3 {
+    margin: 0 0 0.5rem;
+  }
+
+  .memory-transcript .memory-user {
+    color: #7a2448;
+  }
+
+  .memory-transcript .memory-agent {
+    color: #4f4050;
+  }
+
+  .clear-memory {
+    background: transparent;
+    border: 1px solid #7a2448;
+    border-radius: 0.25rem;
+    color: #7a2448;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .clear-memory:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
   .laborSide {
     display: flex;
     gap: 1rem;

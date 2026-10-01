@@ -1,0 +1,19 @@
+{
+	// The seed/truncate scripts run through tsx (see the npm scripts), not through
+	// Vite, so they are a separate compilation unit from the SvelteKit app. The
+	// generated .svelte-kit/tsconfig.json only includes src/ and tests/, which
+	// left these files without a project - and therefore without Node's types.
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"lib": ["esnext"],
+		"types": ["node"],
+		"strict": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"noEmit": true
+	},
+	"include": ["**/*.ts"]
+}

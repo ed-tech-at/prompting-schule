@@ -5,6 +5,7 @@ import { prisma } from '$lib/server/db';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { withBase } from '$lib/server/subfolder';
 
 import { redirect, type Cookies } from '@sveltejs/kit';
 
@@ -41,7 +42,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
 
   if (lesson?.starsNeeded > 0) {
-    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, '/kurse');
+    if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, withBase('/kurse'));
     //  TODO 75
   } 
 
@@ -61,7 +62,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const maxPrompts = aggregate._sum.promptsTried || 0;
 
   if (maxPrompts == 0) {
-    throw redirect(302, '/kurse'); 
+    throw redirect(302, withBase('/kurse')); 
   }
 
   return {
