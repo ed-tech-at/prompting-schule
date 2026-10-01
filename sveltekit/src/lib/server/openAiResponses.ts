@@ -5,6 +5,7 @@ import { stringify } from 'openai/internal/qs/stringify.mjs';
 type openAiParams = {
   messages: { role: 'developer' | 'user' | 'assistant'; content: string }[];
   maxTokens?: number;
+  reasoningEffort?: 'none' | 'low';
   saveToDb: (text: string, usage: { promptTokens?: number; completionTokens?: number }) => Promise<void>;
 };
 
@@ -68,7 +69,8 @@ export async function summarizeConversationMemory(
 export async function streamAiResponse({
   messages,
   saveToDb,
-  maxTokens = 10000
+  maxTokens = 10000,
+  reasoningEffort = 'low'
 }: openAiParams) {
   const openaiLLM = new OpenAI({
     apiKey: OPENAI_API_KEY,
@@ -83,7 +85,7 @@ export async function streamAiResponse({
       input: messages,
       max_output_tokens: maxTokens,
       reasoning: {
-        effort: 'low'
+        effort: reasoningEffort as OpenAI.ReasoningEffort
       },
       text: { verbosity: 'low' } as never,
       stream: true
