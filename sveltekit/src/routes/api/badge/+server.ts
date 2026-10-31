@@ -90,10 +90,13 @@ export async function POST({ request, cookies }) {
 
     // console.log('aggregate', aggregate);
 
-    if (aggregate._sum.promptsTried === 0) {
+    // Ohne Fortschrittszeilen ist die Summe null, nicht 0.
+    if (!aggregate._sum.promptsTried) {
       return json({ success: false, error: 'No prompts tried' });
     }
 
+    // Bewusst so: Der Badge bescheinigt die E-Mail, mit der das Konto angelegt wurde.
+    // Eine E-Mail-Verifikation vor dem Ausstellen ist nicht vorgesehen.
     const hash = await newBadgeHash(user.id, lessonId);
 
     const badge = await prisma.badge.create({

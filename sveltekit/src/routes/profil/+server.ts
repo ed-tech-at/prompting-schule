@@ -54,6 +54,8 @@ export async function POST({ request, params, cookies }) {
               }
           }
           
+          // Bewusst so: Selbstlöschung muss auch gesperrten Konten möglich sein (DSGVO, Art. 17).
+          // Danach ist die Identität frei; eine erneute Anmeldung legt ein neues, ungesperrtes Konto an.
           await prisma.user.update({
               where: { id: user.id },
               data: {
