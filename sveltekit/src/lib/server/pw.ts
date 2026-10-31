@@ -8,6 +8,7 @@ import { prisma } from '$lib/server/db';
 import { createJWT } from './jwt';
 import { json } from '@sveltejs/kit';
 import { newUserUUID } from '$lib/server/dbUtils.js';
+import { isSingleEmailAddress } from '$lib/server/email';
 
 import { getCookiePath, withBase } from '$lib/server/subfolder';
 
@@ -96,6 +97,10 @@ export async function login(email: string, password: string): Promise<Response> 
 export async function register(email: string, password: string): Promise<Response> { /* | { success: false; error: string }*/
   if (passwordAuthDisabled()) {
     return json({ success: false, error: "Die Registrierung mit Passwort ist deaktiviert." }, { status: 403 });
+  }
+
+  if (!isSingleEmailAddress(email)) {
+    return json({ success: false, error: "Ungültige E-Mail-Adresse." }, { status: 400 });
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email } });

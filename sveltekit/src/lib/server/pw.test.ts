@@ -122,3 +122,12 @@ describe('SSO-only mode', () => {
     expect(mocks.create).not.toHaveBeenCalled();
   });
 });
+
+describe('register email validation', () => {
+  it('rejects a recipient list as account email', async () => {
+    const response = await register('"Warnung" <a@example.test>, b@example.test', 'pw');
+
+    expect(response.status).toBe(400);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+  });
+});
