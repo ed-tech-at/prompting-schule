@@ -10,6 +10,7 @@ import { marked } from 'marked';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { countLessonStars } from '$lib/server/lessonStars';
 
 
 
@@ -134,17 +135,14 @@ export async function POST({ request, cookies }) {
     // data = JSON.parse(data);
     // console.log('getLessonStars', data);
     // console.log('elementId', data.userId);
-    const userProgress = await prisma.userProgress.groupBy({
-      by: ['elementId'],
-      where: { userId: data.userId, lessonId: data.lessonId, stars: { not: 0 } }
-    });
+    const stars = await countLessonStars(data.userId, data.lessonId);
 
     // console.log('userProgress', userProgress);
 
     // const totalStars = userProgress.reduce((sum, progress) => sum + (progress._sum.stars || 0), 0);
     
     // console.log('userProgress', userProgress);
-    return json({ success: true, stars: userProgress.length });
+    return json({ success: true, stars });
 
   }
 

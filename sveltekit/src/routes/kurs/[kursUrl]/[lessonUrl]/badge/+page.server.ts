@@ -6,6 +6,7 @@ import { prisma } from '$lib/server/db';
 
 import { requireLogin } from '$lib/server/jwt';
 import { withBase } from '$lib/server/subfolder';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 
 import { error, redirect, type Cookies } from '@sveltejs/kit';
 
@@ -47,6 +48,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
 
   if (lesson.starsNeeded > 0) {
+    if (!(await hasEnoughStars(user.id, lesson))) throw redirect(302, withBase('/kurse'));
     if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, withBase('/kurse'));
     //  TODO 75
   } 
