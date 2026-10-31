@@ -5,6 +5,7 @@ import { prisma } from '$lib/server/db';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { error } from '@sveltejs/kit';
 
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -16,12 +17,19 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const lessonUrl = params.lessonUrl as String;
 
   const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
+  if (!course) {
+    throw error(404, 'Kurs nicht gefunden');
+  }
 
   
-  const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
+  // Lektion an den Kurs binden; ohne Treffer 404, sonst entfiele der lessonId-Filter unten.
+  const lesson = await prisma.lesson.findFirst({ where: { URL: lessonUrl, courseId: course.id } });
+  if (!lesson) {
+    throw error(404, 'Lektion nicht gefunden');
+  }
 
   const quizQuestions = await prisma.quizQuestion.findMany({
-    where: { lessonId: lesson?.id },
+    where: { lessonId: lesson.id },
     orderBy: { position: 'asc' }
   });
 
