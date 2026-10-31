@@ -4,9 +4,9 @@ import { newPwResetToken } from '$lib/server/dbUtils';
 import { sendMail } from '$lib/server/email';
 
 export const PASSWORD_RESET_LIFETIME_MS = 60 * 60 * 1000;
-export const PASSWORD_RESET_MAX_PER_HOUR = 3;
+export const PASSWORD_RESET_MAX_PER_HOUR = 5;
 
-// Drosselt Reset-Mails pro Konto, damit anonyme Anfragen kein Postfach fluten.
+// Höchstens 5 Reset-Mails pro E-Mail-Adresse (= Konto) und Stunde, damit anonyme Anfragen kein Postfach fluten.
 export async function passwordResetLimitReached(userId: string, now = new Date()): Promise<boolean> {
   const recent = await prisma.userPasswordReset.count({
     where: {
