@@ -33,7 +33,7 @@ vi.mock('$env/dynamic/private', () => ({
   }
 }));
 
-import { login, loginSso } from './pw';
+import { login, loginSso, register } from './pw';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -83,5 +83,14 @@ describe('blocked account login', () => {
       success: false,
       error: 'Dieses Benutzerkonto ist gesperrt.'
     });
+  });
+});
+
+describe('register email validation', () => {
+  it('rejects a recipient list as account email', async () => {
+    const response = await register('"Warnung" <a@example.test>, b@example.test', 'pw');
+
+    expect(response.status).toBe(400);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
   });
 });
