@@ -2,10 +2,13 @@ import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
 import { requireLogin } from '$lib/server/jwt';
 import { error } from '@sveltejs/kit';
+import { redactElementPrompts } from '$lib/server/lessonElements';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
   const user = requireLogin(cookies);
 
+  // active ist bewusst nur "publicActive": Es steuert die Sichtbarkeit in der Kursliste.
+  // Über die direkte URL bleiben auch nicht aktive Kurse/Lektionen erreichbar – das ist gewollt.
   const course = await prisma.course.findUnique({ where: { URL: params.kursUrl } });
   if (!course) {
     throw error(404, 'Course not found');
@@ -23,10 +26,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     orderBy: { position: 'asc' }
   });
 
-  const elements = elementsWithPrompts.map(({ devPromptA, ...rest }) => ({
-    ...rest,
-    devPromptA: null
-  }));
+  const elements = redactElementPrompts(elementsWithPrompts);
 
   return {
     course,
