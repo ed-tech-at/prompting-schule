@@ -1,6 +1,6 @@
 // import { PrismaClient } from '@prisma/client';
 import { json } from '@sveltejs/kit';
-import { hashPasswordV2, login } from '$lib/server/pw.js';
+import { hashPasswordV2, login, passwordAuthDisabled } from '$lib/server/pw.js';
 
 // const prisma = new PrismaClient();
 import { prisma } from '$lib/server/db';
@@ -8,6 +8,10 @@ import { isPasswordResetExpired } from '$lib/server/passwordReset';
 
 
 export async function POST({ request }) {
+    if (passwordAuthDisabled()) {
+        return json({ success: false, error: 'Passwort-Zurücksetzen ist deaktiviert.' }, { status: 403 });
+    }
+
     try {
         const { formData, action } = await request.json();
 

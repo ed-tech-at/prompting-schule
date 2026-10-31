@@ -1,9 +1,14 @@
 import { json } from '@sveltejs/kit';
 import { prisma } from '$lib/server/db';
 import { sendPasswordResetLink } from '$lib/server/passwordReset';
+import { passwordAuthDisabled } from '$lib/server/pw';
 
 
 export async function POST({ request }) {
+  if (passwordAuthDisabled()) {
+    return json({ success: false, error: "Passwort-Zurücksetzen ist deaktiviert." }, { status: 403 });
+  }
+
   try {
       const { formData, action } = await request.json();
 
