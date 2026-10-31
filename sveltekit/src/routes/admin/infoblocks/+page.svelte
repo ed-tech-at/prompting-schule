@@ -69,7 +69,7 @@
       <h1>Infoblöcke</h1>
       <p>
         Hinweise für Startseite und Kursübersicht. Blöcke lassen sich zeitlich begrenzen und über
-        ein E-Mail-Muster auf eine Zielgruppe einschränken.
+        E-Mail-Domains auf eine Zielgruppe einschränken.
       </p>
     </div>
   </div>
