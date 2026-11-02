@@ -70,7 +70,7 @@
       />
     </label>
     <label>
-      Sprache
+      Ausgangssprache
       <select name="lang">
         <option value="de">Deutsch</option>
         <option value="en">Englisch</option>
@@ -88,7 +88,7 @@
           <th>Reihenfolge</th>
           <th>Name</th>
           <th>URL</th>
-          <th>Sprache</th>
+          <th>Sprachen</th>
           <th>Status</th>
           <th>Lektionen</th>
           <th><span class="visually-hidden">Aktionen</span></th>
@@ -118,7 +118,14 @@
             </td>
             <td><strong>{course.name}</strong></td>
             <td><code>{course.URL}</code></td>
-            <td>{course.lang ?? '–'}</td>
+            <td>
+              <strong>{course.lang}</strong>
+              {#each course.translations as translation}
+                <span class="lang-tag" class:hidden-lang={translation.active === 0} title={translation.active === 0 ? 'Übersetzung versteckt (nur per Link)' : 'Übersetzung sichtbar'}>
+                  + {translation.lang}
+                </span>
+              {/each}
+            </td>
             <td>
               <span class:inactive={!course.active} class="status">
                 {course.active ? 'Aktiv' : 'Inaktiv'}
@@ -296,6 +303,16 @@
     white-space: nowrap;
     background: var(--color-green-lightest);
     color: var(--color-green-darkest);
+  }
+
+  .lang-tag {
+    margin-left: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .lang-tag.hidden-lang {
+    color: #777;
+    font-style: italic;
   }
 
   .status.inactive {

@@ -2,7 +2,44 @@
 // course JSON export/import feature. Everything here is unit-testable
 // without a database.
 
-export const COURSE_EXPORT_FORMAT_VERSION = 1;
+// Version 2 adds `translations` to course, lessons, elements and quiz
+// questions. Version 1 files are still accepted; they carry no translations,
+// so an import leaves existing translations alone.
+export const COURSE_EXPORT_FORMAT_VERSION = 2;
+const SUPPORTED_FORMAT_VERSIONS = [1, 2];
+
+const TRANSLATION_LANGS = ['de', 'en'];
+
+type SourceHashes = Record<string, string> | null;
+
+export type CourseTranslationExport = {
+  active: number;
+  name: string | null;
+  description: string | null;
+  introDescription: string | null;
+  introDescriptionSuffix: string | null;
+  sourceHashes: SourceHashes;
+};
+export type LessonTranslationExport = { lessonName: string | null; sourceHashes: SourceHashes };
+export type ElementTranslationExport = {
+  title: string | null;
+  description: string | null;
+  taskA: string | null;
+  devPromptA: string | null;
+  taskB: string | null;
+  devPromptB: string | null;
+  devPromptC: string | null;
+  sourceHashes: SourceHashes;
+};
+export type QuizQuestionTranslationExport = {
+  question: string | null;
+  options: string[];
+  sourceHashes: SourceHashes;
+};
+
+// Keyed by language. `undefined` (only from version 1 files) means "unknown",
+// an empty object means "no translations".
+type Translations<T> = Record<string, T> | undefined;
 
 export type ElementExport = {
   type: string;
@@ -14,6 +51,7 @@ export type ElementExport = {
   devPromptB: string | null;
   devPromptC: string | null;
   position: number;
+  translations?: Translations<ElementTranslationExport>;
 };
 
 export type QuizQuestionExport = {
@@ -22,6 +60,7 @@ export type QuizQuestionExport = {
   options: string[];
   correct: string[];
   position: number;
+  translations?: Translations<QuizQuestionTranslationExport>;
 };
 
 export type LessonExport = {
@@ -33,6 +72,7 @@ export type LessonExport = {
   position: number;
   elements: ElementExport[];
   quizQuestions: QuizQuestionExport[];
+  translations?: Translations<LessonTranslationExport>;
 };
 
 export type CourseExport = {
@@ -46,6 +86,7 @@ export type CourseExport = {
   displayType: string | null;
   lang: string | null;
   lessons: LessonExport[];
+  translations?: Translations<CourseTranslationExport>;
 };
 
 export type CourseExportFile = {
@@ -55,18 +96,50 @@ export type CourseExportFile = {
 };
 
 // Shapes as they come from Prisma (ids included); ids are stripped on export.
-type ElementInput = ElementExport & { id?: number; lessonId?: number };
-type QuizQuestionInput = QuizQuestionExport & { id?: number; lessonId?: number };
-type LessonInput = Omit<LessonExport, 'elements' | 'quizQuestions'> & {
+// Translation rows arrive as lists with a `lang` column.
+type TranslationRows<T> = (Partial<Omit<T, 'sourceHashes'>> & { lang: string; sourceHashes?: unknown })[];
+type ElementInput = Omit<ElementExport, 'translations'> & {
+  id?: number;
+  lessonId?: number;
+  translations?: TranslationRows<ElementTranslationExport>;
+};
+type QuizQuestionInput = Omit<QuizQuestionExport, 'translations'> & {
+  id?: number;
+  lessonId?: number;
+  translations?: TranslationRows<QuizQuestionTranslationExport>;
+};
+type LessonInput = Omit<LessonExport, 'elements' | 'quizQuestions' | 'translations'> & {
   id?: number;
   courseId?: number;
   elements: ElementInput[];
   quizQuestions: QuizQuestionInput[];
+  translations?: TranslationRows<LessonTranslationExport>;
 };
-export type CourseWithRelations = Omit<CourseExport, 'lessons'> & {
+export type CourseWithRelations = Omit<CourseExport, 'lessons' | 'translations'> & {
   id?: number;
   lessons: LessonInput[];
+  translations?: TranslationRows<CourseTranslationExport>;
 };
+
+function asSourceHashes(value: unknown): SourceHashes {
+  if (!isPlainObject(value)) return null;
+  const entries = Object.entries(value).filter(([, hash]) => typeof hash === 'string');
+  return Object.fromEntries(entries) as Record<string, string>;
+}
+
+function pickTexts<F extends string>(row: Record<string, unknown>, fields: readonly F[]) {
+  return Object.fromEntries(fields.map((field) => [field, asNullableString(row[field])])) as Record<
+    F,
+    string | null
+  >;
+}
+
+const COURSE_TEXT_FIELDS = ['name', 'description', 'introDescription', 'introDescriptionSuffix'] as const;
+const ELEMENT_TEXT_FIELDS = ['title', 'description', 'taskA', 'devPromptA', 'taskB', 'devPromptB', 'devPromptC'] as const;
+
+function byLang<Row extends { lang: string }, T>(rows: Row[] | undefined, map: (row: Row) => T): Record<string, T> {
+  return Object.fromEntries((rows ?? []).map((row) => [row.lang, map(row)]));
+}
 
 const byPosition = (a: { position: number }, b: { position: number }) =>
   a.position - b.position;
@@ -88,6 +161,11 @@ export function serializeCourse(
       position: course.position,
       displayType: course.displayType ?? null,
       lang: course.lang ?? null,
+      translations: byLang(course.translations, (row) => ({
+        active: typeof row.active === 'number' ? row.active : 0,
+        ...pickTexts(row, COURSE_TEXT_FIELDS),
+        sourceHashes: asSourceHashes(row.sourceHashes)
+      })),
       lessons: [...course.lessons].sort(byPosition).map((lesson) => ({
         lessonName: lesson.lessonName,
         lessonEmoji: lesson.lessonEmoji ?? null,
@@ -95,6 +173,10 @@ export function serializeCourse(
         active: lesson.active,
         starsNeeded: lesson.starsNeeded,
         position: lesson.position,
+        translations: byLang(lesson.translations, (row) => ({
+          lessonName: asNullableString(row.lessonName),
+          sourceHashes: asSourceHashes(row.sourceHashes)
+        })),
         elements: [...lesson.elements].sort(byPosition).map((element) => ({
           type: element.type,
           title: element.title ?? null,
@@ -104,14 +186,23 @@ export function serializeCourse(
           taskB: element.taskB ?? null,
           devPromptB: element.devPromptB ?? null,
           devPromptC: element.devPromptC ?? null,
-          position: element.position
+          position: element.position,
+          translations: byLang(element.translations, (row) => ({
+            ...pickTexts(row, ELEMENT_TEXT_FIELDS),
+            sourceHashes: asSourceHashes(row.sourceHashes)
+          }))
         })),
         quizQuestions: [...lesson.quizQuestions].sort(byPosition).map((question) => ({
           question: question.question,
           type: question.type,
           options: [...question.options],
           correct: [...question.correct],
-          position: question.position
+          position: question.position,
+          translations: byLang(question.translations, (row) => ({
+            question: asNullableString(row.question),
+            options: isStringArray(row.options) ? [...row.options] : [],
+            sourceHashes: asSourceHashes(row.sourceHashes)
+          }))
         }))
       }))
     }
@@ -141,6 +232,47 @@ function asNullableString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+function checkNullableStrings(
+  entry: Record<string, unknown>,
+  fields: readonly string[],
+  label: string,
+  errors: string[]
+) {
+  for (const field of fields) {
+    if (!isNullableString(entry[field])) {
+      errors.push(`${label}: das Feld "${field}" muss Text oder null sein.`);
+    }
+  }
+}
+
+function parseTranslations<T>(
+  value: unknown,
+  label: string,
+  errors: string[],
+  parseEntry: (entry: Record<string, unknown>, entryLabel: string) => T
+): Record<string, T> | undefined {
+  if (value === undefined) return undefined;
+  if (!isPlainObject(value)) {
+    errors.push(`${label}: "translations" muss ein Objekt sein.`);
+    return undefined;
+  }
+
+  const result: Record<string, T> = {};
+  for (const [lang, entry] of Object.entries(value)) {
+    const entryLabel = `${label}, Übersetzung ${lang}`;
+    if (!TRANSLATION_LANGS.includes(lang)) {
+      errors.push(`${entryLabel}: unbekannte Sprache.`);
+      continue;
+    }
+    if (!isPlainObject(entry)) {
+      errors.push(`${entryLabel}: kein gültiges Objekt.`);
+      continue;
+    }
+    result[lang] = parseEntry(entry, entryLabel);
+  }
+  return result;
+}
+
 export type ParseResult =
   | { ok: true; data: CourseExportFile }
   | { ok: false; errors: string[] };
@@ -159,11 +291,11 @@ export function parseCourseExportFile(text: string): ParseResult {
     return { ok: false, errors: ['Die Datei enthält kein JSON-Objekt.'] };
   }
 
-  if (raw.formatVersion !== COURSE_EXPORT_FORMAT_VERSION) {
+  if (!SUPPORTED_FORMAT_VERSIONS.includes(raw.formatVersion as number)) {
     return {
       ok: false,
       errors: [
-        `Nicht unterstützte Formatversion (erwartet ${COURSE_EXPORT_FORMAT_VERSION}, erhalten ${String(raw.formatVersion)}).`
+        `Nicht unterstützte Formatversion (erwartet ${SUPPORTED_FORMAT_VERSIONS.join(' oder ')}, erhalten ${String(raw.formatVersion)}).`
       ]
     };
   }
@@ -245,6 +377,10 @@ export function parseCourseExportFile(text: string): ParseResult {
             errors.push(`${elementLabel}: das Feld "${key}" muss Text oder null sein.`);
           }
         }
+        const elementTranslations = parseTranslations(rawElement.translations, elementLabel, errors, (entry, entryLabel) => {
+          checkNullableStrings(entry, ELEMENT_TEXT_FIELDS, entryLabel, errors);
+          return { ...pickTexts(entry, ELEMENT_TEXT_FIELDS), sourceHashes: asSourceHashes(entry.sourceHashes) };
+        });
         elements.push({
           type: typeof rawElement.type === 'string' ? rawElement.type : '',
           title: asNullableString(rawElement.title),
@@ -254,7 +390,8 @@ export function parseCourseExportFile(text: string): ParseResult {
           taskB: asNullableString(rawElement.taskB),
           devPromptB: asNullableString(rawElement.devPromptB),
           devPromptC: asNullableString(rawElement.devPromptC),
-          position: isInteger(rawElement.position) ? (rawElement.position as number) : 0
+          position: isInteger(rawElement.position) ? (rawElement.position as number) : 0,
+          ...(elementTranslations === undefined ? {} : { translations: elementTranslations })
         });
       });
     }
@@ -286,16 +423,35 @@ export function parseCourseExportFile(text: string): ParseResult {
         if (!isInteger(rawQuestion.position)) {
           errors.push(`${questionLabel}: das Feld "position" muss eine ganze Zahl sein.`);
         }
+        const optionCount = isStringArray(rawQuestion.options) ? rawQuestion.options.length : 0;
+        const questionTranslations = parseTranslations(rawQuestion.translations, questionLabel, errors, (entry, entryLabel) => {
+          checkNullableStrings(entry, ['question'], entryLabel, errors);
+          if (entry.options !== undefined && !isStringArray(entry.options)) {
+            errors.push(`${entryLabel}: "options" muss eine Liste von Texten sein.`);
+          } else if (isStringArray(entry.options) && entry.options.length > optionCount) {
+            errors.push(`${entryLabel}: es gibt mehr übersetzte Antworten als Antworten im Original.`);
+          }
+          return {
+            question: asNullableString(entry.question),
+            options: isStringArray(entry.options) ? entry.options : [],
+            sourceHashes: asSourceHashes(entry.sourceHashes)
+          };
+        });
         quizQuestions.push({
           question: typeof rawQuestion.question === 'string' ? rawQuestion.question : '',
           type: typeof rawQuestion.type === 'string' ? rawQuestion.type : '',
           options: isStringArray(rawQuestion.options) ? rawQuestion.options : [],
           correct: isStringArray(rawQuestion.correct) ? rawQuestion.correct : [],
-          position: isInteger(rawQuestion.position) ? (rawQuestion.position as number) : 0
+          position: isInteger(rawQuestion.position) ? (rawQuestion.position as number) : 0,
+          ...(questionTranslations === undefined ? {} : { translations: questionTranslations })
         });
       });
     }
 
+    const lessonTranslations = parseTranslations(rawLesson.translations, label, errors, (entry, entryLabel) => {
+      checkNullableStrings(entry, ['lessonName'], entryLabel, errors);
+      return { lessonName: asNullableString(entry.lessonName), sourceHashes: asSourceHashes(entry.sourceHashes) };
+    });
     lessons.push({
       lessonName: typeof rawLesson.lessonName === 'string' ? rawLesson.lessonName : '',
       lessonEmoji: asNullableString(rawLesson.lessonEmoji),
@@ -304,8 +460,21 @@ export function parseCourseExportFile(text: string): ParseResult {
       starsNeeded: isInteger(rawLesson.starsNeeded) ? (rawLesson.starsNeeded as number) : 0,
       position: isInteger(rawLesson.position) ? (rawLesson.position as number) : 0,
       elements,
-      quizQuestions
+      quizQuestions,
+      ...(lessonTranslations === undefined ? {} : { translations: lessonTranslations })
     });
+  });
+
+  const courseTranslations = parseTranslations(course.translations, 'Kurs', errors, (entry, entryLabel) => {
+    checkNullableStrings(entry, COURSE_TEXT_FIELDS, entryLabel, errors);
+    if (entry.active !== undefined && !isInteger(entry.active)) {
+      errors.push(`${entryLabel}: das Feld "active" muss eine ganze Zahl sein.`);
+    }
+    return {
+      active: isInteger(entry.active) ? (entry.active as number) : 0,
+      ...pickTexts(entry, COURSE_TEXT_FIELDS),
+      sourceHashes: asSourceHashes(entry.sourceHashes)
+    };
   });
 
   if (errors.length > 0) {
@@ -327,7 +496,8 @@ export function parseCourseExportFile(text: string): ParseResult {
         position: course.position as number,
         displayType: asNullableString(course.displayType),
         lang: asNullableString(course.lang),
-        lessons
+        lessons,
+        ...(courseTranslations === undefined ? {} : { translations: courseTranslations })
       }
     }
   };

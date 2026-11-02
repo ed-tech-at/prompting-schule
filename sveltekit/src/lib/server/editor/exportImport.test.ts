@@ -3,11 +3,16 @@ import {
   COURSE_EXPORT_FORMAT_VERSION,
   diffCourseImport,
   parseCourseExportFile,
-  serializeCourse,
+  serializeCourse as serializeRows,
   suggestCopySlugs,
   type CourseExport,
   type ExistingCourseSnapshot
 } from './exportImport';
+
+// The fixtures are written in export shape; serializeCourse takes Prisma rows,
+// which only differ in how translations are stored.
+const serializeCourse = (course: unknown, exportedAt?: Date) =>
+  serializeRows(course as Parameters<typeof serializeRows>[0], exportedAt);
 
 function makeElement(overrides: Partial<CourseExport['lessons'][number]['elements'][number]> = {}) {
   return {
@@ -141,7 +146,7 @@ describe('parseCourseExportFile', () => {
   });
 
   it('rejects an unsupported format version', () => {
-    const parsed = parseCourseExportFile(JSON.stringify({ formatVersion: 2, course: {} }));
+    const parsed = parseCourseExportFile(JSON.stringify({ formatVersion: 99, course: {} }));
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) {
       expect(parsed.errors[0]).toContain('Formatversion');
@@ -182,6 +187,89 @@ describe('parseCourseExportFile', () => {
     expect(parsedBroken.ok).toBe(false);
     if (!parsedBroken.ok) {
       expect(parsedBroken.errors.some((message) => message.includes('options'))).toBe(true);
+    }
+  });
+});
+
+describe('translations in the export', () => {
+  function makeTranslatedCourse() {
+    const course = makeCourse();
+    return {
+      ...course,
+      translations: [
+        { lang: 'en', active: 0, name: 'Test course', description: null, introDescription: null, introDescriptionSuffix: null, sourceHashes: { name: 'abc' } }
+      ],
+      lessons: course.lessons.map((lesson) => ({
+        ...lesson,
+        translations: [{ lang: 'en', lessonName: 'Lesson 1', sourceHashes: null }],
+        elements: lesson.elements.map((element) => ({
+          ...element,
+          translations: [{ lang: 'en', description: '<p>Hello</p>', sourceHashes: { description: 'def' } }]
+        })),
+        quizQuestions: lesson.quizQuestions.map((question) => ({
+          ...question,
+          translations: [{ lang: 'en', question: 'What is a prompt?', options: ['A (en)', 'B (en)'], sourceHashes: null }]
+        }))
+      }))
+    };
+  }
+
+  it('exports translations keyed by language and round-trips them', () => {
+    const serialized = serializeCourse(makeTranslatedCourse());
+
+    expect(serialized.formatVersion).toBe(2);
+    expect(serialized.course.translations).toEqual({
+      en: {
+        active: 0,
+        name: 'Test course',
+        description: null,
+        introDescription: null,
+        introDescriptionSuffix: null,
+        sourceHashes: { name: 'abc' }
+      }
+    });
+    expect(serialized.course.lessons[0].elements[0].translations?.en).toMatchObject({
+      description: '<p>Hello</p>',
+      title: null,
+      sourceHashes: { description: 'def' }
+    });
+    expect(serialized.course.lessons[0].quizQuestions[0].translations?.en.options).toEqual(['A (en)', 'B (en)']);
+
+    const parsed = parseCourseExportFile(JSON.stringify(serialized));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course).toEqual(serialized.course);
+    }
+  });
+
+  it('keeps translations undefined for version 1 files so imports leave them alone', () => {
+    const v1 = JSON.parse(JSON.stringify(serializeCourse(makeCourse())));
+    v1.formatVersion = 1;
+    delete v1.course.translations;
+    for (const lesson of v1.course.lessons) {
+      delete lesson.translations;
+      for (const element of lesson.elements) delete element.translations;
+      for (const question of lesson.quizQuestions) delete question.translations;
+    }
+
+    const parsed = parseCourseExportFile(JSON.stringify(v1));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course.translations).toBeUndefined();
+      expect(parsed.data.course.lessons[0].elements[0].translations).toBeUndefined();
+    }
+  });
+
+  it('rejects unknown languages and more translated options than source options', () => {
+    const broken = JSON.parse(JSON.stringify(serializeCourse(makeTranslatedCourse())));
+    broken.course.translations.fr = { name: 'Cours' };
+    broken.course.lessons[0].quizQuestions[0].translations.en.options = ['1', '2', '3'];
+
+    const parsed = parseCourseExportFile(JSON.stringify(broken));
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) {
+      expect(parsed.errors.some((message) => message.includes('Übersetzung fr: unbekannte Sprache'))).toBe(true);
+      expect(parsed.errors.some((message) => message.includes('mehr übersetzte Antworten'))).toBe(true);
     }
   });
 });

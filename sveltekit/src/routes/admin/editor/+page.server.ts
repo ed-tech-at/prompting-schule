@@ -18,7 +18,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
   const courses = await prisma.course.findMany({
     orderBy: [{ position: 'asc' }, { id: 'asc' }],
-    include: { _count: { select: { lessons: true } } }
+    include: {
+      _count: { select: { lessons: true } },
+      translations: { select: { lang: true, active: true }, orderBy: { lang: 'asc' } }
+    }
   });
 
   return { actor, courses };

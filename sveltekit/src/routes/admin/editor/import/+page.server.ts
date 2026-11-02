@@ -20,6 +20,17 @@ import {
 
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
+// Translations from the file as Prisma create rows. The source language of the
+// course is skipped: its texts live in the source rows themselves.
+function translationRows<T extends { sourceHashes: Record<string, string> | null }>(
+  translations: Record<string, T> | undefined,
+  sourceLang: string
+) {
+  return Object.entries(translations ?? {})
+    .filter(([lang]) => lang !== sourceLang)
+    .map(([lang, { sourceHashes, ...fields }]) => ({ lang, ...fields, sourceHashes: sourceHashes ?? undefined }));
+}
+
 export const load: PageServerLoad = async ({ cookies }) => {
   const actor = await requireEditor(cookies);
   return { actor };
@@ -164,12 +175,21 @@ export const actions: Actions = {
           active: incoming.active,
           position: incoming.position,
           displayType: incoming.displayType,
-          lang: incoming.lang
+          // Exporte ohne Sprache stammen aus der Zeit vor der Ausgangssprache.
+          lang: incoming.lang ?? 'de'
         };
 
         const course = existing
           ? await tx.course.update({ where: { id: existing.id }, data: courseData })
           : await tx.course.create({ data: { ...courseData, URL: incoming.URL } });
+
+        // Files without translations (format version 1) leave them untouched.
+        if (incoming.translations !== undefined) {
+          await tx.courseTranslation.deleteMany({ where: { courseId: course.id } });
+          await tx.courseTranslation.createMany({
+            data: translationRows(incoming.translations, courseData.lang).map((row) => ({ ...row, courseId: course.id }))
+          });
+        }
 
         const existingLessonsByUrl = new Map(
           (existing?.lessons ?? []).map((lesson) => [lesson.URL, lesson])
@@ -199,6 +219,13 @@ export const actions: Actions = {
             counters.lessonsCreated += 1;
           }
 
+          if (incomingLesson.translations !== undefined) {
+            await tx.lessonTranslation.deleteMany({ where: { lessonId } });
+            await tx.lessonTranslation.createMany({
+              data: translationRows(incomingLesson.translations, courseData.lang).map((row) => ({ ...row, lessonId }))
+            });
+          }
+
           // Pair elements by position order so existing ids (and therefore
           // user progress) survive updates.
           const incomingElements = [...incomingLesson.elements].sort(
@@ -220,12 +247,22 @@ export const actions: Actions = {
             };
 
             const existingElement = existingElements[index];
+            let elementId: number;
             if (existingElement) {
               await tx.element.update({ where: { id: existingElement.id }, data: elementData });
+              elementId = existingElement.id;
               counters.elementsUpdated += 1;
             } else {
-              await tx.element.create({ data: { ...elementData, lessonId } });
+              elementId = (await tx.element.create({ data: { ...elementData, lessonId } })).id;
               counters.elementsCreated += 1;
+            }
+
+            const elementTranslations = incomingElements[index].translations;
+            if (elementTranslations !== undefined) {
+              await tx.elementTranslation.deleteMany({ where: { elementId } });
+              await tx.elementTranslation.createMany({
+                data: translationRows(elementTranslations, courseData.lang).map((row) => ({ ...row, elementId }))
+              });
             }
           }
 
@@ -237,18 +274,20 @@ export const actions: Actions = {
             counters.elementsDeleted += surplusElementIds.length;
           }
 
-          // Quiz questions carry no user data: replace wholesale.
+          // Quiz questions carry no user data: replace wholesale (with their
+          // translations, which cascade on delete).
           await tx.quizQuestion.deleteMany({ where: { lessonId } });
-          if (incomingLesson.quizQuestions.length > 0) {
-            await tx.quizQuestion.createMany({
-              data: incomingLesson.quizQuestions.map((question) => ({
+          for (const question of incomingLesson.quizQuestions) {
+            await tx.quizQuestion.create({
+              data: {
                 question: question.question,
                 type: question.type,
                 options: question.options,
                 correct: question.correct,
                 position: question.position,
-                lessonId
-              }))
+                lessonId,
+                translations: { create: translationRows(question.translations, courseData.lang) }
+              }
             });
           }
         }
@@ -333,7 +372,11 @@ export const actions: Actions = {
           active: 0,
           position: (maxPosition._max.position ?? 0) + 1,
           displayType: incoming.displayType,
-          lang: incoming.lang,
+          lang: incoming.lang ?? 'de',
+          // Copied translations start hidden as well.
+          translations: {
+            create: translationRows(incoming.translations, incoming.lang ?? 'de').map((row) => ({ ...row, active: 0 }))
+          },
           lessons: {
             create: incoming.lessons.map((lesson) => ({
               lessonName: lesson.lessonName,
@@ -342,6 +385,7 @@ export const actions: Actions = {
               active: lesson.active,
               starsNeeded: lesson.starsNeeded,
               position: lesson.position,
+              translations: { create: translationRows(lesson.translations, incoming.lang ?? 'de') },
               elements: {
                 create: lesson.elements.map((element) => ({
                   type: element.type,
@@ -352,7 +396,8 @@ export const actions: Actions = {
                   taskB: element.taskB,
                   devPromptB: element.devPromptB,
                   devPromptC: element.devPromptC,
-                  position: element.position
+                  position: element.position,
+                  translations: { create: translationRows(element.translations, incoming.lang ?? 'de') }
                 }))
               },
               quizQuestions: {
@@ -361,7 +406,8 @@ export const actions: Actions = {
                   type: question.type,
                   options: question.options,
                   correct: question.correct,
-                  position: question.position
+                  position: question.position,
+                  translations: { create: translationRows(question.translations, incoming.lang ?? 'de') }
                 }))
               }
             }))

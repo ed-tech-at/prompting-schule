@@ -1,7 +1,8 @@
 <script lang="ts">
   import Header from '$lib/Header.svelte';
   import { resolve } from '$app/paths';
-  import ElementRender from '../../../../kurs/[kursUrl]/[lessonUrl]/ElementRender.svelte';
+  import ElementRender from '$lib/course/ElementRender.svelte';
+  import { isCourseLang } from '$lib/courseLang';
   import type { ActionData, PageData } from './$types';
 
   export let data: PageData;
@@ -202,6 +203,7 @@
               {element}
               user={data.actor}
               updateUserStars={() => {}}
+              lang={isCourseLang(data.course.lang) ? data.course.lang : 'de'}
             />
           </div>
         {/if}

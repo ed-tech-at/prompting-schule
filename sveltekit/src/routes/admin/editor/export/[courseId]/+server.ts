@@ -14,11 +14,13 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     include: {
+      translations: true,
       lessons: {
         orderBy: { position: 'asc' },
         include: {
-          elements: { orderBy: { position: 'asc' } },
-          quizQuestions: { orderBy: { position: 'asc' } }
+          translations: true,
+          elements: { orderBy: { position: 'asc' }, include: { translations: true } },
+          quizQuestions: { orderBy: { position: 'asc' }, include: { translations: true } }
         }
       }
     }

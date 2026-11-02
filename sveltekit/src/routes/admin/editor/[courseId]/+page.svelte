@@ -2,6 +2,8 @@
   import Header from '$lib/Header.svelte';
   import { resolve } from '$app/paths';
   import type { ActionData, PageData } from './$types';
+  import { COURSE_LANG_LABELS, coursePaths, isCourseLang } from '$lib/courseLang';
+  import { courseHref } from '$lib/course/href';
 
   export let data: PageData;
   export let form: ActionData;
@@ -24,6 +26,28 @@
   function lessonHref(lessonId: number): string {
     return `${resolve('/admin/editor')}/${data.course.id}/${lessonId}`;
   }
+
+  function translateHref(lang: string): string {
+    return `${resolve('/admin/editor')}/${data.course.id}/translate/${lang}`;
+  }
+
+  function learnerHref(lang: string): string {
+    return isCourseLang(lang) ? courseHref(coursePaths(lang).course(data.course.URL)) : '#';
+  }
+
+  function langLabel(lang: string): string {
+    return isCourseLang(lang) ? COURSE_LANG_LABELS[lang] : lang;
+  }
+
+  const VISIBILITY_LABELS: Record<number, string> = {
+    0: 'Versteckt – nur per Link',
+    1: 'Aktiv',
+    2: 'Ausgegraut'
+  };
+
+  $: missingLangs = data.courseLangs.filter(
+    (lang) => lang !== data.course.lang && !data.translations.some((translation) => translation.lang === lang)
+  );
 </script>
 
 <Header
@@ -75,7 +99,7 @@
           />
         </label>
         <label>
-          Sprache
+          Ausgangssprache
           <select name="lang" value={data.course.lang ?? 'de'}>
             <option value="de">Deutsch</option>
             <option value="en">Englisch</option>
@@ -108,6 +132,93 @@
         <button type="submit">Kurs speichern</button>
       </div>
     </form>
+  </section>
+
+  <section class="panel" aria-labelledby="languages-title">
+    <h2 id="languages-title">Sprachen</h2>
+    <p class="panel-intro">
+      Der Kurs wird in der Ausgangssprache <strong>{langLabel(data.course.lang)}</strong> geplant. Übersetzungen
+      teilen sich Lektionen, Elemente, Fortschritt und Badges. Eine Sprachfassung ist per Link immer erreichbar;
+      in der Kursliste erscheint sie erst, wenn sie aktiv ist.
+    </p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Sprache</th>
+            <th>Sichtbarkeit in der Kursliste</th>
+            <th>Zuletzt bearbeitet</th>
+            <th><span class="visually-hidden">Aktionen</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>{langLabel(data.course.lang)}</strong> (Ausgangssprache)</td>
+            <td>
+              <span class:inactive={!data.course.active} class="status">
+                {VISIBILITY_LABELS[data.course.active] ?? data.course.active}
+              </span>
+              <span class="hint">über die Kursliste steuern</span>
+            </td>
+            <td>–</td>
+            <td>
+              <div class="actions">
+                <a class="button-link compact secondary" href={learnerHref(data.course.lang)} target="_blank" rel="noopener">Ansehen ↗</a>
+              </div>
+            </td>
+          </tr>
+          {#each data.translations as translation}
+            <tr>
+              <td><strong>{langLabel(translation.lang)}</strong></td>
+              <td>
+                <form method="POST" action="?/setTranslationActive" class="inline-form">
+                  <input type="hidden" name="lang" value={translation.lang} />
+                  <select name="active" value={String(translation.active)} aria-label="Sichtbarkeit {langLabel(translation.lang)}">
+                    <option value="0">{VISIBILITY_LABELS[0]}</option>
+                    <option value="1">{VISIBILITY_LABELS[1]}</option>
+                    <option value="2">{VISIBILITY_LABELS[2]}</option>
+                  </select>
+                  <button type="submit" class="compact secondary">Setzen</button>
+                </form>
+              </td>
+              <td>{new Date(translation.updatedAt).toLocaleString('de-AT')}</td>
+              <td>
+                <div class="actions">
+                  <a class="button-link compact" href={translateHref(translation.lang)}>Übersetzen</a>
+                  <a class="button-link compact secondary" href={learnerHref(translation.lang)} target="_blank" rel="noopener">Ansehen ↗</a>
+                  <details class="delete-translation">
+                    <summary class="button-link compact danger">Löschen</summary>
+                    <form method="POST" action="?/deleteTranslation" class="dialog-form">
+                      <input type="hidden" name="lang" value={translation.lang} />
+                      <p class="danger-text">
+                        Alle Übersetzungstexte für {langLabel(translation.lang)} werden gelöscht. Fortschritt und
+                        Badges der Lernenden bleiben erhalten.
+                      </p>
+                      <label>
+                        Zur Bestätigung <code>{translation.lang}</code> eingeben
+                        <input type="text" name="confirmation" required autocomplete="off" />
+                      </label>
+                      <button type="submit" class="danger">Übersetzung löschen</button>
+                    </form>
+                  </details>
+                </div>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+
+    {#if missingLangs.length > 0}
+      <form method="POST" action="?/createTranslation" class="create-translation">
+        {#each missingLangs as lang}
+          <button type="submit" name="lang" value={lang} class="secondary">
+            + Übersetzung {langLabel(lang)} anlegen
+          </button>
+        {/each}
+      </form>
+    {/if}
   </section>
 
   <section class="panel" aria-labelledby="lessons-title">
@@ -326,6 +437,56 @@
   .course-form {
     display: grid;
     gap: 1rem;
+  }
+
+  .panel-intro {
+    margin-top: 0;
+  }
+
+  .inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .inline-form select {
+    width: auto;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #555;
+  }
+
+  .create-translation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .delete-translation summary {
+    list-style: none;
+    border-color: var(--color-red-dark);
+    background: var(--color-red-dark);
+  }
+
+  .delete-translation summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .delete-translation[open] .dialog-form {
+    min-width: 16rem;
+  }
+
+  .button-link.secondary {
+    background: white;
+    color: var(--color-primary-darkest);
   }
 
   .field-row {

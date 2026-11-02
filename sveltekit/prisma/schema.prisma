@@ -118,13 +118,43 @@ model Course {
 
   displayType String?
 
-  lang String?
+  // Ausgangssprache ("de" | "en"): In ihr wird der Kurs im Editor geplant.
+  // Weitere Sprachen kommen als CourseTranslation dazu und teilen sich
+  // Lektionen, Elemente und damit auch Fortschritt und Badges.
+  lang String @default("de")
   
 
   lessons  Lesson[]
   progress UserProgress[]
   userQuizAttempts UserQuizAttempt[]
   badges Badge[]
+  translations CourseTranslation[]
+}
+
+// Übersetzung eines Kurses in eine weitere Sprache. Leere Felder fallen auf
+// die Ausgangssprache zurück.
+model CourseTranslation {
+  id       Int    @id @default(autoincrement())
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId Int
+  lang     String
+
+  // Wie Course.active, aber je Sprache: 0 = nicht in der Kursliste,
+  // 1 = sichtbar, 2 = sichtbar, aber ausgegraut. Per direkter URL bleibt die
+  // Sprachfassung erreichbar, sobald es die Übersetzung gibt (zum Testen).
+  active   Int    @default(0)
+
+  name                   String?
+  description            String?
+  introDescription       String?
+  introDescriptionSuffix String?
+
+  // { feldname: Hash des Originaltexts zum Zeitpunkt der Übersetzung }
+  sourceHashes Json?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, lang])
 }
 
 model Lesson {
@@ -148,7 +178,22 @@ model Lesson {
   quizQuestions QuizQuestion[]
   userQuizAttempts UserQuizAttempt[]
   bagdes Badge[]
+  translations LessonTranslation[]
   
+}
+
+model LessonTranslation {
+  id       Int    @id @default(autoincrement())
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId Int
+  lang     String
+
+  lessonName String?
+
+  sourceHashes Json?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([lessonId, lang])
 }
 
 model Element {
@@ -175,6 +220,27 @@ model Element {
   lessonId    Int
 
   progress    UserProgress[]
+  translations ElementTranslation[]
+}
+
+model ElementTranslation {
+  id        Int     @id @default(autoincrement())
+  element   Element @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  elementId Int
+  lang      String
+
+  title       String?
+  description String?
+  taskA       String?
+  devPromptA  String?
+  taskB       String?
+  devPromptB  String?
+  devPromptC  String?
+
+  sourceHashes Json?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([elementId, lang])
 }
 
 model UserProgress {
@@ -221,6 +287,25 @@ model QuizQuestion {
 
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   lessonId    Int
+
+  translations QuizQuestionTranslation[]
+}
+
+// options ist index-gleich zu QuizQuestion.options. Bewertet wird über den
+// Index gegen die Originalantworten, deshalb braucht es kein übersetztes correct.
+model QuizQuestionTranslation {
+  id             Int          @id @default(autoincrement())
+  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+  quizQuestionId Int
+  lang           String
+
+  question String?
+  options  String[] @default([])
+
+  sourceHashes Json?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([quizQuestionId, lang])
 }
 
 model UserQuizAttempt {
