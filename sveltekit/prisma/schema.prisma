@@ -164,7 +164,8 @@ model Lesson {
   course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId   Int
 
-  URL     String   @unique
+  // Eindeutig nur innerhalb des Kurses; Lektionen werden immer über Kurs-URL + Lektions-URL aufgelöst
+  URL     String
   // "publicActive": nur Sichtbarkeit in der Kursübersicht; per direkter URL bewusst weiter erreichbar
   active  Int     @default(0)
   starsNeeded  Int     @default(0)
@@ -179,7 +180,8 @@ model Lesson {
   userQuizAttempts UserQuizAttempt[]
   bagdes Badge[]
   translations LessonTranslation[]
-  
+
+  @@unique([courseId, URL])
 }
 
 model LessonTranslation {

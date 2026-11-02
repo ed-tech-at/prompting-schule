@@ -13,7 +13,7 @@ import {
 import {
   diffCourseImport,
   parseCourseExportFile,
-  suggestCopySlugs,
+  suggestCopyCourseUrl,
   type CourseExport,
   type ExistingCourseSnapshot
 } from '$lib/server/editor/exportImport';
@@ -52,26 +52,14 @@ async function loadSnapshot(courseUrl: string): Promise<ExistingCourseSnapshot |
   return course;
 }
 
-async function loadForeignLessonUrls(ownCourseId: number | null): Promise<Set<string>> {
-  const lessons = await prisma.lesson.findMany({
-    where: ownCourseId === null ? {} : { courseId: { not: ownCourseId } },
-    select: { URL: true }
-  });
-  return new Set(lessons.map((lesson) => lesson.URL));
-}
-
 async function buildPreview(incoming: CourseExport) {
   const existing = await loadSnapshot(incoming.URL);
-  const foreignLessonUrls = await loadForeignLessonUrls(existing?.id ?? null);
-  const diff = diffCourseImport(incoming, existing, foreignLessonUrls);
+  const diff = diffCourseImport(incoming, existing);
 
   const allCourses = await prisma.course.findMany({ select: { URL: true } });
-  const allLessons = await prisma.lesson.findMany({ select: { URL: true } });
-  const suggested = suggestCopySlugs(
-    incoming,
-    new Set(allCourses.map((course) => course.URL)),
-    new Set(allLessons.map((lesson) => lesson.URL))
-  );
+  const suggested = {
+    courseUrl: suggestCopyCourseUrl(incoming.URL, new Set(allCourses.map((course) => course.URL)))
+  };
 
   return { existing, diff, suggested };
 }
@@ -150,12 +138,7 @@ export const actions: Actions = {
 
       // Re-diff against the current DB state: the preview may be stale.
       const existing = await loadSnapshot(incoming.URL);
-      const foreignLessonUrls = await loadForeignLessonUrls(existing?.id ?? null);
-      const diff = diffCourseImport(incoming, existing, foreignLessonUrls);
-
-      if (diff.blocking.length > 0) {
-        throw error(400, diff.blocking[0]);
-      }
+      const diff = diffCourseImport(incoming, existing);
 
       const counters = {
         lessonsCreated: 0,
@@ -351,14 +334,6 @@ export const actions: Actions = {
         throw error(400, `Die Kurs-URL "${newCourseUrl}" ist bereits vergeben.`);
       }
 
-      // Regenerate lesson slugs against the current DB state.
-      const allLessons = await prisma.lesson.findMany({ select: { URL: true } });
-      const { lessonUrls } = suggestCopySlugs(
-        incoming,
-        new Set([newCourseUrl]),
-        new Set(allLessons.map((lesson) => lesson.URL))
-      );
-
       const maxPosition = await prisma.course.aggregate({ _max: { position: true } });
 
       const created = await prisma.course.create({
@@ -381,7 +356,7 @@ export const actions: Actions = {
             create: incoming.lessons.map((lesson) => ({
               lessonName: lesson.lessonName,
               lessonEmoji: lesson.lessonEmoji,
-              URL: lessonUrls[lesson.URL],
+              URL: lesson.URL,
               active: lesson.active,
               starsNeeded: lesson.starsNeeded,
               position: lesson.position,

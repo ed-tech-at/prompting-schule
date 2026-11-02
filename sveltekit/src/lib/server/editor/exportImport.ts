@@ -538,7 +538,6 @@ export type LessonDiff = {
   elements: ElementPairDiff[];
   elementIdsToDelete: number[];
   quizReplaced: boolean;
-  urlConflict: boolean;
 };
 
 export type CourseDiff = {
@@ -546,7 +545,6 @@ export type CourseDiff = {
   changedCourseFields: string[];
   lessons: LessonDiff[];
   removedLessons: { URL: string; lessonName: string; id: number }[];
-  blocking: string[];
 };
 
 const COURSE_SCALAR_FIELDS: (keyof Omit<CourseExport, 'lessons'>)[] = [
@@ -604,10 +602,8 @@ function quizEquals(a: QuizQuestionExport[], b: QuizQuestionExport[]): boolean {
 
 export function diffCourseImport(
   incoming: CourseExport,
-  existing: ExistingCourseSnapshot | null,
-  foreignLessonUrls: Set<string>
+  existing: ExistingCourseSnapshot | null
 ): CourseDiff {
-  const blocking: string[] = [];
   const lessons: LessonDiff[] = [];
 
   const existingLessonsByUrl = new Map<string, ExistingLessonSnapshot>();
@@ -616,13 +612,6 @@ export function diffCourseImport(
   }
 
   for (const incomingLesson of [...incoming.lessons].sort(byPosition)) {
-    const urlConflict = foreignLessonUrls.has(incomingLesson.URL);
-    if (urlConflict) {
-      blocking.push(
-        `Die Lektions-URL "${incomingLesson.URL}" gehört bereits zu einem anderen Kurs.`
-      );
-    }
-
     const existingLesson = existingLessonsByUrl.get(incomingLesson.URL) ?? null;
 
     if (!existingLesson) {
@@ -640,8 +629,7 @@ export function diffCourseImport(
           existingId: null
         })),
         elementIdsToDelete: [],
-        quizReplaced: incomingLesson.quizQuestions.length > 0,
-        urlConflict
+        quizReplaced: incomingLesson.quizQuestions.length > 0
       });
       continue;
     }
@@ -691,8 +679,7 @@ export function diffCourseImport(
       existingId: existingLesson.id,
       elements: elementDiffs,
       elementIdsToDelete,
-      quizReplaced,
-      urlConflict
+      quizReplaced
     });
   }
 
@@ -707,40 +694,23 @@ export function diffCourseImport(
       ? changedFields(incoming, existing, COURSE_SCALAR_FIELDS)
       : [],
     lessons,
-    removedLessons,
-    blocking
+    removedLessons
   };
 }
 
 // ---------------------------------------------------------------------------
-// Copy-mode slug suggestions
+// Copy-mode course URL suggestion
 // ---------------------------------------------------------------------------
 
-function suggestSlug(base: string, taken: Set<string>): string {
-  if (!taken.has(base)) return base;
-  let candidate = `${base}-kopie`;
+// Lesson URLs are unique per course, so a copy keeps them; only the course URL
+// needs a free slug.
+export function suggestCopyCourseUrl(courseUrl: string, takenCourseUrls: Set<string>): string {
+  if (!takenCourseUrls.has(courseUrl)) return courseUrl;
+  let candidate = `${courseUrl}-kopie`;
   let counter = 2;
-  while (taken.has(candidate)) {
-    candidate = `${base}-kopie-${counter}`;
+  while (takenCourseUrls.has(candidate)) {
+    candidate = `${courseUrl}-kopie-${counter}`;
     counter += 1;
   }
   return candidate;
-}
-
-export function suggestCopySlugs(
-  incoming: CourseExport,
-  takenCourseUrls: Set<string>,
-  takenLessonUrls: Set<string>
-): { courseUrl: string; lessonUrls: Record<string, string> } {
-  const courseUrl = suggestSlug(incoming.URL, takenCourseUrls);
-
-  const lessonUrls: Record<string, string> = {};
-  const taken = new Set(takenLessonUrls);
-  for (const lesson of incoming.lessons) {
-    const slug = suggestSlug(lesson.URL, taken);
-    lessonUrls[lesson.URL] = slug;
-    taken.add(slug);
-  }
-
-  return { courseUrl, lessonUrls };
 }

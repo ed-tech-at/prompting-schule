@@ -143,9 +143,9 @@ export const actions: Actions = {
         throw error(400, 'Die URL darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.');
       }
 
-      const existing = await prisma.lesson.findUnique({ where: { URL } });
+      const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: course.id, URL } } });
       if (existing) {
-        throw error(400, `Die Lektions-URL "${URL}" ist bereits vergeben (Lektions-URLs sind instanzweit eindeutig).`);
+        throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
       }
 
       const maxPosition = await prisma.lesson.aggregate({
@@ -218,9 +218,9 @@ export const actions: Actions = {
       }
 
       if (URL !== lesson.URL) {
-        const existing = await prisma.lesson.findUnique({ where: { URL } });
+        const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: course.id, URL } } });
         if (existing) {
-          throw error(400, `Die Lektions-URL "${URL}" ist bereits vergeben (Lektions-URLs sind instanzweit eindeutig).`);
+          throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
         }
       }
 

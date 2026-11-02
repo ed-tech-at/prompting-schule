@@ -4,7 +4,7 @@ import {
   diffCourseImport,
   parseCourseExportFile,
   serializeCourse as serializeRows,
-  suggestCopySlugs,
+  suggestCopyCourseUrl,
   type CourseExport,
   type ExistingCourseSnapshot
 } from './exportImport';
@@ -276,17 +276,16 @@ describe('translations in the export', () => {
 
 describe('diffCourseImport', () => {
   it('marks everything as new for an unknown course', () => {
-    const diff = diffCourseImport(makeCourse(), null, new Set());
+    const diff = diffCourseImport(makeCourse(), null);
 
     expect(diff.courseStatus).toBe('new');
     expect(diff.lessons[0].status).toBe('new');
     expect(diff.lessons[0].elements[0].status).toBe('new');
-    expect(diff.blocking).toEqual([]);
     expect(diff.removedLessons).toEqual([]);
   });
 
   it('reports unchanged when the file matches the snapshot', () => {
-    const diff = diffCourseImport(makeCourse(), makeSnapshot(), new Set());
+    const diff = diffCourseImport(makeCourse(), makeSnapshot());
 
     expect(diff.courseStatus).toBe('exists');
     expect(diff.changedCourseFields).toEqual([]);
@@ -298,7 +297,7 @@ describe('diffCourseImport', () => {
     const incoming = makeCourse({ name: 'Neuer Name' });
     incoming.lessons[0].starsNeeded = 3;
 
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.changedCourseFields).toEqual(['name']);
     expect(diff.lessons[0].status).toBe('changed');
@@ -312,7 +311,7 @@ describe('diffCourseImport', () => {
       makeElement({ position: 2 })
     ];
 
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.lessons[0].elements[0].status).toBe('changed');
     expect(diff.lessons[0].elements[0].typeChanged).toBe(true);
@@ -321,41 +320,24 @@ describe('diffCourseImport', () => {
 
     const removalIncoming = makeCourse();
     removalIncoming.lessons[0].elements = [];
-    const removalDiff = diffCourseImport(removalIncoming, makeSnapshot(), new Set());
+    const removalDiff = diffCourseImport(removalIncoming, makeSnapshot());
     expect(removalDiff.lessons[0].elementIdsToDelete).toEqual([111]);
-  });
-
-  it('blocks lesson URLs owned by another course', () => {
-    const diff = diffCourseImport(makeCourse(), null, new Set(['lektion-1']));
-
-    expect(diff.lessons[0].urlConflict).toBe(true);
-    expect(diff.blocking).toHaveLength(1);
-    expect(diff.blocking[0]).toContain('lektion-1');
   });
 
   it('lists lessons that exist in the database but not in the file', () => {
     const incoming = makeCourse({ lessons: [] });
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.removedLessons).toEqual([{ URL: 'lektion-1', lessonName: 'Lektion 1', id: 11 }]);
   });
 });
 
-describe('suggestCopySlugs', () => {
-  it('keeps free slugs and suffixes taken ones', () => {
-    const suggestion = suggestCopySlugs(makeCourse(), new Set(), new Set());
-    expect(suggestion.courseUrl).toBe('testkurs');
-    expect(suggestion.lessonUrls['lektion-1']).toBe('lektion-1');
+describe('suggestCopyCourseUrl', () => {
+  it('keeps a free course URL', () => {
+    expect(suggestCopyCourseUrl('testkurs', new Set())).toBe('testkurs');
   });
 
-  it('increments the suffix until a slug is free', () => {
-    const suggestion = suggestCopySlugs(
-      makeCourse(),
-      new Set(['testkurs', 'testkurs-kopie']),
-      new Set(['lektion-1'])
-    );
-
-    expect(suggestion.courseUrl).toBe('testkurs-kopie-2');
-    expect(suggestion.lessonUrls['lektion-1']).toBe('lektion-1-kopie');
+  it('increments the suffix until a course URL is free', () => {
+    expect(suggestCopyCourseUrl('testkurs', new Set(['testkurs', 'testkurs-kopie']))).toBe('testkurs-kopie-2');
   });
 });

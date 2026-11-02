@@ -156,9 +156,9 @@ export const actions: Actions = {
       }
 
       if (URL !== lesson.URL) {
-        const existing = await prisma.lesson.findUnique({ where: { URL } });
+        const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: lesson.courseId, URL } } });
         if (existing) {
-          throw error(400, `Die Lektions-URL "${URL}" ist bereits vergeben (Lektions-URLs sind instanzweit eindeutig).`);
+          throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
         }
       }
 

@@ -12,7 +12,7 @@
     courseUrl: string;
     lessonCount: number;
     diff: CourseDiff;
-    suggested: { courseUrl: string; lessonUrls: Record<string, string> };
+    suggested: { courseUrl: string };
     rawJson: string;
   };
 
@@ -92,17 +92,6 @@
         <p>Geänderte Kursfelder: <code>{preview.diff.changedCourseFields.join(', ')}</code></p>
       {/if}
 
-      {#if preview.diff.blocking.length > 0}
-        <div class="danger-text">
-          <strong>Blockierende Konflikte (Aktualisieren nicht möglich):</strong>
-          <ul>
-            {#each preview.diff.blocking as conflict}
-              <li>{conflict}</li>
-            {/each}
-          </ul>
-        </div>
-      {/if}
-
       <div class="table-wrapper">
         <table>
           <thead>
@@ -119,12 +108,8 @@
                 <td><strong>{lessonDiff.lessonName}</strong></td>
                 <td><code>{lessonDiff.URL}</code></td>
                 <td>
-                  <span
-                    class="status"
-                    class:changed={lessonDiff.status === 'changed'}
-                    class:conflict={lessonDiff.urlConflict}
-                  >
-                    {lessonDiff.urlConflict ? '⚠ Konflikt' : lessonStatusLabel(lessonDiff.status)}
+                  <span class="status" class:changed={lessonDiff.status === 'changed'}>
+                    {lessonStatusLabel(lessonDiff.status)}
                   </span>
                 </td>
                 <td class="details">
@@ -192,12 +177,9 @@
             <input type="checkbox" name="deleteMissing" />
             Fehlende Lektionen/Elemente löschen (entfernt auch deren Nutzerfortschritte!)
           </label>
-          <button type="submit" disabled={preview.diff.blocking.length > 0}>
+          <button type="submit">
             {preview.diff.courseStatus === 'new' ? 'Kurs neu anlegen' : 'Kurs aktualisieren'}
           </button>
-          {#if preview.diff.blocking.length > 0}
-            <p class="warning-text">Wegen blockierender Konflikte deaktiviert — nutzen Sie den Kopie-Import.</p>
-          {/if}
         </form>
       </div>
 
@@ -218,14 +200,6 @@
               pattern="[a-z0-9\-]+"
             />
           </label>
-          <details>
-            <summary>Vorgeschlagene Lektions-URLs</summary>
-            <ul>
-              {#each Object.entries(preview.suggested.lessonUrls) as [oldUrl, newUrl]}
-                <li><code>{oldUrl}</code> → <code>{newUrl}</code></li>
-              {/each}
-            </ul>
-          </details>
           <button type="submit" class="secondary">Als Kopie importieren</button>
         </form>
       </div>
@@ -354,11 +328,6 @@
     color: #684600;
   }
 
-  .status.conflict {
-    background: var(--color-red-lightest);
-    color: var(--color-red-darkest);
-  }
-
   .details {
     font-size: 0.9rem;
   }
@@ -372,13 +341,6 @@
 
   .message.success {
     border-left-color: var(--color-green-dark);
-  }
-
-  .danger-text {
-    padding: 0.75rem;
-    margin: 1rem 0;
-    border-left: 4px solid var(--color-red-dark);
-    background: var(--color-red-lightest);
   }
 
   .warning-text {
