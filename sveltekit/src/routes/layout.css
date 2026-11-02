@@ -732,7 +732,7 @@ form.ai {
   position: relative;
 }
 
-form.ai label {
+form.ai label, form.ai .result-label {
   color: var(--color-primary-dark);
   color: var(--color-white);
   color: var(--color-background);
@@ -851,7 +851,7 @@ form.ai .result {
   position: relative;
 }
 
-form.ai .result label {
+form.ai .result .result-label {
   position: relative;
   color: black;
   font-weight: 500;
@@ -1022,7 +1022,7 @@ form.ai .ai2prompt1 .prompt {
 }
 
 
-form.ai .ai1prompt2 label, form.ai .ai1prompt2 .prompt, form.ai .ai2prompt1 label, form.ai .ai2prompt1 .prompt {
+form.ai .ai1prompt2 label, form.ai .ai1prompt2 .result-label, form.ai .ai1prompt2 .prompt, form.ai .ai2prompt1 label, form.ai .ai2prompt1 .result-label, form.ai .ai2prompt1 .prompt {
   color: var(--color-black);
   user-select: none;
 }
@@ -1132,18 +1132,18 @@ button.danger:hover, .button.danger:hover {
   white-space: pre-wrap;
 }
 
-form.ai .aiLaborWorse label {
+form.ai .aiLaborWorse label, form.ai .aiLaborWorse .result-label {
   color: #ffdede;
 }
-form.ai .aiLabelBetter label {
+form.ai .aiLabelBetter label, form.ai .aiLabelBetter .result-label {
   color: #d5ffdf;
 }
 
-form.ai.note label {
+form.ai.note label, form.ai.note .result-label {
   color: #fcddc2;
 }
 
-.high-contrast form.ai .aiLaborWorse label, .high-contrast form.ai .aiLabelBetter label, .high-contrast form.ai.note label {
+.high-contrast form.ai .aiLaborWorse label, .high-contrast form.ai .aiLaborWorse .result-label, .high-contrast form.ai .aiLabelBetter label, .high-contrast form.ai .aiLabelBetter .result-label, .high-contrast form.ai.note label, .high-contrast form.ai.note .result-label {
   color: white;
 }
 
@@ -1581,7 +1581,7 @@ th {
   display: flex;
   align-items: center;
 }
-.langSelect a:hover {
+.langSelect a:hover, .langSelect a.active {
   /* text-decoration: underline; */
   opacity: 1;
 }

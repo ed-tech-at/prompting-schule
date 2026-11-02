@@ -90,12 +90,10 @@
   
   </div>
   <div class="logo-tugraz">
-    {#if lang == 'en'}
-    <div class="langSelect">
-      <a href="https://prompting.schule/"><img src={asset("/fonts/noto-emoji/emoji_u1f1e6_1f1f9.svg")} alt="Austria Flag"></a>
-      <a href="https://prompting.school/en/"><img src={asset("/fonts/noto-emoji/emoji_u1f1ec_1f1e7.svg")} alt="UK Flag"></a>
+    <div class="langSelect" role="group" aria-label={lang === 'en' ? 'Language' : 'Sprache'}>
+      <a href="https://prompting.schule/" hreflang="de" lang="de" class:active={lang === 'de'}><img src={asset("/fonts/noto-emoji/emoji_u1f1e6_1f1f9.svg")} alt="Deutsch"></a>
+      <a href="https://prompting.school/en/" hreflang="en" lang="en" class:active={lang === 'en'}><img src={asset("/fonts/noto-emoji/emoji_u1f1ec_1f1e7.svg")} alt="English"></a>
     </div>
-    {/if}
 
     <img src={asset("/logo-tugraz-white.svg")} alt="TU Graz Logo"></div>
   <div class='flex-full'></div>
