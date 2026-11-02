@@ -105,6 +105,10 @@ function calculateDaysBetween(start: Date, end: Date): number {
   return Math.floor((end.getTime() - start.getTime()) / 86_400_000);
 }
 
+function elementNotFound(): Response {
+  return json({ success: false, error: 'Element not found.' }, { status: 404 });
+}
+
 function delayedToolResponse(chunks: string[], usage: { promptTokens?: number; completionTokens?: number }): Response {
   const encoder = new TextEncoder();
   const delayMs = 800;
@@ -205,7 +209,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai1: data.message,
-            ai1Result: await marked.parse(text),
+            ai1Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -216,6 +220,7 @@ export async function POST({ request, cookies }) {
 
   if (action === 'aiSide1') {
     const element = await findElementForLang(data.elementId, lang);
+    if (!element) return elementNotFound();
     const userInput = element.type === 'aiSideTool'
       ? `${texts.birthDateLabel}: ${data.ai1}\n${texts.todayLabel}: ${formatIsoDate(new Date())}`
       : data.ai1;
@@ -223,7 +228,7 @@ export async function POST({ request, cookies }) {
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: userInput }
       ],
       reasoningEffort: element?.type === 'aiSideTool' ? 'minimal' : 'low',
@@ -235,7 +240,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai1: data.ai1,
-            ai1Result: marked.parse(text),
+            ai1Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -248,6 +253,7 @@ export async function POST({ request, cookies }) {
 
   if (action === 'aiSide2') {
     const element = await findElementForLang(data.elementId, lang);
+    if (!element) return elementNotFound();
 
     if (element.type === 'aiSideTool') {
       const today = new Date();
@@ -281,7 +287,7 @@ export async function POST({ request, cookies }) {
           courseId: data.courseId,
           lessonId: data.lessonId,
           ai2: data.ai2,
-          ai2Result: marked.parse(text),
+          ai2Result: marked.parse(text, { async: false }),
           ...usage,
           promptsTried: 1
         }
@@ -299,7 +305,7 @@ export async function POST({ request, cookies }) {
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptB },
+        { role: 'developer', content: element.devPromptB ?? '' },
         { role: 'user', content: data.ai2 }
       ],
       saveToDb: async (text, usage) => {
@@ -310,7 +316,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai2: data.ai2,
-            ai2Result: marked.parse(text),
+            ai2Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -323,12 +329,13 @@ export async function POST({ request, cookies }) {
   if (action === 'ai1') {
 
     const element = await findElementForLang(data.elementId, lang);
+    if (!element) return elementNotFound();
   
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai1 },
-        { role: 'user', content: element.devPromptB }
+        { role: 'user', content: element.devPromptB ?? '' }
       ],
       saveToDb: async (text, usage) => {
         await prisma.userProgress.create({
@@ -338,7 +345,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai1: data.ai1,
-            ai1Result: marked.parse(text),
+            ai1Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -349,15 +356,16 @@ export async function POST({ request, cookies }) {
   
   if (action === 'ai2') {
     const element = await findElementForLang(data.elementId, lang);
+    if (!element) return elementNotFound();
 
-    let messages = [
-      { role: 'developer', content: element.devPromptA },
-      { role: 'user', content: element.devPromptB },
+    let messages: { role: 'developer' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'developer', content: element.devPromptA ?? '' },
+      { role: 'user', content: element.devPromptB ?? '' },
       { role: 'user', content: data.ai2 }
     ];
     if (element?.type == 'ai2only') {
       messages = [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai2 }
       ];
     }
@@ -372,7 +380,7 @@ export async function POST({ request, cookies }) {
             courseId: data.courseId,
             lessonId: data.lessonId,
             ai2: data.ai2,
-            ai2Result: marked.parse(text),
+            ai2Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -384,11 +392,12 @@ export async function POST({ request, cookies }) {
 
   if (action === 'ai12') {
     const element = await findElementForLang(data.elementId, lang);
+    if (!element) return elementNotFound();
   
 
     return streamAiResponse({
       messages: [
-        { role: 'developer', content: element.devPromptA },
+        { role: 'developer', content: element.devPromptA ?? '' },
         { role: 'user', content: data.ai1 },
         { role: 'user', content: data.ai2 }
       ],
@@ -401,7 +410,7 @@ export async function POST({ request, cookies }) {
             lessonId: data.lessonId,
             ai1: data.ai1,
             ai2: data.ai2,
-            ai1Result: marked.parse(text),
+            ai1Result: marked.parse(text, { async: false }),
             ...usage,
             promptsTried: 1
           }
@@ -468,12 +477,13 @@ export async function POST({ request, cookies }) {
 
   if (action === 'labor1') {
   const element = await findElementForLang(data.elementId, lang);
+  if (!element) return elementNotFound();
 
   const laborPromptBetter = laborPrompt + `Make the prompt BETTER. `;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: laborPromptBetter + element.devPromptB },
+      { role: 'developer', content: laborPromptBetter + (element.devPromptB ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     maxTokens: 2000,
@@ -497,12 +507,13 @@ export async function POST({ request, cookies }) {
 
 if (action === 'labor2') {
   const element = await findElementForLang(data.elementId, lang);
+  if (!element) return elementNotFound();
 
   const laborPromptWorse = laborPrompt + `Make the prompt WORSE. `;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: laborPromptWorse + element.devPromptC },
+      { role: 'developer', content: laborPromptWorse + (element.devPromptC ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     
@@ -527,10 +538,11 @@ if (action === 'labor2') {
 
 if (action === 'labor3') {
   const element = await findElementForLang(data.elementId, lang);
+  if (!element) return elementNotFound();
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: element.devPromptA },
+      { role: 'developer', content: element.devPromptA ?? '' },
       { role: 'user', content: data.ai1 },
       { role: 'user', content: data.ai2 }
     ],
@@ -543,7 +555,7 @@ if (action === 'labor3') {
           lessonId: data.lessonId,
           ai1: data.ai1,
           ai2: data.ai2,
-          ai1Result: marked.parse(text),
+          ai1Result: marked.parse(text, { async: false }),
           ...usage,
           promptsTried: 1,
           attempts: 3
@@ -556,12 +568,13 @@ if (action === 'labor3') {
 
 if (action === 'star') {
   const element = await findElementForLang(data.elementId, lang);
+  if (!element) return elementNotFound();
 
   const starPrompt = texts.starPrompt;
 
   return streamAiResponse({
     messages: [
-      { role: 'developer', content: starPrompt + '\n' + element.devPromptA },
+      { role: 'developer', content: starPrompt + '\n' + (element.devPromptA ?? '') },
       { role: 'user', content: data.ai1 }
     ],
     saveToDb: async (text, usage) => {

@@ -53,7 +53,7 @@ export async function POST({ request, cookies }) {
       return json({ success: false, error: 'Lesson not found' });
     }
     
-    if (lesson?.starsNeeded > 0) {
+    if (lesson.starsNeeded > 0) {
       // Die Oberfläche zeigt das Quiz erst ab genügend Sternen; hier serverseitig erzwingen.
       if (!(await hasEnoughStars(user.id, lesson))) {
         return json({ success: false, error: 'Not enough stars' });
@@ -121,17 +121,20 @@ export async function POST({ request, cookies }) {
 
   if (action === "getBadgeImg") {
     const badgeDb = await prisma.badge.findFirst({ where: { userId: user.id, hash: formData.hash } });
+    if (!badgeDb?.lessonId) {
+      return json({ success: false, error: 'Badge not found' }, { status: 404 });
+    }
     
     const badgePath = path.resolve('static/badge/badge_v2_1.png');
     // const boldFontBase64 = fontToBase64('static/badge/Jost-Bold.ttf');
     // const boldFontBase64 = fontToBase64('static/fonts/jost-v18-latin/jost-v18-latin-100italic.woff2');
     // const fontLesson = path.resolve('static/badge/Jost-Regular.ttf');
 
-    const lesson = await prisma.lesson.findUnique({ where: { id: badgeDb?.lessonId } });
+    const lesson = await prisma.lesson.findUnique({ where: { id: badgeDb.lessonId } });
     const course = await prisma.course.findUnique({ where: { id: lesson?.courseId } });
     let textSelbstueberpruefung = '';
 
-    if (lesson?.starsNeeded > 0) {
+    if ((lesson?.starsNeeded ?? 0) > 0) {
       textSelbstueberpruefung = ' und die Selbstüberprüfung bestanden';
     }
     
@@ -315,9 +318,9 @@ const assertion = {
 }
 
 // Funktion, die das Backen des Badges als Promise kapselt
-function bakeBadge(imageBuffer, assertion) {
+function bakeBadge(imageBuffer: Buffer, assertion: object): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    bakery.bake({ image: imageBuffer, assertion }, (err, bakedImage) => {
+    bakery.bake({ image: imageBuffer, assertion }, (err: Error | null, bakedImage: Buffer) => {
       if (err) {
         reject(err);
       } else {

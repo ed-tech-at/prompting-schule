@@ -46,7 +46,7 @@
                 password,
             };
 
-          const response = await fetch(resolve('/registrierung/'), { 
+          const response = await fetch(resolve('/registrierung'), { 
               method: "POST",
               headers: {
                   "Content-Type": "application/json",

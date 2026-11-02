@@ -33,7 +33,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		}
 	});
 
-  if (!badge) {
+  // Kurs-Badges haben keine Lektion; diese Seite zeigt nur Lektions-Badges.
+  if (!badge || !badge.lesson) {
     throw error(404, 'Badge nicht gefunden');
   }
 
@@ -41,7 +42,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
     badgeEmail: badge.user.email,
     badgeHash: badge.hash,
     badgeLesson: badge.lesson.lessonName,
-    badgeLessonStars: badge.lesson?.starsNeeded,
+    badgeLessonStars: badge.lesson.starsNeeded,
     badgeCourse: badge.lesson.course.name,
     badgeDate: badge.createdAt.toLocaleDateString('de-DE'),
   };
