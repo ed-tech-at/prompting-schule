@@ -1278,7 +1278,8 @@ th {
   color: white;
 }
 
-.registerBlock .checkbox-form label {
+.registerBlock .checkbox-form label,
+.registerBlock .checkbox-form p {
   color: black;
   font-weight: 400;
 }
