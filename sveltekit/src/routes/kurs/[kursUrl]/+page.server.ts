@@ -5,6 +5,7 @@ import { prisma } from '$lib/server/db';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { error } from '@sveltejs/kit';
 import type { Badge } from '@prisma/client';
 
 
@@ -16,9 +17,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const courseUrl = params.kursUrl as String;
 
   const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
+  if (!course) {
+    throw error(404, 'Kurs nicht gefunden');
+  }
 
   const lessons = await prisma.lesson.findMany({
-    where: { courseId: course?.id, active: 1 },
+    where: { courseId: course.id, active: 1 },
     orderBy: { position: 'asc' }
   });
 

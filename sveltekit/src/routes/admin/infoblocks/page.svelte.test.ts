@@ -48,7 +48,7 @@ const data = {
       variant: 'info',
       lang: 'de',
       placements: ['kursuebersicht'],
-      emailPattern: '@tugraz\\.at$',
+      emailPattern: 'tugraz.at',
       validFrom: null,
       validUntil: null,
       active: 0,
@@ -76,7 +76,7 @@ describe('/admin/infoblocks/+page.svelte', () => {
 
     const tugraz = rowFor('Hinweis TU Graz');
     expect(within(tugraz).getByText('Kursübersicht')).toBeTruthy();
-    expect(within(tugraz).getByText('@tugraz\\.at$')).toBeTruthy();
+    expect(within(tugraz).getByText('tugraz.at')).toBeTruthy();
     expect(within(tugraz).getByText('Deutsch')).toBeTruthy();
     expect(within(tugraz).getByText('Inaktiv')).toBeTruthy();
   });

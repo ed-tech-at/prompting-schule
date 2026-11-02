@@ -19,6 +19,7 @@ import {
   MAX_INFOBLOCK_CONTENT_LENGTH,
   parseDateTimeInput,
   validateEmailPattern,
+  normalizeEmailPattern,
   type InfoBlockPlacement
 } from '$lib/server/infoblocks/filter';
 
@@ -103,8 +104,8 @@ export const actions: Actions = {
           variant,
           lang,
           placements,
-          // Store null, not '', so "no pattern" stays unambiguous.
-          emailPattern: emailPattern || null,
+          // Kanonische Domain-Liste; null, nicht '', damit "für alle" eindeutig bleibt.
+          emailPattern: normalizeEmailPattern(emailPattern),
           validFrom,
           validUntil
         }
@@ -143,9 +144,8 @@ export const actions: Actions = {
     }
   },
 
-  // Runs server-side so the validator is not duplicated in the browser and no
-  // unvetted regex is executed in the editor's tab. Echoes the inputs back so
-  // testing does not clear the tester's own fields.
+  // Runs server-side so the validator is not duplicated in the browser. Echoes
+  // the inputs back so testing does not clear the tester's own fields.
   testEmailPattern: async ({ cookies, request }) => {
     await requireEditor(cookies);
     const formData = await request.formData();
@@ -154,7 +154,7 @@ export const actions: Actions = {
 
     try {
       if (pattern.length > MAX_EMAIL_PATTERN_LENGTH) {
-        throw error(400, `Das E-Mail-Muster darf höchstens ${MAX_EMAIL_PATTERN_LENGTH} Zeichen lang sein.`);
+        throw error(400, `Die Domain-Liste darf höchstens ${MAX_EMAIL_PATTERN_LENGTH} Zeichen lang sein.`);
       }
       if (!testEmail) throw error(400, 'Geben Sie eine Test-E-Mail-Adresse ein.');
 

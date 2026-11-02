@@ -13,6 +13,7 @@ import bakery from 'openbadges-bakery-v3';
 import { newBadgeHash } from '$lib/server/dbUtils';
 
 import { requireLogin } from '$lib/server/jwt';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 
 import QRCode from 'qrcode';
 import fs from 'node:fs';
@@ -53,7 +54,10 @@ export async function POST({ request, cookies }) {
     }
     
     if (lesson?.starsNeeded > 0) {
-      
+      // Die Oberfläche zeigt das Quiz erst ab genügend Sternen; hier serverseitig erzwingen.
+      if (!(await hasEnoughStars(user.id, lesson))) {
+        return json({ success: false, error: 'Not enough stars' });
+      }
 
       const bestQuiz = await prisma.userQuizAttempt.findFirst({
         where: {
@@ -90,10 +94,13 @@ export async function POST({ request, cookies }) {
 
     // console.log('aggregate', aggregate);
 
-    if (aggregate._sum.promptsTried === 0) {
+    // Ohne Fortschrittszeilen ist die Summe null, nicht 0.
+    if (!aggregate._sum.promptsTried) {
       return json({ success: false, error: 'No prompts tried' });
     }
 
+    // Bewusst so: Der Badge bescheinigt die E-Mail, mit der das Konto angelegt wurde.
+    // Eine E-Mail-Verifikation vor dem Ausstellen ist nicht vorgesehen.
     const hash = await newBadgeHash(user.id, lessonId);
 
     const badge = await prisma.badge.create({

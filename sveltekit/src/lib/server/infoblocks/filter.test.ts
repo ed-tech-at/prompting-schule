@@ -1,22 +1,19 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   INFOBLOCK_PLACEMENTS,
   INFOBLOCK_PLACEMENT_LABELS,
   isInfoBlockPlacement,
+  MAX_EMAIL_DOMAINS,
   MAX_EMAIL_PATTERN_LENGTH,
-  MAX_MATCHED_EMAIL_LENGTH,
-  MAX_PATTERN_PROBE_MS,
-  buildProbeInputs,
   formatDateTimeInput,
   isInfoBlockVisible,
   isWithinDateWindow,
   matchesEmailPattern,
   matchesLang,
   matchesPlacement,
-  measurePatternCost,
+  normalizeEmailPattern,
   normalizeVariant,
   parseDateTimeInput,
-  resetEmailPatternCache,
   selectVisibleInfoBlocks,
   validateEmailPattern,
   type InfoBlockContext,
@@ -48,145 +45,77 @@ function makeContext(overrides: Partial<InfoBlockContext> = {}): InfoBlockContex
   };
 }
 
-beforeEach(() => {
-  resetEmailPatternCache();
-});
-
 describe('validateEmailPattern', () => {
-  it('accepts an empty pattern as "visible to everyone"', () => {
+  it('accepts an empty list as "visible to everyone"', () => {
     expect(validateEmailPattern('')).toBeNull();
   });
 
-  it.each([
-    '@tugraz\\.at$',
-    '^[a-z0-9._%+-]+@tugraz\\.at$',
-    '@(student\\.)?tugraz\\.at$',
-    '@(tugraz|uni-graz)\\.at$',
-    '^vorname\\.nachname@tugraz\\.at$'
-  ])('accepts the realistic pattern %s', (pattern) => {
-    expect(validateEmailPattern(pattern)).toBeNull();
+  it.each(['tugraz.at', '@tugraz.at', 'tugraz.at, student.tugraz.at', 'uni-graz.at;tugraz.at', 'TUGraz.AT'])(
+    'accepts %j',
+    (pattern) => {
+      expect(validateEmailPattern(pattern)).toBeNull();
+    }
+  );
+
+  it.each(['@tugraz\\.at$', 'tugraz', '*.tugraz.at', 'tu graz.at', '-tugraz.at', 'tugraz..at', 'a@b.at'])(
+    'rejects %j',
+    (pattern) => {
+      expect(validateEmailPattern(pattern)).not.toBeNull();
+    }
+  );
+
+  it('rejects a list that is too long', () => {
+    expect(validateEmailPattern('a.at,'.repeat(MAX_EMAIL_PATTERN_LENGTH))).not.toBeNull();
   });
 
-  it('rejects a pattern that is too long', () => {
-    expect(validateEmailPattern('a'.repeat(MAX_EMAIL_PATTERN_LENGTH + 1))).toMatch(/höchstens/);
-  });
-
-  it.each([
-    ['(a+)+$', /Gruppen/],
-    ['(a|b)*c', /Gruppen/],
-    ['(ab){2,5}c', /Gruppen/],
-    ['(x)\\1', /Rückwärtsverweise/],
-    ['\\k<name>', /Rückwärtsverweise/],
-    ['(?=foo)bar', /Vorausschau/],
-    ['(?!foo)bar', /Vorausschau/],
-    ['(?<=foo)bar', /Vorausschau/],
-    ['a{0,5000}', /Wiederholungen über/],
-    ['[a-z', /Zeichenklasse/],
-    ['abc\\', /Escape/],
-    ['[a-z]*[0-9]*[a-z]*[0-9]*', /offene Wiederholungen/],
-    ['a?b?c?d?e?f?', /zu viele Wiederholungszeichen/]
-  ])('rejects %s', (pattern, expected) => {
-    expect(validateEmailPattern(pattern)).toMatch(expected);
-  });
-
-  it('rejects a pattern that does not compile', () => {
-    expect(validateEmailPattern('(unclosed')).toMatch(/gültiger regulärer Ausdruck/);
-  });
-
-  it('treats metacharacters inside a character class as literals', () => {
-    // "[*+]" is a class of two literal characters, not two quantifiers.
-    expect(validateEmailPattern('[*+?]@tugraz\\.at$')).toBeNull();
-  });
-
-  it('does not treat an escaped parenthesis as a group', () => {
-    expect(validateEmailPattern('\\(intern\\)@tugraz\\.at$')).toBeNull();
-  });
-
-  it('allows a lazy quantifier without counting it twice', () => {
-    expect(validateEmailPattern('^.+?@.+?\\.at$')).toBeNull();
-  });
-
-  it('rejects a polynomial pattern that passes the structural checks', () => {
-    // Structurally legal (3 unbounded + 1 bounded quantifier, no quantified
-    // group), but it backtracks badly — only the runtime probe catches this.
-    const pattern = '^[a-z]*[a-z]*[a-z]*[a-z]{0,100}!$';
-
-    expect(measurePatternCost(pattern)).toBeGreaterThan(MAX_PATTERN_PROBE_MS);
-    expect(validateEmailPattern(pattern)).toMatch(/Rechenzeit/);
-  });
-
-  it('aborts the probe early instead of running the worst case at full length', () => {
-    // The staged probe must stop at the first over-budget length, so validating
-    // even a pathological pattern stays fast enough for a form submission.
-    const start = performance.now();
-    validateEmailPattern('^[a-z]*[a-z]*[a-z]*[a-z]{0,100}!$');
-    expect(performance.now() - start).toBeLessThan(1000);
-  });
-
-  it('leaves realistic patterns far below the probe budget', () => {
-    expect(measurePatternCost('@tugraz\\.at$')).toBeLessThan(MAX_PATTERN_PROBE_MS);
+  it('rejects too many domains', () => {
+    const domains = Array.from({ length: MAX_EMAIL_DOMAINS + 1 }, (_, i) => `d${i}.at`).join(',');
+    expect(validateEmailPattern(domains)).not.toBeNull();
   });
 });
 
-describe('buildProbeInputs', () => {
-  it('produces deterministic inputs of the requested length', () => {
-    const first = buildProbeInputs('@tugraz\\.at$', 64);
-    const second = buildProbeInputs('@tugraz\\.at$', 64);
-
-    expect(first).toEqual(second);
-    expect(first.length).toBeGreaterThan(0);
-    for (const probe of first) {
-      expect(probe).toHaveLength(64);
-    }
+describe('normalizeEmailPattern', () => {
+  it('stores a canonical, de-duplicated list', () => {
+    expect(normalizeEmailPattern(' @TUGraz.at;student.tugraz.at\n tugraz.at ')).toBe(
+      'tugraz.at, student.tugraz.at'
+    );
   });
 
-  it('defaults to the maximum matched email length', () => {
-    for (const probe of buildProbeInputs('@tugraz\\.at$')) {
-      expect(probe).toHaveLength(MAX_MATCHED_EMAIL_LENGTH);
-    }
+  it('stores null for an empty list', () => {
+    expect(normalizeEmailPattern('  ,  ')).toBeNull();
   });
 });
 
 describe('matchesEmailPattern', () => {
-  it('shows patternless blocks to everyone, including logged-out visitors', () => {
+  it('matches everyone without a list, including logged-out visitors', () => {
     expect(matchesEmailPattern(null, null)).toBe(true);
-    expect(matchesEmailPattern(null, 'max@tugraz.at')).toBe(true);
-    expect(matchesEmailPattern('', 'max@example.com')).toBe(true);
+    expect(matchesEmailPattern('', 'max@example.test')).toBe(true);
   });
 
-  it('hides patterned blocks from logged-out visitors', () => {
-    expect(matchesEmailPattern('@tugraz\\.at$', null)).toBe(false);
-    expect(matchesEmailPattern('@tugraz\\.at$', '')).toBe(false);
+  it('hides restricted blocks from logged-out visitors', () => {
+    expect(matchesEmailPattern('tugraz.at', null)).toBe(false);
   });
 
-  it('matches the TU Graz use case', () => {
-    expect(matchesEmailPattern('@tugraz\\.at$', 'max.muster@tugraz.at')).toBe(true);
-    expect(matchesEmailPattern('@tugraz\\.at$', 'max@example.com')).toBe(false);
+  it('matches the domain and its subdomains, case-insensitively', () => {
+    expect(matchesEmailPattern('tugraz.at', 'Max@TUGraz.at')).toBe(true);
+    expect(matchesEmailPattern('tugraz.at', 'max@student.tugraz.at')).toBe(true);
   });
 
-  it('ignores case', () => {
-    expect(matchesEmailPattern('@tugraz\\.at$', 'MAX@TUGRAZ.AT')).toBe(true);
+  it('does not match look-alike domains or the local part', () => {
+    expect(matchesEmailPattern('tugraz.at', 'max@nottugraz.at')).toBe(false);
+    expect(matchesEmailPattern('tugraz.at', 'max@tugraz.at.evil.example')).toBe(false);
+    expect(matchesEmailPattern('tugraz.at', 'tugraz.at@example.test')).toBe(false);
   });
 
-  it('returns the same result on repeated calls', () => {
-    // Guards against an accidental "g" flag, whose lastIndex would otherwise
-    // make the same email alternate between match and no-match.
-    for (let i = 0; i < 4; i += 1) {
-      expect(matchesEmailPattern('tugraz', 'max@tugraz.at')).toBe(true);
-    }
+  it('matches any domain of the list', () => {
+    expect(matchesEmailPattern('uni-graz.at, tugraz.at', 'max@uni-graz.at')).toBe(true);
   });
 
-  it('rejects emails beyond the RFC 5321 maximum length', () => {
-    const local = 'a'.repeat(MAX_MATCHED_EMAIL_LENGTH - '@tugraz.at'.length);
-    const email = `${local}@tugraz.at`;
-
-    expect(email).toHaveLength(MAX_MATCHED_EMAIL_LENGTH);
-    expect(matchesEmailPattern('@tugraz\\.at$', email)).toBe(true);
-    expect(matchesEmailPattern('@tugraz\\.at$', `a${email}`)).toBe(false);
-  });
-
-  it('fails closed for an invalid pattern', () => {
-    expect(matchesEmailPattern('(unclosed', 'max@tugraz.at')).toBe(false);
+  it('stays fast for long adversarial addresses', () => {
+    const email = '1'.repeat(10000) + '@' + 'a.'.repeat(5000) + 'at';
+    const start = performance.now();
+    for (let i = 0; i < 100; i++) matchesEmailPattern('tugraz.at, student.tugraz.at', email);
+    expect(performance.now() - start).toBeLessThan(200);
   });
 });
 
@@ -293,7 +222,7 @@ describe('isInfoBlockVisible', () => {
     const block = makeBlock({
       placements: ['kursuebersicht'],
       lang: 'de',
-      emailPattern: '@tugraz\\.at$'
+      emailPattern: 'tugraz.at'
     });
 
     expect(
@@ -332,14 +261,14 @@ describe('selectVisibleInfoBlocks', () => {
     const blocks = [
       makeBlock({ id: 1 }),
       makeBlock({ id: 2, active: 0 }),
-      makeBlock({ id: 3, emailPattern: '@tugraz\\.at$' })
+      makeBlock({ id: 3, emailPattern: 'tugraz.at' })
     ];
     expect(selectVisibleInfoBlocks(blocks, makeContext()).map((b) => b.id)).toEqual([1]);
   });
 
   it('never leaks the email pattern or the time window to the client', () => {
     const blocks = [
-      makeBlock({ emailPattern: '@tugraz\\.at$', validUntil: new Date(2026, 11, 31) })
+      makeBlock({ emailPattern: 'tugraz.at', validUntil: new Date(2026, 11, 31) })
     ];
     const [view] = selectVisibleInfoBlocks(blocks, makeContext({ email: 'max@tugraz.at' }));
 

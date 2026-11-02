@@ -111,6 +111,7 @@ model Course {
   introDescription  String?
   introDescriptionSuffix  String?
 
+  // "publicActive": nur Sichtbarkeit in der Kursliste; per direkter URL bewusst weiter erreichbar
   active  Int     @default(0)
 
   position        Int @default(0)
@@ -134,6 +135,7 @@ model Lesson {
   courseId   Int
 
   URL     String   @unique
+  // "publicActive": nur Sichtbarkeit in der Kursübersicht; per direkter URL bewusst weiter erreichbar
   active  Int     @default(0)
   starsNeeded  Int     @default(0)
   

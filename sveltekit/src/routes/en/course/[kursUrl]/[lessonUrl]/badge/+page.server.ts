@@ -3,6 +3,7 @@ import { prisma } from '$lib/server/db';
 import { requireLogin } from '$lib/server/jwt';
 import { error, redirect } from '@sveltejs/kit';
 import { withBase } from '$lib/server/subfolder';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 export const load: PageServerLoad = async ({ params, cookies }) => {
   const user = requireLogin(cookies);
   const course = await prisma.course.findUnique({ where: { URL: params.kursUrl } });
@@ -36,7 +37,10 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   });
 
 
-  if (lesson.starsNeeded > 0 && (!bestQuiz || bestQuiz.percentReached < 75)) {
+  if (
+    lesson.starsNeeded > 0 &&
+    (!bestQuiz || bestQuiz.percentReached < 75 || !(await hasEnoughStars(user.id, lesson)))
+  ) {
     throw redirect(302, withBase('/en/courses'));
   }
 

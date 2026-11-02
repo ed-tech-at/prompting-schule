@@ -129,20 +129,20 @@
     </div>
 
     <label>
-      E-Mail-Muster (Zielgruppe)
+      E-Mail-Domains (Zielgruppe)
       <input
         type="text"
         name="emailPattern"
         maxlength={MAX_EMAIL_PATTERN_LENGTH}
         autocomplete="off"
         spellcheck="false"
-        placeholder="@tugraz\.at$"
+        placeholder="tugraz.at"
         value={infoBlock.emailPattern ?? ''}
       />
       <small class="hint">
-        Regulärer Ausdruck, Groß-/Kleinschreibung wird ignoriert. <strong>Leer lassen</strong> =
+        Domains durch Komma getrennt; Subdomains sind eingeschlossen. <strong>Leer lassen</strong> =
         für alle sichtbar, auch für nicht angemeldete Besucher:innen. Beispiel für alle
-        TU-Graz-Adressen: <code>@tugraz\.at$</code>
+        TU-Graz-Adressen (inkl. student.tugraz.at): <code>tugraz.at</code>
       </small>
     </label>
 
@@ -171,13 +171,13 @@
   </form>
 
   <section class="panel">
-    <h2>E-Mail-Muster testen</h2>
+    <h2>E-Mail-Domains testen</h2>
     <p class="hint">
-      Prüft, ob eine Adresse zum Muster passt – ohne den Block zu speichern.
+      Prüft, ob eine Adresse zu den Domains passt – ohne den Block zu speichern.
     </p>
     <form method="POST" action="?/testEmailPattern" class="tester">
       <label>
-        Muster
+        Domains
         <input
           type="text"
           name="pattern"

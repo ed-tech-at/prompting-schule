@@ -6,8 +6,9 @@ import { prisma } from '$lib/server/db';
 
 import { requireLogin } from '$lib/server/jwt';
 import { withBase } from '$lib/server/subfolder';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 
-import { redirect, type Cookies } from '@sveltejs/kit';
+import { error, redirect, type Cookies } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 
@@ -18,14 +19,19 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const lessonUrl = params.lessonUrl as String;
 
   const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
+  if (!course) {
+    throw error(404, 'Kurs nicht gefunden');
+  }
 
-  
-  const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
+  const lesson = await prisma.lesson.findFirst({ where: { URL: lessonUrl, courseId: course.id } });
+  if (!lesson) {
+    throw error(404, 'Lektion nicht gefunden');
+  }
 
   const bestQuiz = await prisma.userQuizAttempt.findFirst({
     where: {
       userId: user.id,
-      lessonId: lesson?.id
+      lessonId: lesson.id
     },
     orderBy: {
       percentReached: 'desc'
@@ -34,14 +40,15 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
   const badges = await prisma.badge.findMany({
     where: {
-      lessonId: lesson?.id,
+      lessonId: lesson.id,
       userId: user.id
     },
     orderBy: { createdAt: 'desc' }
   });
 
 
-  if (lesson?.starsNeeded > 0) {
+  if (lesson.starsNeeded > 0) {
+    if (!(await hasEnoughStars(user.id, lesson))) throw redirect(302, withBase('/kurse'));
     if (!bestQuiz || bestQuiz?.percentReached < 75) throw redirect(302, withBase('/kurse'));
     //  TODO 75
   } 
@@ -52,7 +59,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
     where: {
       userId: user.id,
-      lessonId: lesson?.id
+      lessonId: lesson.id
     },
     _sum: {
       promptsTried: true,

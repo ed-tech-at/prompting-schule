@@ -156,14 +156,19 @@ export async function streamAiResponse({
         }
       }
 
+      // Erst speichern, dann Footer senden: Der Client lädt nach dem Footer z. B. die
+      // Sterne neu und soll dabei den gerade gespeicherten Stand sehen.
+      try {
+        await saveToDb(fullText, usage);
+      } catch (saveError) {
+        console.error('Fehler beim Speichern der KI-Antwort:', saveError);
+      }
+
       // Sende Footer
       const footer = JSON.stringify({ __footer: true, ...usage });
       controller.enqueue(encoder.encode('\n[__FOOTER__]' + footer));
 
       controller.close();
-
-      // Save in DB
-      await saveToDb(fullText, usage);
     }
   });
 
