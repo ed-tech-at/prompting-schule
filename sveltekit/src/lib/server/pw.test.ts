@@ -3,7 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   findFirst: vi.fn(),
-  bcryptCompare: vi.fn()
+  create: vi.fn(),
+  bcryptCompare: vi.fn(),
+  env: {
+    SERVER_PW_SALT: 'test-salt',
+    SERVER_PW_PEPPER: 'test-pepper',
+    JWT_SECRET: 'test-jwt-secret',
+    SUBFOLDER: ''
+  } as Record<string, string | undefined>
 }));
 
 vi.mock('$lib/server/db', () => ({
@@ -12,7 +19,7 @@ vi.mock('$lib/server/db', () => ({
       findUnique: mocks.findUnique,
       findFirst: mocks.findFirst,
       update: vi.fn(),
-      create: vi.fn()
+      create: mocks.create
     }
   }
 }));
@@ -24,19 +31,13 @@ vi.mock('bcrypt', () => ({
   }
 }));
 
-vi.mock('$env/dynamic/private', () => ({
-  env: {
-    SERVER_PW_SALT: 'test-salt',
-    SERVER_PW_PEPPER: 'test-pepper',
-    JWT_SECRET: 'test-jwt-secret',
-    SUBFOLDER: ''
-  }
-}));
+vi.mock('$env/dynamic/private', () => ({ env: mocks.env }));
 
-import { login, loginSso } from './pw';
+import { login, loginSso, register } from './pw';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  delete mocks.env.KEYCLOAK_CLIENT_SECRET;
 });
 
 describe('blocked account login', () => {
@@ -83,5 +84,50 @@ describe('blocked account login', () => {
       success: false,
       error: 'Dieses Benutzerkonto ist gesperrt.'
     });
+  });
+});
+
+describe('SSO-only mode', () => {
+  beforeEach(() => {
+    mocks.env.KEYCLOAK_CLIENT_SECRET = 'test-client-secret';
+  });
+
+  it('rejects local password registration', async () => {
+    const response = await register('outsider@example.test', 'pw');
+
+    expect(response.status).toBe(403);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects local password login', async () => {
+    const response = await login('someone@example.test', 'pw');
+
+    expect(response.status).toBe(403);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('answers a first SSO login with a taken email in a controlled way', async () => {
+    mocks.findFirst.mockResolvedValue(null);
+    mocks.findUnique.mockResolvedValue({ id: 'local', email: 'victim@uni.test', cryptVersion: 2 });
+
+    const response = await loginSso({
+      preferred_username: 'victim',
+      given_name: 'V',
+      family_name: 'Ictim',
+      email: 'victim@uni.test'
+    });
+
+    expect(response.status).toBe(409);
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('register email validation', () => {
+  it('rejects a recipient list as account email', async () => {
+    const response = await register('"Warnung" <a@example.test>, b@example.test', 'pw');
+
+    expect(response.status).toBe(400);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
   });
 });

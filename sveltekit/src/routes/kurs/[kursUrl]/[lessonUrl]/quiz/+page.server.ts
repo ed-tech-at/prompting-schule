@@ -5,6 +5,9 @@ import { prisma } from '$lib/server/db';
 
 
 import { requireLogin } from '$lib/server/jwt';
+import { error, redirect } from '@sveltejs/kit';
+import { withBase } from '$lib/server/subfolder';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -16,12 +19,24 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const lessonUrl = params.lessonUrl as String;
 
   const course = await prisma.course.findUnique({ where: { URL: courseUrl } });
+  if (!course) {
+    throw error(404, 'Kurs nicht gefunden');
+  }
 
   
-  const lesson = await prisma.lesson.findUnique({ where: { URL: lessonUrl } });
+  // Lektion an den Kurs binden; ohne Treffer 404, sonst entfiele der lessonId-Filter unten.
+  const lesson = await prisma.lesson.findFirst({ where: { URL: lessonUrl, courseId: course.id } });
+  if (!lesson) {
+    throw error(404, 'Lektion nicht gefunden');
+  }
+
+  // Das Quiz ist erst mit genügend Sternen freigeschaltet (wie in QuizStarRender).
+  if (!(await hasEnoughStars(user.id, lesson))) {
+    throw redirect(302, withBase(`/kurs/${course.URL}/${lesson.URL}`));
+  }
 
   const quizQuestions = await prisma.quizQuestion.findMany({
-    where: { lessonId: lesson?.id },
+    where: { lessonId: lesson.id },
     orderBy: { position: 'asc' }
   });
 

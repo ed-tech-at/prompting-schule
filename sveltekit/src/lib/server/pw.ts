@@ -8,6 +8,7 @@ import { prisma } from '$lib/server/db';
 import { createJWT } from './jwt';
 import { json } from '@sveltejs/kit';
 import { newUserUUID } from '$lib/server/dbUtils.js';
+import { isSingleEmailAddress } from '$lib/server/email';
 
 import { getCookiePath, withBase } from '$lib/server/subfolder';
 
@@ -37,7 +38,16 @@ export async function comparePasswordV2(password: string, hashedPassword: string
   return await bcrypt.compare(password + pepper + userId, hashedPassword);
 }
 
+// SSO-only-Modus: Mit gesetztem KEYCLOAK_CLIENT_SECRET gibt es keine lokalen Passwortkonten.
+export function passwordAuthDisabled(): boolean {
+  return !!env.KEYCLOAK_CLIENT_SECRET;
+}
+
 export async function login(email: string, password: string): Promise<Response> {
+  if (passwordAuthDisabled()) {
+    return json({ success: false, error: "Die Anmeldung mit Passwort ist deaktiviert." }, { status: 403 });
+  }
+
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
@@ -85,6 +95,14 @@ export async function login(email: string, password: string): Promise<Response> 
 }
 
 export async function register(email: string, password: string): Promise<Response> { /* | { success: false; error: string }*/
+  if (passwordAuthDisabled()) {
+    return json({ success: false, error: "Die Registrierung mit Passwort ist deaktiviert." }, { status: 403 });
+  }
+
+  if (!isSingleEmailAddress(email)) {
+    return json({ success: false, error: "Ungültige E-Mail-Adresse." }, { status: 400 });
+  }
+
   const existingUser = await prisma.user.findUnique({ where: { email } });
   
   if (existingUser) {
@@ -145,6 +163,16 @@ export async function loginSso(user: ssoUser): Promise<Response> {
     }
 
     return createJWTResponseSSO(existingUser);
+  }
+
+  // Ein lokales Konto mit derselben E-Mail darf nicht stillschweigend übernommen werden
+  // und soll keinen ungefangenen Unique-Constraint-Fehler auslösen.
+  const emailTaken = await prisma.user.findUnique({ where: { email: user.email } });
+  if (emailTaken) {
+    return json(
+      { success: false, error: "Für diese E-Mail-Adresse existiert bereits ein lokales Konto. Bitte wenden Sie sich an die Betreuung." },
+      { status: 409 }
+    );
   }
 
   const uuid = await newUserUUID();

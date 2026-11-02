@@ -1,7 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
 import { requireLogin } from '$lib/server/jwt';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { withBase } from '$lib/server/subfolder';
+import { hasEnoughStars } from '$lib/server/lessonStars';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
   const user = requireLogin(cookies);
@@ -15,6 +17,11 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   });
   if (!lesson) {
     throw error(404, 'Lesson not found');
+  }
+
+  // The quiz unlocks only with enough stars (same rule as the lesson page).
+  if (!(await hasEnoughStars(user.id, lesson))) {
+    throw redirect(302, withBase(`/en/course/${course.URL}/${lesson.URL}`));
   }
 
   const questionsWithAnswers = await prisma.quizQuestion.findMany({
