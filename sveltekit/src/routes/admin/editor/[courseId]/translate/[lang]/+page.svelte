@@ -4,6 +4,7 @@
   import { resolve } from '$app/paths';
   import { COURSE_LANG_LABELS, coursePaths, isCourseLang } from '$lib/courseLang';
   import { courseHref } from '$lib/course/href';
+  import { slugify } from '$lib/slug';
   import type { ActionData, PageData } from './$types';
   import type { SubmitFunction } from '@sveltejs/kit';
 
@@ -41,7 +42,7 @@
   let onlyOpen = false;
 
   $: langLabel = COURSE_LANG_LABELS[data.lang];
-  $: learnerHref = courseHref(coursePaths(data.lang).course(data.course.URL));
+  $: learnerHref = courseHref(coursePaths(data.lang).course(data.courseTranslation.URL || data.course.URL));
   $: percentDone = data.counts.total === 0 ? 100 : Math.round((data.counts.done / data.counts.total) * 100);
 
   function isOpen(status: Record<string, Status>) {
@@ -51,6 +52,17 @@
   function rowsFor(text: string) {
     const lines = text.split('\n').length + Math.ceil(text.length / 90);
     return Math.min(18, Math.max(2, lines));
+  }
+
+  // Fills the slug field of a form from the translated title in the same form.
+  function slugFromTitle(button: HTMLElement, titleField: string) {
+    const form = button.closest('form');
+    const title = form?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${titleField}"]`);
+    const slug = form?.querySelector<HTMLInputElement>('input[name="URL"]');
+    if (!title || !slug || !title.value.trim()) return;
+    slug.value = slugify(title.value);
+    const formKey = form?.dataset.formKey;
+    if (formKey) unsaved = { ...unsaved, [formKey]: true };
   }
 
   function messageFor(entityKey: string) {
@@ -287,6 +299,20 @@
             </div>
           {/if}
         {/each}
+        <div class="slug-field">
+          <label for="course-slug" class="field-label">URL-Slug ({langLabel})</label>
+          <button type="button" class="ai-button" on:click={(event) => slugFromTitle(event.currentTarget, 'name')}>
+            Aus Kursnamen erzeugen
+          </button>
+          <input
+            id="course-slug"
+            name="URL"
+            value={data.courseTranslation.URL}
+            placeholder={data.course.URL}
+            pattern="[a-z0-9\-]+"
+          />
+          <span class="hint">Leer lassen, um die URL der Ausgangssprache zu nutzen. Alte Links leiten weiter.</span>
+        </div>
         <div class="entity-actions">
           <button type="submit">Kursdaten speichern</button>
           {#if unsaved.course}<span class="unsaved">KI-Vorschlag noch nicht gespeichert</span>{/if}
@@ -332,6 +358,19 @@
                 value={lesson.translation.lessonName}
                 lang={data.lang}
                 aria-label="Lektionsname ({langLabel})"
+              />
+            </div>
+            <div class="slug-field">
+              <label for="lesson-slug-{lesson.id}" class="field-label">URL-Slug ({langLabel})</label>
+              <button type="button" class="ai-button" on:click={(event) => slugFromTitle(event.currentTarget, 'lessonName')}>
+                Aus Lektionsnamen erzeugen
+              </button>
+              <input
+                id="lesson-slug-{lesson.id}"
+                name="URL"
+                value={lesson.translation.URL}
+                placeholder={lesson.URL}
+                pattern="[a-z0-9\-]+"
               />
             </div>
             <div class="entity-actions">
@@ -626,6 +665,17 @@
 
   .field-label {
     font-weight: 600;
+  }
+
+  .slug-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+  }
+
+  .slug-field input {
+    flex-basis: 100%;
   }
 
   input,

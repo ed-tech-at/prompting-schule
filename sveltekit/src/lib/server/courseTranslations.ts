@@ -27,20 +27,53 @@ function localizeCourse(course: Course & { translations?: Record<string, unknown
   return {
     ...overlayTranslation(stripTranslations(course) as Course, translation, COURSE_TRANSLATABLE_FIELDS),
     // `active` is per language: the list visibility of this language version.
-    active
+    active,
+    // The slug of this language version; links are built from it.
+    URL: translatedSlug(translation) ?? course.URL,
+    sourceURL: course.URL
   };
+}
+
+function translatedSlug(translation: Record<string, unknown> | undefined): string | null {
+  const slug = translation?.URL;
+  return typeof slug === 'string' && slug !== '' ? slug : null;
 }
 
 // Returns null when the course does not exist in this language. A translation
 // that is not active is still returned: direct URLs keep working for testing,
 // just like inactive courses in their source language.
+// Both the translated and the source slug resolve; the returned course.URL is
+// the canonical slug of this language, so callers can redirect to it.
 export async function findCourseForLang(courseUrl: string, lang: CourseLang) {
-  const course = await prisma.course.findUnique({
-    where: { URL: courseUrl },
-    include: { translations: { where: { lang } } }
-  });
+  const include = { translations: { where: { lang } } };
+  const course =
+    (await prisma.course.findFirst({ where: { translations: { some: { lang, URL: courseUrl } } }, include })) ??
+    (await prisma.course.findUnique({ where: { URL: courseUrl }, include }));
   if (!course) return null;
   return localizeCourse(course, lang);
+}
+
+export type LangSlugs = { course: string; lesson: string | null };
+
+// Course and lesson slug of every language, for the language flags.
+export async function slugsForLangs(courseId: number, lessonId?: number) {
+  const [course, lesson] = await Promise.all([
+    prisma.course.findUniqueOrThrow({
+      where: { id: courseId },
+      select: { URL: true, translations: { select: { lang: true, URL: true } } }
+    }),
+    lessonId === undefined
+      ? null
+      : prisma.lesson.findUniqueOrThrow({
+          where: { id: lessonId },
+          select: { URL: true, translations: { select: { lang: true, URL: true } } }
+        })
+  ]);
+
+  return (lang: CourseLang): LangSlugs => ({
+    course: translatedSlug(course.translations.find((t) => t.lang === lang)) ?? course.URL,
+    lesson: lesson ? (translatedSlug(lesson.translations.find((t) => t.lang === lang)) ?? lesson.URL) : null
+  });
 }
 
 // Languages the language flags may link to for this course. Hidden language
@@ -77,7 +110,12 @@ export async function listCoursesForLang(lang: CourseLang) {
 }
 
 export function localizeLesson(lesson: Lesson & { translations?: Record<string, unknown>[] }) {
-  return overlayTranslation(stripTranslations(lesson) as Lesson, lesson.translations?.[0], LESSON_TRANSLATABLE_FIELDS);
+  const translation = lesson.translations?.[0];
+  return {
+    ...overlayTranslation(stripTranslations(lesson) as Lesson, translation, LESSON_TRANSLATABLE_FIELDS),
+    URL: translatedSlug(translation) ?? lesson.URL,
+    sourceURL: lesson.URL
+  };
 }
 
 export async function findLessonsForLang(courseId: number, lang: CourseLang) {
@@ -89,11 +127,14 @@ export async function findLessonsForLang(courseId: number, lang: CourseLang) {
   return lessons.map(localizeLesson);
 }
 
+// Like findCourseForLang: translated and source slug both resolve.
 export async function findLessonForLang(courseId: number, lessonUrl: string, lang: CourseLang) {
-  const lesson = await prisma.lesson.findFirst({
-    where: { URL: lessonUrl, courseId },
-    include: { translations: { where: { lang } } }
-  });
+  const include = { translations: { where: { lang } } };
+  const lesson =
+    (await prisma.lesson.findFirst({
+      where: { courseId, translations: { some: { lang, URL: lessonUrl } } },
+      include
+    })) ?? (await prisma.lesson.findFirst({ where: { URL: lessonUrl, courseId }, include }));
   return lesson ? localizeLesson(lesson) : null;
 }
 

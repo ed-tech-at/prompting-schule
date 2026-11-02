@@ -1,6 +1,7 @@
 import { error, fail, isHttpError, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
+import { courseSlugTaken } from '$lib/server/editor/slugs';
 import {
   EDITOR_AUDIT_ACTIONS,
   editorAuditFailure,
@@ -148,6 +149,14 @@ export const actions: Actions = {
         elementsUpdated: 0,
         elementsDeleted: 0
       };
+
+      // Translated course slugs must not lead to another course; clashing ones
+      // fall back to the source URL.
+      for (const translation of Object.values(incoming.translations ?? {})) {
+        if (translation.URL && (await courseSlugTaken(translation.URL, existing ? { courseId: existing.id } : undefined))) {
+          translation.URL = null;
+        }
+      }
 
       await prisma.$transaction(async (tx) => {
         const courseData = {
@@ -329,8 +338,7 @@ export const actions: Actions = {
         throw error(400, 'Die neue Kurs-URL darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.');
       }
 
-      const existingCourse = await prisma.course.findUnique({ where: { URL: newCourseUrl } });
-      if (existingCourse) {
+      if (await courseSlugTaken(newCourseUrl)) {
         throw error(400, `Die Kurs-URL "${newCourseUrl}" ist bereits vergeben.`);
       }
 
@@ -348,9 +356,14 @@ export const actions: Actions = {
           position: (maxPosition._max.position ?? 0) + 1,
           displayType: incoming.displayType,
           lang: incoming.lang ?? 'de',
-          // Copied translations start hidden as well.
+          // Copied translations start hidden as well. Their course slug still
+          // belongs to the original course, so the copy uses its source URL.
           translations: {
-            create: translationRows(incoming.translations, incoming.lang ?? 'de').map((row) => ({ ...row, active: 0 }))
+            create: translationRows(incoming.translations, incoming.lang ?? 'de').map((row) => ({
+              ...row,
+              active: 0,
+              URL: null
+            }))
           },
           lessons: {
             create: incoming.lessons.map((lesson) => ({

@@ -13,7 +13,9 @@ import {
   findLessonsForLang,
   findQuizQuestionsForLang,
   listCoursesForLang,
-  linkableLanguagesOfCourse
+  linkableLanguagesOfCourse,
+  slugsForLangs,
+  type LangSlugs
 } from '$lib/server/courseTranslations';
 import { EDITOR_LEVEL } from '$lib/server/editor';
 import { COURSE_LANGS, COURSE_TEXTS, coursePaths, type CourseLang } from '$lib/courseLang';
@@ -22,7 +24,7 @@ import type { JwtUserPayload } from '$lib/server/jwt';
 // Shared loaders for the German (/kurs/...) and English (/en/course/...) course
 // pages. The routes only pick the language; content and rules live here.
 
-type CourseEvent = { params: Record<string, string>; cookies: Cookies };
+type CourseEvent = { params: Record<string, string>; cookies: Cookies; url: URL };
 
 async function requireCourse(params: Record<string, string>, lang: CourseLang) {
   // active ist bewusst nur "publicActive": Es steuert die Sichtbarkeit in der Kursliste.
@@ -36,20 +38,46 @@ async function requireCourse(params: Record<string, string>, lang: CourseLang) {
 }
 
 type CoursePaths = ReturnType<typeof coursePaths>;
+type PathFor = (paths: CoursePaths, slugs: LangSlugs) => string;
+
+// A page reached through another slug than the one of its language (e.g. an
+// old link with the source slug before the slug was translated) moves
+// permanently to the canonical URL, so every page has exactly one address.
+function redirectToCanonical(
+  { params, url }: CourseEvent,
+  lang: CourseLang,
+  slugs: LangSlugs,
+  pathFor: PathFor
+) {
+  const lessonMoved = slugs.lesson !== null && params.lessonUrl !== slugs.lesson;
+  if (params.kursUrl !== slugs.course || lessonMoved) {
+    throw redirect(301, withBase(pathFor(coursePaths(lang), slugs)) + url.search);
+  }
+}
 
 // Targets for the language flags in the header: the same page in every
-// language the course exists in. Missing languages fall back to their start page.
+// language the course exists in, each with the slugs of that language.
 async function languageLinks(
   courseId: number,
+  lessonId: number | undefined,
   lang: CourseLang,
   user: JwtUserPayload,
-  pathFor: (paths: CoursePaths) => string
+  pathFor: PathFor
 ): Promise<Partial<Record<CourseLang, string>>> {
-  const langs = new Set(await linkableLanguagesOfCourse(courseId, user.isAdmin >= EDITOR_LEVEL));
+  const [linkable, slugsFor] = await Promise.all([
+    linkableLanguagesOfCourse(courseId, user.isAdmin >= EDITOR_LEVEL),
+    slugsForLangs(courseId, lessonId)
+  ]);
+  const langs = new Set(linkable);
   // The current page is always its own target, even while it is still hidden.
   langs.add(lang);
-  return Object.fromEntries([...langs].map((target) => [target, pathFor(coursePaths(target))]));
+  return Object.fromEntries([...langs].map((target) => [target, pathFor(coursePaths(target), slugsFor(target))]));
 }
+
+const coursePath: PathFor = (paths, slugs) => paths.course(slugs.course);
+const lessonPath: PathFor = (paths, slugs) => paths.lesson(slugs.course, slugs.lesson!);
+const quizPath: PathFor = (paths, slugs) => paths.quiz(slugs.course, slugs.lesson!);
+const badgePath: PathFor = (paths, slugs) => paths.badge(slugs.course, slugs.lesson!);
 
 async function requireLesson(courseId: number, params: Record<string, string>, lang: CourseLang) {
   // Lektion an den Kurs binden; ohne Treffer 404, sonst entfiele der lessonId-Filter.
@@ -73,9 +101,10 @@ export async function loadCourseList({ cookies }: Pick<CourseEvent, 'cookies'>, 
   return { courses, user, infoBlocks, lang, langLinks };
 }
 
-export async function loadCoursePage({ params, cookies }: CourseEvent, lang: CourseLang) {
-  const user = requireLogin(cookies);
-  const course = await requireCourse(params, lang);
+export async function loadCoursePage(event: CourseEvent, lang: CourseLang) {
+  const user = requireLogin(event.cookies);
+  const course = await requireCourse(event.params, lang);
+  redirectToCanonical(event, lang, { course: course.URL, lesson: null }, coursePath);
   const lessons = await findLessonsForLang(course.id, lang);
 
   const badges = await prisma.badge.findMany({
@@ -90,26 +119,28 @@ export async function loadCoursePage({ params, cookies }: CourseEvent, lang: Cou
     }
   }
 
-  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.course(course.URL));
+  const langLinks = await languageLinks(course.id, undefined, lang, user, coursePath);
 
   return { course, lessons, user, latestBadge, lang, langLinks };
 }
 
-export async function loadLessonPage({ params, cookies }: CourseEvent, lang: CourseLang) {
-  const user = requireLogin(cookies);
-  const course = await requireCourse(params, lang);
-  const lesson = await requireLesson(course.id, params, lang);
+export async function loadLessonPage(event: CourseEvent, lang: CourseLang) {
+  const user = requireLogin(event.cookies);
+  const course = await requireCourse(event.params, lang);
+  const lesson = await requireLesson(course.id, event.params, lang);
+  redirectToCanonical(event, lang, { course: course.URL, lesson: lesson.URL }, lessonPath);
 
   const elements = redactElementPrompts(await findElementsForLang(lesson.id, lang));
-  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.lesson(course.URL, lesson.URL));
+  const langLinks = await languageLinks(course.id, lesson.id, lang, user, lessonPath);
 
   return { course, lesson, elements, user, lang, langLinks };
 }
 
-export async function loadQuizPage({ params, cookies }: CourseEvent, lang: CourseLang) {
-  const user = requireLogin(cookies);
-  const course = await requireCourse(params, lang);
-  const lesson = await requireLesson(course.id, params, lang);
+export async function loadQuizPage(event: CourseEvent, lang: CourseLang) {
+  const user = requireLogin(event.cookies);
+  const course = await requireCourse(event.params, lang);
+  const lesson = await requireLesson(course.id, event.params, lang);
+  redirectToCanonical(event, lang, { course: course.URL, lesson: lesson.URL }, quizPath);
 
   // Das Quiz ist erst mit genügend Sternen freigeschaltet (wie in QuizStarRender).
   if (!(await hasEnoughStars(user.id, lesson))) {
@@ -125,15 +156,16 @@ export async function loadQuizPage({ params, cookies }: CourseEvent, lang: Cours
     }
   }
 
-  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.quiz(course.URL, lesson.URL));
+  const langLinks = await languageLinks(course.id, lesson.id, lang, user, quizPath);
 
   return { course, lesson, quizQuestions, user, lang, langLinks };
 }
 
-export async function loadBadgePage({ params, cookies }: CourseEvent, lang: CourseLang) {
-  const user = requireLogin(cookies);
-  const course = await requireCourse(params, lang);
-  const lesson = await requireLesson(course.id, params, lang);
+export async function loadBadgePage(event: CourseEvent, lang: CourseLang) {
+  const user = requireLogin(event.cookies);
+  const course = await requireCourse(event.params, lang);
+  const lesson = await requireLesson(course.id, event.params, lang);
+  redirectToCanonical(event, lang, { course: course.URL, lesson: lesson.URL }, badgePath);
   const coursesPath = withBase(coursePaths(lang).courses);
 
   const bestQuiz = await prisma.userQuizAttempt.findFirst({
@@ -163,7 +195,7 @@ export async function loadBadgePage({ params, cookies }: CourseEvent, lang: Cour
     throw redirect(302, coursesPath);
   }
 
-  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.badge(course.URL, lesson.URL));
+  const langLinks = await languageLinks(course.id, lesson.id, lang, user, badgePath);
 
   return { course, lesson, bestQuiz, badges, user, maxPrompts, lang, langLinks };
 }

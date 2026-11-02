@@ -1,6 +1,7 @@
 import { error, fail, isHttpError, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
+import { lessonSlugTaken } from '$lib/server/editor/slugs';
 import {
   EDITOR_AUDIT_ACTIONS,
   editorAuditFailure,
@@ -156,8 +157,7 @@ export const actions: Actions = {
       }
 
       if (URL !== lesson.URL) {
-        const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: lesson.courseId, URL } } });
-        if (existing) {
+        if (await lessonSlugTaken(lesson.courseId, URL, { lessonId: lesson.id })) {
           throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
         }
       }

@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
 import {
   EDITOR_AUDIT_ACTIONS,
+  SLUG_PATTERN,
   editorAuditFailure,
   editorErrorMessage,
   readInt,
@@ -23,6 +24,7 @@ import {
   type FieldStatus
 } from '$lib/server/courseTranslations/core';
 import { isCourseLang, type CourseLang } from '$lib/courseLang';
+import { courseSlugTaken, lessonSlugTaken } from '$lib/server/editor/slugs';
 
 async function requireCourseAndLang(params: { courseId?: string; lang?: string }) {
   const courseId = Number.parseInt(params.courseId ?? '', 10);
@@ -86,7 +88,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
       lessonEmoji: lesson.lessonEmoji,
       active: lesson.active,
       source: { lessonName: lesson.lessonName },
-      translation: { lessonName: lessonTranslation?.lessonName ?? '' },
+      translation: { lessonName: lessonTranslation?.lessonName ?? '', URL: lessonTranslation?.URL ?? '' },
       status: track(translationFieldStatuses(lesson, lessonTranslation, LESSON_TRANSLATABLE_FIELDS)),
       elements: lesson.elements.map((element) => {
         const elementTranslation = element.translations[0] ?? null;
@@ -130,6 +132,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
     courseTranslation: {
       active: translation.active,
       updatedAt: translation.updatedAt,
+      URL: translation.URL ?? '',
       fields: Object.fromEntries(COURSE_TRANSLATABLE_FIELDS.map((field) => [field, translation[field] ?? '']))
     },
     courseStatus,
@@ -143,6 +146,16 @@ function readTranslatedFields<F extends string>(formData: FormData, fields: read
   return Object.fromEntries(
     fields.map((field) => [field, readString(formData, field) || null])
   ) as Record<F, string | null>;
+}
+
+// Empty means "keep the source slug". The slug is not a translated text, so it
+// has no source hash and never shows up as missing or outdated.
+function readTranslatedSlug(formData: FormData) {
+  const slug = readString(formData, 'URL');
+  if (slug && !SLUG_PATTERN.test(slug)) {
+    throw error(400, 'Die URL darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.');
+  }
+  return slug || null;
 }
 
 type TranslationActionResult = { success: boolean; action: string; message: string; entityKey?: string };
@@ -187,9 +200,13 @@ export const actions: Actions = {
       async () => {
         const { course, lang } = await requireCourseAndLang(params);
         const fields = readTranslatedFields(formData, COURSE_TRANSLATABLE_FIELDS);
+        const URL = readTranslatedSlug(formData);
+        if (URL && (await courseSlugTaken(URL, { courseId: course.id, lang }))) {
+          throw error(400, `Die Kurs-URL "${URL}" ist bereits vergeben.`);
+        }
         await prisma.courseTranslation.update({
           where: { courseId_lang: { courseId: course.id, lang } },
-          data: { ...fields, sourceHashes: buildSourceHashes(course, fields, COURSE_TRANSLATABLE_FIELDS) }
+          data: { ...fields, URL, sourceHashes: buildSourceHashes(course, fields, COURSE_TRANSLATABLE_FIELDS) }
         });
         return 'Die Kursdaten wurden gespeichert.';
       }
@@ -212,7 +229,11 @@ export const actions: Actions = {
         if (!lesson || lesson.courseId !== course.id) throw error(404, 'Lektion wurde nicht gefunden.');
 
         const fields = readTranslatedFields(formData, LESSON_TRANSLATABLE_FIELDS);
-        const data = { ...fields, sourceHashes: buildSourceHashes(lesson, fields, LESSON_TRANSLATABLE_FIELDS) };
+        const URL = readTranslatedSlug(formData);
+        if (URL && (await lessonSlugTaken(course.id, URL, { lessonId: lesson.id, lang }))) {
+          throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
+        }
+        const data = { ...fields, URL, sourceHashes: buildSourceHashes(lesson, fields, LESSON_TRANSLATABLE_FIELDS) };
         await prisma.lessonTranslation.upsert({
           where: { lessonId_lang: { lessonId: lesson.id, lang } },
           create: { lessonId: lesson.id, lang, ...data },

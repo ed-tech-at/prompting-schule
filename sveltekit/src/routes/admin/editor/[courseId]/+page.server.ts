@@ -1,6 +1,7 @@
 import { error, fail, isHttpError, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
+import { courseSlugTaken, lessonSlugTaken } from '$lib/server/editor/slugs';
 import {
   EDITOR_AUDIT_ACTIONS,
   editorAuditFailure,
@@ -39,7 +40,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   const translations = await prisma.courseTranslation.findMany({
     where: { courseId: course.id },
     orderBy: { lang: 'asc' },
-    select: { lang: true, active: true, updatedAt: true }
+    select: { lang: true, active: true, updatedAt: true, URL: true }
   });
 
   return { actor, course, lessons, translations, courseLangs: [...COURSE_LANGS] };
@@ -90,8 +91,9 @@ export const actions: Actions = {
       }
 
       if (URL !== course.URL) {
-        const existing = await prisma.course.findUnique({ where: { URL } });
-        if (existing) throw error(400, `Die Kurs-URL "${URL}" ist bereits vergeben.`);
+        if (await courseSlugTaken(URL, { courseId: course.id })) {
+          throw error(400, `Die Kurs-URL "${URL}" ist bereits vergeben.`);
+        }
       }
 
       await prisma.course.update({
@@ -143,8 +145,7 @@ export const actions: Actions = {
         throw error(400, 'Die URL darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.');
       }
 
-      const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: course.id, URL } } });
-      if (existing) {
+      if (await lessonSlugTaken(course.id, URL)) {
         throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
       }
 
@@ -218,8 +219,7 @@ export const actions: Actions = {
       }
 
       if (URL !== lesson.URL) {
-        const existing = await prisma.lesson.findUnique({ where: { courseId_URL: { courseId: course.id, URL } } });
-        if (existing) {
+        if (await lessonSlugTaken(course.id, URL, { lessonId: lesson.id })) {
           throw error(400, `Die Lektions-URL "${URL}" ist in diesem Kurs bereits vergeben.`);
         }
       }

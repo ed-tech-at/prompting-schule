@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   courseFindUnique: vi.fn(),
+  courseFindFirst: vi.fn(),
+  courseFindUniqueOrThrow: vi.fn(),
+  lessonFindUniqueOrThrow: vi.fn(),
   lessonFindFirst: vi.fn(),
   lessonFindMany: vi.fn(),
   elementFindMany: vi.fn(),
@@ -10,8 +13,16 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('$lib/server/db', () => ({
   prisma: {
-    course: { findUnique: mocks.courseFindUnique },
-    lesson: { findFirst: mocks.lessonFindFirst, findMany: mocks.lessonFindMany },
+    course: {
+      findUnique: mocks.courseFindUnique,
+      findFirst: mocks.courseFindFirst,
+      findUniqueOrThrow: mocks.courseFindUniqueOrThrow
+    },
+    lesson: {
+      findFirst: mocks.lessonFindFirst,
+      findMany: mocks.lessonFindMany,
+      findUniqueOrThrow: mocks.lessonFindUniqueOrThrow
+    },
     element: { findMany: mocks.elementFindMany },
     quizQuestion: { findMany: mocks.quizFindMany },
     badge: { findMany: vi.fn().mockResolvedValue([]) }
@@ -26,15 +37,21 @@ import { load as courseLoad } from './[kursUrl]/+page.server';
 import { load as lessonLoad } from './[kursUrl]/[lessonUrl]/+page.server';
 import { load as quizLoad } from './[kursUrl]/[lessonUrl]/quiz/+page.server';
 import { load as englishLessonLoad } from '../en/course/[kursUrl]/[lessonUrl]/+page.server';
+import { load as englishQuizLoad } from '../en/course/[kursUrl]/[lessonUrl]/quiz/+page.server';
 import type { loadLessonPage } from '$lib/server/coursePages';
 
-const event = (params: Record<string, string>) => ({ params, cookies: {} }) as never;
+const event = (params: Record<string, string>) =>
+  ({ params, cookies: {}, url: new URL('http://localhost/?tab=1') }) as never;
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.elementFindMany.mockResolvedValue([]);
   mocks.quizFindMany.mockResolvedValue([]);
   mocks.lessonFindMany.mockResolvedValue([]);
+  // No translated slug matches unless a test says so.
+  mocks.courseFindFirst.mockResolvedValue(null);
+  mocks.courseFindUniqueOrThrow.mockResolvedValue({ URL: 'kurs', translations: [] });
+  mocks.lessonFindUniqueOrThrow.mockResolvedValue({ URL: 'lektion', translations: [] });
 });
 
 describe('German course loads keep the course/lesson scope', () => {
@@ -152,5 +169,52 @@ describe('Course languages', () => {
     >;
 
     expect(data.langLinks).toEqual({ de: '/kurs/kurs/lektion' });
+  });
+
+  it('resolves translated slugs and links each language with its own slugs', async () => {
+    const course = {
+      id: 1,
+      URL: 'kurs',
+      lang: 'de',
+      active: 1,
+      translations: [{ lang: 'en', active: 1, URL: 'course' }]
+    };
+    mocks.courseFindFirst.mockResolvedValue(course);
+    mocks.courseFindUnique.mockResolvedValue(course);
+    mocks.lessonFindFirst.mockResolvedValue({
+      id: 10,
+      URL: 'lektion',
+      courseId: 1,
+      translations: [{ lang: 'en', URL: 'lesson' }]
+    });
+    mocks.courseFindUniqueOrThrow.mockResolvedValue({ URL: 'kurs', translations: [{ lang: 'en', URL: 'course' }] });
+    mocks.lessonFindUniqueOrThrow.mockResolvedValue({ URL: 'lektion', translations: [{ lang: 'en', URL: 'lesson' }] });
+
+    const data = (await englishLessonLoad(event({ kursUrl: 'course', lessonUrl: 'lesson' }))) as Awaited<
+      ReturnType<typeof loadLessonPage>
+    >;
+
+    expect(mocks.courseFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { translations: { some: { lang: 'en', URL: 'course' } } } })
+    );
+    expect(data.course.URL).toBe('course');
+    expect(data.lesson.URL).toBe('lesson');
+    expect(data.langLinks).toEqual({ de: '/kurs/kurs/lektion', en: '/en/course/course/lesson' });
+  });
+
+  it('redirects the source slugs permanently to the translated ones', async () => {
+    const course = { id: 1, URL: 'kurs', lang: 'de', active: 1, translations: [{ lang: 'en', active: 1, URL: 'course' }] };
+    mocks.courseFindUnique.mockResolvedValue(course);
+    mocks.lessonFindFirst.mockResolvedValue({
+      id: 10,
+      URL: 'lektion',
+      courseId: 1,
+      translations: [{ lang: 'en', URL: 'lesson' }]
+    });
+
+    await expect(englishQuizLoad(event({ kursUrl: 'kurs', lessonUrl: 'lektion' }))).rejects.toMatchObject({
+      status: 301,
+      location: expect.stringMatching(/\/en\/course\/course\/lesson\/quiz\?tab=1$/)
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { error, fail, isHttpError, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
+import { courseSlugTaken } from '$lib/server/editor/slugs';
 import {
   EDITOR_AUDIT_ACTIONS,
   editorAuditFailure,
@@ -53,8 +54,7 @@ export const actions: Actions = {
       }
       if (!['de', 'en'].includes(lang)) throw error(400, 'Wählen Sie eine Sprache (de oder en).');
 
-      const existing = await prisma.course.findUnique({ where: { URL } });
-      if (existing) throw error(400, `Die Kurs-URL "${URL}" ist bereits vergeben.`);
+      if (await courseSlugTaken(URL)) throw error(400, `Die Kurs-URL "${URL}" ist bereits vergeben.`);
 
       const maxPosition = await prisma.course.aggregate({ _max: { position: true } });
       const course = await prisma.course.create({

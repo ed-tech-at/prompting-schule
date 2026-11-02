@@ -18,9 +18,11 @@ export type CourseTranslationExport = {
   description: string | null;
   introDescription: string | null;
   introDescriptionSuffix: string | null;
+  // Translated slug; null = the source URL. Missing in older files.
+  URL: string | null;
   sourceHashes: SourceHashes;
 };
-export type LessonTranslationExport = { lessonName: string | null; sourceHashes: SourceHashes };
+export type LessonTranslationExport = { lessonName: string | null; URL: string | null; sourceHashes: SourceHashes };
 export type ElementTranslationExport = {
   title: string | null;
   description: string | null;
@@ -164,6 +166,7 @@ export function serializeCourse(
       translations: byLang(course.translations, (row) => ({
         active: typeof row.active === 'number' ? row.active : 0,
         ...pickTexts(row, COURSE_TEXT_FIELDS),
+        URL: asNullableString(row.URL),
         sourceHashes: asSourceHashes(row.sourceHashes)
       })),
       lessons: [...course.lessons].sort(byPosition).map((lesson) => ({
@@ -175,6 +178,7 @@ export function serializeCourse(
         position: lesson.position,
         translations: byLang(lesson.translations, (row) => ({
           lessonName: asNullableString(row.lessonName),
+          URL: asNullableString(row.URL),
           sourceHashes: asSourceHashes(row.sourceHashes)
         })),
         elements: [...lesson.elements].sort(byPosition).map((element) => ({
@@ -241,6 +245,31 @@ function checkNullableStrings(
   for (const field of fields) {
     if (!isNullableString(entry[field])) {
       errors.push(`${label}: das Feld "${field}" muss Text oder null sein.`);
+    }
+  }
+}
+
+// Translated slugs are optional: anything that is not a valid slug is
+// dropped instead of failing the whole import.
+function asTranslatedSlug(value: unknown): string | null {
+  return typeof value === 'string' && /^[a-z0-9-]+$/.test(value) ? value : null;
+}
+
+// A lesson slug must lead to one lesson per course and language. Translated
+// slugs that clash with another lesson of the file fall back to the source URL.
+function dropClashingLessonSlugs(lessons: LessonExport[]) {
+  const sourceUrls = new Map(lessons.map((lesson) => [lesson.URL, lesson]));
+  const seen = new Map<string, LessonExport>();
+  for (const lesson of lessons) {
+    for (const [lang, translation] of Object.entries(lesson.translations ?? {})) {
+      if (!translation.URL) continue;
+      const key = `${lang}/${translation.URL}`;
+      const sourceOwner = sourceUrls.get(translation.URL);
+      if ((sourceOwner && sourceOwner !== lesson) || (seen.get(key) ?? lesson) !== lesson) {
+        translation.URL = null;
+      } else {
+        seen.set(key, lesson);
+      }
     }
   }
 }
@@ -450,7 +479,11 @@ export function parseCourseExportFile(text: string): ParseResult {
 
     const lessonTranslations = parseTranslations(rawLesson.translations, label, errors, (entry, entryLabel) => {
       checkNullableStrings(entry, ['lessonName'], entryLabel, errors);
-      return { lessonName: asNullableString(entry.lessonName), sourceHashes: asSourceHashes(entry.sourceHashes) };
+      return {
+        lessonName: asNullableString(entry.lessonName),
+        URL: asTranslatedSlug(entry.URL),
+        sourceHashes: asSourceHashes(entry.sourceHashes)
+      };
     });
     lessons.push({
       lessonName: typeof rawLesson.lessonName === 'string' ? rawLesson.lessonName : '',
@@ -473,9 +506,11 @@ export function parseCourseExportFile(text: string): ParseResult {
     return {
       active: isInteger(entry.active) ? (entry.active as number) : 0,
       ...pickTexts(entry, COURSE_TEXT_FIELDS),
+      URL: asTranslatedSlug(entry.URL),
       sourceHashes: asSourceHashes(entry.sourceHashes)
     };
   });
+  dropClashingLessonSlugs(lessons);
 
   if (errors.length > 0) {
     return { ok: false, errors };

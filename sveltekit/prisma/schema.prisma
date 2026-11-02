@@ -149,6 +149,10 @@ model CourseTranslation {
   introDescription       String?
   introDescriptionSuffix String?
 
+  // Übersetzter Kurs-Slug; leer = Course.URL. Die App hält ihn auch gegenüber
+  // allen Course.URL eindeutig, damit jeder Slug genau einen Kurs meint.
+  URL String? @unique
+
   // { feldname: Hash des Originaltexts zum Zeitpunkt der Übersetzung }
   sourceHashes Json?
 
@@ -191,6 +195,9 @@ model LessonTranslation {
   lang     String
 
   lessonName String?
+  // Übersetzter Lektions-Slug; leer = Lesson.URL. Eindeutig je Kurs und
+  // Sprache (prüft die App, da hier kein courseId steht).
+  URL        String?
 
   sourceHashes Json?
   updatedAt    DateTime @updatedAt

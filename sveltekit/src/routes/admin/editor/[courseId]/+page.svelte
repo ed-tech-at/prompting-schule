@@ -31,8 +31,8 @@
     return `${resolve('/admin/editor')}/${data.course.id}/translate/${lang}`;
   }
 
-  function learnerHref(lang: string): string {
-    return isCourseLang(lang) ? courseHref(coursePaths(lang).course(data.course.URL)) : '#';
+  function learnerHref(lang: string, slug?: string | null): string {
+    return isCourseLang(lang) ? courseHref(coursePaths(lang).course(slug || data.course.URL)) : '#';
   }
 
   function langLabel(lang: string): string {
@@ -186,7 +186,7 @@
               <td>
                 <div class="actions">
                   <a class="button-link compact" href={translateHref(translation.lang)}>Übersetzen</a>
-                  <a class="button-link compact secondary" href={learnerHref(translation.lang)} target="_blank" rel="noopener">Ansehen ↗</a>
+                  <a class="button-link compact secondary" href={learnerHref(translation.lang, translation.URL)} target="_blank" rel="noopener">Ansehen ↗</a>
                   <details class="delete-translation">
                     <summary class="button-link compact danger">Löschen</summary>
                     <form method="POST" action="?/deleteTranslation" class="dialog-form">

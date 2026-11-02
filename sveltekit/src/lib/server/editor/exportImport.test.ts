@@ -197,11 +197,11 @@ describe('translations in the export', () => {
     return {
       ...course,
       translations: [
-        { lang: 'en', active: 0, name: 'Test course', description: null, introDescription: null, introDescriptionSuffix: null, sourceHashes: { name: 'abc' } }
+        { lang: 'en', active: 0, name: 'Test course', description: null, introDescription: null, introDescriptionSuffix: null, URL: 'test-course', sourceHashes: { name: 'abc' } }
       ],
       lessons: course.lessons.map((lesson) => ({
         ...lesson,
-        translations: [{ lang: 'en', lessonName: 'Lesson 1', sourceHashes: null }],
+        translations: [{ lang: 'en', lessonName: 'Lesson 1', URL: 'lesson-1', sourceHashes: null }],
         elements: lesson.elements.map((element) => ({
           ...element,
           translations: [{ lang: 'en', description: '<p>Hello</p>', sourceHashes: { description: 'def' } }]
@@ -225,9 +225,11 @@ describe('translations in the export', () => {
         description: null,
         introDescription: null,
         introDescriptionSuffix: null,
+        URL: 'test-course',
         sourceHashes: { name: 'abc' }
       }
     });
+    expect(serialized.course.lessons[0].translations?.en.URL).toBe('lesson-1');
     expect(serialized.course.lessons[0].elements[0].translations?.en).toMatchObject({
       description: '<p>Hello</p>',
       title: null,
@@ -257,6 +259,22 @@ describe('translations in the export', () => {
     if (parsed.ok) {
       expect(parsed.data.course.translations).toBeUndefined();
       expect(parsed.data.course.lessons[0].elements[0].translations).toBeUndefined();
+    }
+  });
+
+  it('drops translated slugs that are invalid or lead to another lesson', () => {
+    const file = JSON.parse(JSON.stringify(serializeCourse(makeTranslatedCourse())));
+    file.course.translations.en.URL = 'Not a slug!';
+    const second = { ...file.course.lessons[0], URL: 'lektion-2', translations: { en: { lessonName: null, URL: 'lektion-1' } } };
+    file.course.lessons.push(second);
+
+    const parsed = parseCourseExportFile(JSON.stringify(file));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course.translations?.en.URL).toBeNull();
+      expect(parsed.data.course.lessons[0].translations?.en.URL).toBe('lesson-1');
+      // "lektion-1" is the source URL of the first lesson.
+      expect(parsed.data.course.lessons[1].translations?.en.URL).toBeNull();
     }
   });
 
