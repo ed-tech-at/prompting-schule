@@ -17,6 +17,7 @@
     elements: LessonElement[];
     user: JwtUserPayload;
     lang: CourseLang;
+    langLinks: Partial<Record<CourseLang, string>>;
   };
 
   $: t = COURSE_TEXTS[data.lang];
@@ -182,6 +183,7 @@ textAreas[0].dispatchEvent(new Event('input'));
   ]}
   user={data.user}
   lang={data.lang}
+  langLinks={data.langLinks}
 />
 <main>
 

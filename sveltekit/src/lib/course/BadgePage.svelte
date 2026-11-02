@@ -14,6 +14,7 @@
     user: JwtUserPayload;
     maxPrompts: number;
     lang: CourseLang;
+    langLinks: Partial<Record<CourseLang, string>>;
   };
 
   $: t = COURSE_TEXTS[data.lang];
@@ -62,6 +63,7 @@
   ]}
   user={data.user}
   lang={data.lang}
+  langLinks={data.langLinks}
 />
 
 <main>

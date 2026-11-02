@@ -49,7 +49,7 @@ describe('German course loads keep the course/lesson scope', () => {
     ['lesson', lessonLoad, mocks.elementFindMany],
     ['quiz', quizLoad, mocks.quizFindMany]
   ])('%s load returns 404 for an unknown lesson and runs no unscoped query', async (_, load, childQuery) => {
-    mocks.courseFindUnique.mockResolvedValue({ id: 1, URL: 'kurs', lang: 'de', active: 1 });
+    mocks.courseFindUnique.mockResolvedValue({ id: 1, URL: 'kurs', lang: 'de', active: 1, translations: [] });
     mocks.lessonFindFirst.mockResolvedValue(null);
 
     await expect(load(event({ kursUrl: 'kurs', lessonUrl: 'gibt-es-nicht' }))).rejects.toMatchObject({
@@ -62,7 +62,7 @@ describe('German course loads keep the course/lesson scope', () => {
   });
 
   it('queries elements only for the resolved lesson', async () => {
-    mocks.courseFindUnique.mockResolvedValue({ id: 1, URL: 'kurs', lang: 'de', active: 1 });
+    mocks.courseFindUnique.mockResolvedValue({ id: 1, URL: 'kurs', lang: 'de', active: 1, translations: [] });
     mocks.lessonFindFirst.mockResolvedValue({ id: 10, URL: 'lektion', courseId: 1 });
 
     await lessonLoad(event({ kursUrl: 'kurs', lessonUrl: 'lektion' }));
@@ -129,5 +129,28 @@ describe('Course languages', () => {
     // System prompts never reach the browser, translated or not.
     expect(data.elements[0].devPromptA).toBeNull();
     expect(data.elements[0]).not.toHaveProperty('translations');
+    // Learners get no flag link to the hidden English version from German
+    // pages, but on the English page itself the flag points to this page.
+    expect(data.langLinks).toEqual({
+      de: '/kurs/kurs/lektion',
+      en: '/en/course/kurs/lektion'
+    });
+  });
+
+  it('links the flags only to listed language versions', async () => {
+    mocks.courseFindUnique.mockResolvedValue({
+      id: 1,
+      URL: 'kurs',
+      lang: 'de',
+      active: 1,
+      translations: [{ lang: 'en', active: 0 }]
+    });
+    mocks.lessonFindFirst.mockResolvedValue({ id: 10, URL: 'lektion', courseId: 1, translations: [] });
+
+    const data = (await lessonLoad(event({ kursUrl: 'kurs', lessonUrl: 'lektion' }))) as Awaited<
+      ReturnType<typeof loadLessonPage>
+    >;
+
+    expect(data.langLinks).toEqual({ de: '/kurs/kurs/lektion' });
   });
 });

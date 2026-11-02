@@ -4,7 +4,6 @@
   import LessonRender from './LessonRender.svelte';
   import type { JwtUserPayload } from '$lib/server/jwt';
   import { COURSE_TEXTS, coursePaths, type CourseLang } from '$lib/courseLang';
-  import { courseHref } from './href';
 
   export let data: {
     course: Course;
@@ -12,7 +11,7 @@
     user: JwtUserPayload;
     latestBadge: Record<number, Badge>;
     lang: CourseLang;
-    otherLangs: CourseLang[];
+    langLinks: Partial<Record<CourseLang, string>>;
   };
 
   $: t = COURSE_TEXTS[data.lang];
@@ -26,17 +25,10 @@
   ]}
   user={data.user}
   lang={data.lang}
+  langLinks={data.langLinks}
 />
 <main>
   <h1>{t.coursePrefix}: {data.course.name}</h1>
-
-  {#each data.otherLangs as otherLang}
-    <p class="other-lang">
-      <a href={courseHref(coursePaths(otherLang).course(data.course.URL))} hreflang={otherLang} lang={otherLang}>
-        {COURSE_TEXTS[otherLang].otherLanguage}
-      </a>
-    </p>
-  {/each}
 
   <div>{@html data.course.introDescription}</div>
 

@@ -199,3 +199,23 @@ export async function streamAiResponse({
     }
   });
 }
+
+// Pre-translation for the course translate view. Not streamed: the editor fills
+// one field at a time and needs the complete text.
+export async function translateWithAi(instructions: string, text: string): Promise<string> {
+  const client = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    baseURL: OPENAI_BASE_URL
+  });
+
+  const response = await client.responses.create({
+    model: OPENAI_MODEL,
+    instructions,
+    input: text,
+    reasoning: { effort: 'low' },
+    text: { verbosity: 'low' } as never,
+    max_output_tokens: 16000
+  });
+
+  return response.output_text.trim();
+}

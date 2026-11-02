@@ -13,9 +13,11 @@ import {
   findLessonsForLang,
   findQuizQuestionsForLang,
   listCoursesForLang,
-  listedLanguagesOfCourse
+  linkableLanguagesOfCourse
 } from '$lib/server/courseTranslations';
-import { COURSE_TEXTS, coursePaths, type CourseLang } from '$lib/courseLang';
+import { EDITOR_LEVEL } from '$lib/server/editor';
+import { COURSE_LANGS, COURSE_TEXTS, coursePaths, type CourseLang } from '$lib/courseLang';
+import type { JwtUserPayload } from '$lib/server/jwt';
 
 // Shared loaders for the German (/kurs/...) and English (/en/course/...) course
 // pages. The routes only pick the language; content and rules live here.
@@ -31,6 +33,22 @@ async function requireCourse(params: Record<string, string>, lang: CourseLang) {
     throw error(404, COURSE_TEXTS[lang].courseNotFound);
   }
   return course;
+}
+
+type CoursePaths = ReturnType<typeof coursePaths>;
+
+// Targets for the language flags in the header: the same page in every
+// language the course exists in. Missing languages fall back to their start page.
+async function languageLinks(
+  courseId: number,
+  lang: CourseLang,
+  user: JwtUserPayload,
+  pathFor: (paths: CoursePaths) => string
+): Promise<Partial<Record<CourseLang, string>>> {
+  const langs = new Set(await linkableLanguagesOfCourse(courseId, user.isAdmin >= EDITOR_LEVEL));
+  // The current page is always its own target, even while it is still hidden.
+  langs.add(lang);
+  return Object.fromEntries([...langs].map((target) => [target, pathFor(coursePaths(target))]));
 }
 
 async function requireLesson(courseId: number, params: Record<string, string>, lang: CourseLang) {
@@ -50,7 +68,9 @@ export async function loadCourseList({ cookies }: Pick<CourseEvent, 'cookies'>, 
     loadInfoBlocks({ placement: 'kursuebersicht', lang, email: user.email })
   ]);
 
-  return { courses, user, infoBlocks, lang };
+  const langLinks = Object.fromEntries(COURSE_LANGS.map((other) => [other, coursePaths(other).courses]));
+
+  return { courses, user, infoBlocks, lang, langLinks };
 }
 
 export async function loadCoursePage({ params, cookies }: CourseEvent, lang: CourseLang) {
@@ -70,9 +90,9 @@ export async function loadCoursePage({ params, cookies }: CourseEvent, lang: Cou
     }
   }
 
-  const otherLangs = (await listedLanguagesOfCourse(course.id)).filter((other) => other !== lang);
+  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.course(course.URL));
 
-  return { course, lessons, user, latestBadge, lang, otherLangs };
+  return { course, lessons, user, latestBadge, lang, langLinks };
 }
 
 export async function loadLessonPage({ params, cookies }: CourseEvent, lang: CourseLang) {
@@ -81,8 +101,9 @@ export async function loadLessonPage({ params, cookies }: CourseEvent, lang: Cou
   const lesson = await requireLesson(course.id, params, lang);
 
   const elements = redactElementPrompts(await findElementsForLang(lesson.id, lang));
+  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.lesson(course.URL, lesson.URL));
 
-  return { course, lesson, elements, user, lang };
+  return { course, lesson, elements, user, lang, langLinks };
 }
 
 export async function loadQuizPage({ params, cookies }: CourseEvent, lang: CourseLang) {
@@ -104,7 +125,9 @@ export async function loadQuizPage({ params, cookies }: CourseEvent, lang: Cours
     }
   }
 
-  return { course, lesson, quizQuestions, user, lang };
+  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.quiz(course.URL, lesson.URL));
+
+  return { course, lesson, quizQuestions, user, lang, langLinks };
 }
 
 export async function loadBadgePage({ params, cookies }: CourseEvent, lang: CourseLang) {
@@ -140,5 +163,7 @@ export async function loadBadgePage({ params, cookies }: CourseEvent, lang: Cour
     throw redirect(302, coursesPath);
   }
 
-  return { course, lesson, bestQuiz, badges, user, maxPrompts, lang };
+  const langLinks = await languageLinks(course.id, lang, user, (paths) => paths.badge(course.URL, lesson.URL));
+
+  return { course, lesson, bestQuiz, badges, user, maxPrompts, lang, langLinks };
 }

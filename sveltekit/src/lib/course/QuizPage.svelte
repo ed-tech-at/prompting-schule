@@ -9,7 +9,14 @@
   type QuizOption = { index: number; text: string };
   type Question = { id: number; question: string; type: string; options: QuizOption[] };
 
-  export let data: { course: Course; lesson: Lesson; quizQuestions: Question[]; user: JwtUserPayload; lang: CourseLang };
+  export let data: {
+    course: Course;
+    lesson: Lesson;
+    quizQuestions: Question[];
+    user: JwtUserPayload;
+    lang: CourseLang;
+    langLinks: Partial<Record<CourseLang, string>>;
+  };
 
   $: t = COURSE_TEXTS[data.lang];
   $: paths = coursePaths(data.lang);
@@ -83,6 +90,7 @@
   ]}
   user={data.user}
   lang={data.lang}
+  langLinks={data.langLinks}
 />
 
 <main>

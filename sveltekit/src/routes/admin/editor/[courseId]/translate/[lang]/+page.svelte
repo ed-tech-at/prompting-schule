@@ -57,12 +57,129 @@
     return form?.entityKey === entityKey ? form : null;
   }
 
+  // Forms with AI suggestions that are not saved yet.
+  let unsaved: Record<string, boolean> = {};
+  // Lets the bulk run wait until a form it submitted is saved.
+  const saveWaiters = new Map<HTMLFormElement, () => void>();
+
   // Keep what was typed in the other forms and the scroll position after saving.
-  const keepValues: SubmitFunction = () => {
-    return async ({ update }) => {
+  const keepValues: SubmitFunction = ({ formElement }) => {
+    return async ({ update, result }) => {
       await update({ reset: false });
+      if (result.type === 'success') {
+        const key = formElement.dataset.formKey;
+        if (key) unsaved = { ...unsaved, [key]: false };
+      }
+      saveWaiters.get(formElement)?.();
+      saveWaiters.delete(formElement);
     };
   };
+
+  // ---- AI pre-translation ----
+
+  let busy: Record<string, boolean> = {};
+  let aiError = '';
+
+  type AiTarget = HTMLInputElement | HTMLTextAreaElement;
+
+  function pairParts(button: HTMLElement) {
+    const pair = button.closest<HTMLElement>('.field-pair');
+    const source = pair?.querySelector<AiTarget>('.source');
+    const target = pair?.querySelector<AiTarget>('textarea:not(.source), input:not(.source)');
+    const form = button.closest<HTMLFormElement>('form');
+    return { pair, source, target, form };
+  }
+
+  async function translateField(button: HTMLElement): Promise<boolean> {
+    const key = button.dataset.aiKey ?? '';
+    const field = button.dataset.aiField ?? '';
+    const { source, target, form } = pairParts(button);
+    if (!source || !target || busy[key]) return false;
+
+    busy = { ...busy, [key]: true };
+    aiError = '';
+    try {
+      const response = await fetch(`${editorHref(`/${data.course.id}/translate/${data.lang}`)}/ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, text: source.value })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        aiError = result.message ?? 'Die KI-Übersetzung ist fehlgeschlagen.';
+        return false;
+      }
+      target.value = result.translation ?? '';
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+      const formKey = form?.dataset.formKey;
+      if (formKey) unsaved = { ...unsaved, [formKey]: true };
+      return true;
+    } catch {
+      aiError = 'Die KI-Übersetzung ist fehlgeschlagen. Bitte Verbindung prüfen.';
+      return false;
+    } finally {
+      busy = { ...busy, [key]: false };
+    }
+  }
+
+  let bulkRunning = false;
+  let bulkStop = false;
+  let bulkDone = 0;
+  let bulkTotal = 0;
+
+  function missingButtons(attempted: Set<string>) {
+    return [...document.querySelectorAll<HTMLButtonElement>('button[data-ai-key]')].filter((button) => {
+      const { pair, target } = pairParts(button);
+      return (
+        pair?.dataset.status === 'missing' &&
+        target !== null && target !== undefined &&
+        target.value.trim() === '' &&
+        !attempted.has(button.dataset.aiKey ?? '')
+      );
+    });
+  }
+
+  function saveForm(form: HTMLFormElement): Promise<void> {
+    return new Promise((resolve) => {
+      saveWaiters.set(form, resolve);
+      form.requestSubmit();
+    });
+  }
+
+  // Strictly one request after the other, so the AI service is never flooded.
+  // Every form is saved as soon as its missing fields are filled.
+  async function translateAllMissing() {
+    const attempted = new Set<string>();
+    bulkRunning = true;
+    bulkStop = false;
+    bulkDone = 0;
+    bulkTotal = missingButtons(attempted).length;
+    aiError = '';
+
+    let currentForm: HTMLFormElement | null = null;
+    try {
+      while (!bulkStop) {
+        const [button] = missingButtons(attempted);
+        if (!button) break;
+        attempted.add(button.dataset.aiKey ?? '');
+
+        const form = button.closest('form');
+        if (currentForm && form !== currentForm) {
+          await saveForm(currentForm);
+        }
+        currentForm = form;
+
+        const ok = await translateField(button);
+        if (!ok) break;
+        bulkDone += 1;
+      }
+      if (currentForm && unsaved[currentForm.dataset.formKey ?? '']) {
+        await saveForm(currentForm);
+      }
+    } finally {
+      bulkRunning = false;
+    }
+  }
 
   function editorHref(path: string) {
     return `${resolve('/admin/editor')}${path}`;
@@ -117,6 +234,23 @@
       <p class:error={!form?.success} class="inline-message" role="status">{form?.message}</p>
     {/if}
 
+    <div class="bulk">
+      {#if bulkRunning}
+        <span class="bulk-progress" role="status">KI übersetzt {bulkDone} von {bulkTotal} …</span>
+        <button type="button" class="secondary" on:click={() => (bulkStop = true)} disabled={bulkStop}>
+          {bulkStop ? 'Wird gestoppt …' : 'Stopp'}
+        </button>
+      {:else}
+        <button type="button" on:click={translateAllMissing} disabled={data.counts.missing === 0}>
+          ✨ Alle fehlenden mit KI übersetzen
+        </button>
+        <span class="hint">Feld für Feld nacheinander; jeder fertige Block wird gespeichert. Bitte danach gegenlesen.</span>
+      {/if}
+    </div>
+    {#if aiError}
+      <p class="inline-message error" role="alert">{aiError}</p>
+    {/if}
+
     <label class="filter">
       <input type="checkbox" bind:checked={onlyOpen} />
       Nur fehlende und veraltete Einträge zeigen
@@ -126,14 +260,22 @@
   {#if !onlyOpen || isOpen(data.courseStatus)}
     <section class="panel" aria-labelledby="course-title">
       <h2 id="course-title">Kursdaten</h2>
-      <form method="POST" action="?/saveCourse" use:enhance={keepValues} class="entity">
+      <form method="POST" action="?/saveCourse" use:enhance={keepValues} class="entity" data-form-key="course">
         {#each Object.keys(COURSE_FIELD_LABELS) as field}
           {#if data.courseStatus[field] !== 'notNeeded'}
             {@const source = String(data.course[field as keyof typeof data.course] ?? '')}
-            <div class="field-pair">
+            <div class="field-pair" data-status={data.courseStatus[field]}>
               <div class="field-head">
                 <span class="field-label">{COURSE_FIELD_LABELS[field]}</span>
                 <span class="status {data.courseStatus[field]}">{STATUS_LABELS[data.courseStatus[field]]}</span>
+                <button
+                  type="button"
+                  class="ai-button"
+                  data-ai-key={`course-${field}`}
+                  data-ai-field={field}
+                  disabled={busy[`course-${field}`] || bulkRunning}
+                  on:click={(event) => translateField(event.currentTarget)}
+                >{busy[`course-${field}`] ? 'übersetzt …' : '✨ Mit KI übersetzen'}</button>
               </div>
               <textarea class="source" readonly rows={rowsFor(source)} aria-label="{COURSE_FIELD_LABELS[field]} (Original)">{source}</textarea>
               <textarea
@@ -147,6 +289,7 @@
         {/each}
         <div class="entity-actions">
           <button type="submit">Kursdaten speichern</button>
+          {#if unsaved.course}<span class="unsaved">KI-Vorschlag noch nicht gespeichert</span>{/if}
           {#if messageFor('course') && form?.action === 'saveCourse'}
             <span class:error={!form?.success} class="inline-message" role="status">{form?.message}</span>
           {/if}
@@ -168,12 +311,20 @@
         </h2>
 
         {#if !onlyOpen || isOpen(lesson.status)}
-          <form method="POST" action="?/saveLesson" use:enhance={keepValues} class="entity">
+          <form method="POST" action="?/saveLesson" use:enhance={keepValues} class="entity" data-form-key="lesson-{lesson.id}">
             <input type="hidden" name="lessonId" value={lesson.id} />
-            <div class="field-pair">
+            <div class="field-pair" data-status={lesson.status.lessonName}>
               <div class="field-head">
                 <span class="field-label">Lektionsname</span>
                 <span class="status {lesson.status.lessonName}">{STATUS_LABELS[lesson.status.lessonName]}</span>
+                <button
+                  type="button"
+                  class="ai-button"
+                  data-ai-key={`lesson-${lesson.id}-lessonName`}
+                  data-ai-field={'lessonName'}
+                  disabled={busy[`lesson-${lesson.id}-lessonName`] || bulkRunning}
+                  on:click={(event) => translateField(event.currentTarget)}
+                >{busy[`lesson-${lesson.id}-lessonName`] ? 'übersetzt …' : '✨ Mit KI übersetzen'}</button>
               </div>
               <input class="source" readonly value={lesson.source.lessonName} aria-label="Lektionsname (Original)" />
               <input
@@ -185,6 +336,7 @@
             </div>
             <div class="entity-actions">
               <button type="submit" class="compact">Speichern</button>
+                {#if unsaved[`lesson-${lesson.id}`]}<span class="unsaved">KI-Vorschlag noch nicht gespeichert</span>{/if}
               {#if messageFor(`lesson-${lesson.id}`)}
                 <span class:error={!form?.success} class="inline-message" role="status">{form?.message}</span>
               {/if}
@@ -194,15 +346,23 @@
 
         {#each lesson.elements as element, index}
           {#if Object.values(element.status).some((status) => status !== 'notNeeded') && (!onlyOpen || isOpen(element.status))}
-            <form method="POST" action="?/saveElement" use:enhance={keepValues} class="entity element">
+            <form method="POST" action="?/saveElement" use:enhance={keepValues} class="entity element" data-form-key="element-{element.id}">
               <input type="hidden" name="elementId" value={element.id} />
               <h3>Element {index + 1} <code>{element.type}</code></h3>
               {#each Object.keys(ELEMENT_FIELD_LABELS) as field}
                 {#if element.status[field] !== 'notNeeded'}
-                  <div class="field-pair">
+                  <div class="field-pair" data-status={element.status[field]}>
                     <div class="field-head">
                       <span class="field-label">{ELEMENT_FIELD_LABELS[field]}</span>
                       <span class="status {element.status[field]}">{STATUS_LABELS[element.status[field]]}</span>
+                      <button
+                  type="button"
+                  class="ai-button"
+                  data-ai-key={`element-${element.id}-${field}`}
+                  data-ai-field={field}
+                  disabled={busy[`element-${element.id}-${field}`] || bulkRunning}
+                  on:click={(event) => translateField(event.currentTarget)}
+                >{busy[`element-${element.id}-${field}`] ? 'übersetzt …' : '✨ Mit KI übersetzen'}</button>
                     </div>
                     <textarea class="source" readonly rows={rowsFor(element.source[field])} aria-label="{ELEMENT_FIELD_LABELS[field]} (Original)">{element.source[field]}</textarea>
                     <textarea
@@ -216,6 +376,7 @@
               {/each}
               <div class="entity-actions">
                 <button type="submit" class="compact">Speichern</button>
+                {#if unsaved[`element-${element.id}`]}<span class="unsaved">KI-Vorschlag noch nicht gespeichert</span>{/if}
                 {#if messageFor(`element-${element.id}`)}
                   <span class:error={!form?.success} class="inline-message" role="status">{form?.message}</span>
                 {/if}
@@ -226,13 +387,21 @@
 
         {#each lesson.quizQuestions as question, index}
           {#if !onlyOpen || isOpen(question.status)}
-            <form method="POST" action="?/saveQuizQuestion" use:enhance={keepValues} class="entity quiz">
+            <form method="POST" action="?/saveQuizQuestion" use:enhance={keepValues} class="entity quiz" data-form-key="quiz-{question.id}">
               <input type="hidden" name="quizQuestionId" value={question.id} />
               <h3>Quizfrage {index + 1} <code>{question.type === 'm' ? 'Multiple Choice' : 'Single Choice'}</code></h3>
-              <div class="field-pair">
+              <div class="field-pair" data-status={question.status.question}>
                 <div class="field-head">
                   <span class="field-label">Frage</span>
                   <span class="status {question.status.question}">{STATUS_LABELS[question.status.question]}</span>
+                  <button
+                  type="button"
+                  class="ai-button"
+                  data-ai-key={`quiz-${question.id}-question`}
+                  data-ai-field={'question'}
+                  disabled={busy[`quiz-${question.id}-question`] || bulkRunning}
+                  on:click={(event) => translateField(event.currentTarget)}
+                >{busy[`quiz-${question.id}-question`] ? 'übersetzt …' : '✨ Mit KI übersetzen'}</button>
                 </div>
                 <textarea class="source" readonly rows={rowsFor(question.source.question)} aria-label="Frage (Original)">{question.source.question}</textarea>
                 <textarea
@@ -250,7 +419,7 @@
                 Bewertet wird über die Position der Antwort. Die Übersetzung muss also zur Antwort in derselben Zeile passen.
               </p>
               {#each question.source.options as option, optionIndex}
-                <div class="field-pair option">
+                <div class="field-pair option" data-status={question.translation.options[optionIndex] ? 'done' : 'missing'}>
                   <input
                     class="source"
                     readonly
@@ -263,13 +432,24 @@
                     lang={data.lang}
                     aria-label="Antwort {optionIndex + 1} ({langLabel})"
                   />
-                  {#if question.correct.includes(option)}
-                    <span class="correct" title="Richtige Antwort">✓ richtig</span>
-                  {/if}
+                  <span class="option-meta">
+                    {#if question.correct.includes(option)}
+                      <span class="correct" title="Richtige Antwort">✓ richtig</span>
+                    {/if}
+                    <button
+                  type="button"
+                  class="ai-button"
+                  data-ai-key={`quiz-${question.id}-option-${optionIndex}`}
+                  data-ai-field={'option'}
+                  disabled={busy[`quiz-${question.id}-option-${optionIndex}`] || bulkRunning}
+                  on:click={(event) => translateField(event.currentTarget)}
+                >{busy[`quiz-${question.id}-option-${optionIndex}`] ? 'übersetzt …' : '✨ KI'}</button>
+                  </span>
                 </div>
               {/each}
               <div class="entity-actions">
                 <button type="submit" class="compact">Speichern</button>
+                {#if unsaved[`quiz-${question.id}`]}<span class="unsaved">KI-Vorschlag noch nicht gespeichert</span>{/if}
                 {#if messageFor(`quiz-${question.id}`)}
                   <span class:error={!form?.success} class="inline-message" role="status">{form?.message}</span>
                 {/if}
@@ -343,6 +523,63 @@
 
   .visibility label {
     flex: 1 1 18rem;
+  }
+
+  .bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .bulk-progress {
+    font-weight: 600;
+  }
+
+  .ai-button {
+    min-height: 1.8rem;
+    margin-left: auto;
+    padding: 0.15rem 0.55rem;
+    border-color: #7a4fc4;
+    background: #f4effc;
+    color: #4b2a85;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .ai-button:hover {
+    background: #e6dbf8;
+    color: #3a1f6b;
+  }
+
+  .ai-button:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  .option-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .option-meta .ai-button {
+    margin-left: 0;
+  }
+
+  .unsaved {
+    font-size: 0.85rem;
+    color: #6b4b00;
+  }
+
+  button.secondary {
+    background: white;
+    color: var(--color-primary-darkest);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .filter {

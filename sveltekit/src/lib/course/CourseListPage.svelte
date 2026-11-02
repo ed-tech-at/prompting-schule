@@ -7,12 +7,18 @@
   import type { InfoBlockView } from '$lib/infoblocks';
   import { COURSE_TEXTS, coursePaths, type CourseLang } from '$lib/courseLang';
 
-  export let data: { courses: Course[]; user: JwtUserPayload; infoBlocks: InfoBlockView[]; lang: CourseLang };
+  export let data: {
+    courses: Course[];
+    user: JwtUserPayload;
+    infoBlocks: InfoBlockView[];
+    lang: CourseLang;
+    langLinks: Partial<Record<CourseLang, string>>;
+  };
 
   $: t = COURSE_TEXTS[data.lang];
 </script>
 
-<Header navItems={[{ name: t.navCourses, href: coursePaths(data.lang).courses }]} user={data.user} lang={data.lang} />
+<Header navItems={[{ name: t.navCourses, href: coursePaths(data.lang).courses }]} user={data.user} lang={data.lang} langLinks={data.langLinks} />
 <main>
   <h1>{t.coursesTitle}</h1>
 

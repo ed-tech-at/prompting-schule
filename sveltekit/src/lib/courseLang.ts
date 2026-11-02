@@ -40,8 +40,6 @@ const de = {
   coursesTitle: 'Übersicht der Kurse',
   coursePrefix: 'Kurs',
   lessonPrefix: 'Lektion',
-  // In der Zielsprache formuliert: steht als Link auf der Kursseite der anderen Sprache.
-  otherLanguage: 'Diesen Kurs gibt es auch auf Deutsch',
   courseNotFound: 'Kurs nicht gefunden',
   lessonNotFound: 'Lektion nicht gefunden',
 
@@ -130,7 +128,6 @@ const en: CourseTexts = {
   coursesTitle: 'Overview of Courses',
   coursePrefix: 'Course',
   lessonPrefix: 'Lesson',
-  otherLanguage: 'This course is also available in English',
   courseNotFound: 'Course not found',
   lessonNotFound: 'Lesson not found',
 

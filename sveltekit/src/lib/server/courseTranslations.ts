@@ -43,18 +43,19 @@ export async function findCourseForLang(courseUrl: string, lang: CourseLang) {
   return localizeCourse(course, lang);
 }
 
-// Other languages in which this course is listed, for a "also available in" link.
-export async function listedLanguagesOfCourse(courseId: number): Promise<CourseLang[]> {
+// Languages the language flags may link to for this course. Hidden language
+// versions (active 0) are only offered to editors, who test them before release.
+export async function linkableLanguagesOfCourse(courseId: number, includeHidden: boolean): Promise<CourseLang[]> {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     select: { lang: true, active: true, translations: { select: { lang: true, active: true } } }
   });
   if (!course) return [];
 
+  const versions = [{ lang: course.lang, active: course.active }, ...course.translations];
   const langs = new Set(
-    course.translations.filter((translation) => translation.active > 0).map((translation) => translation.lang)
+    versions.filter((version) => includeHidden || version.active > 0).map((version) => version.lang)
   );
-  if (course.active > 0) langs.add(course.lang);
   return COURSE_LANGS.filter((lang) => langs.has(lang));
 }
 
