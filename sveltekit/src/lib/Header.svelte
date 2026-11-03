@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   
   import { asset, resolve } from '$app/paths';
+  import { page } from '$app/state';
 
   function resolveNavItem(href: string) {
     // Navigation entries may contain URLs assembled from database-backed slugs.
@@ -14,6 +15,23 @@
   export let user: JwtUserPayload | null = null;
 
   export let lang: 'en' | 'de' = 'de';
+
+  // Target page per language for the flags, e.g. the same course in the other
+  // language. Without an entry the flag leads to that language's start page.
+  export let langLinks: Partial<Record<'de' | 'en', string>> = {};
+
+  const LANG_START: Record<'de' | 'en', string> = { de: '/', en: '/en' };
+  const LANG_HOSTS: Record<'de' | 'en', string> = { de: 'prompting.schule', en: 'prompting.school' };
+
+  function langHref(target: 'de' | 'en') {
+    const path = langLinks[target] ?? LANG_START[target];
+    // In production each language has its own domain (served from the root,
+    // like the former fixed flag links); elsewhere stay on the current host.
+    if (Object.values(LANG_HOSTS).includes(page.url.hostname)) {
+      return `https://${LANG_HOSTS[target]}${path}`;
+    }
+    return resolveNavItem(path);
+  }
 
   let siteName = 'prompting.schule';
   if (lang === 'en') {
@@ -90,12 +108,10 @@
   
   </div>
   <div class="logo-tugraz">
-    {#if lang == 'en'}
-    <div class="langSelect">
-      <a href="https://prompting.schule/"><img src={asset("/fonts/noto-emoji/emoji_u1f1e6_1f1f9.svg")} alt="Austria Flag"></a>
-      <a href="https://prompting.school/en/"><img src={asset("/fonts/noto-emoji/emoji_u1f1ec_1f1e7.svg")} alt="UK Flag"></a>
+    <div class="langSelect" role="group" aria-label={lang === 'en' ? 'Language' : 'Sprache'}>
+      <a href={langHref('de')} hreflang="de" lang="de" class:active={lang === 'de'}><img src={asset("/fonts/noto-emoji/emoji_u1f1e6_1f1f9.svg")} alt="Deutsch"></a>
+      <a href={langHref('en')} hreflang="en" lang="en" class:active={lang === 'en'}><img src={asset("/fonts/noto-emoji/emoji_u1f1ec_1f1e7.svg")} alt="English"></a>
     </div>
-    {/if}
 
     <img src={asset("/logo-tugraz-white.svg")} alt="TU Graz Logo"></div>
   <div class='flex-full'></div>

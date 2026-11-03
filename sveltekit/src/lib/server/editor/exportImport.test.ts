@@ -3,11 +3,16 @@ import {
   COURSE_EXPORT_FORMAT_VERSION,
   diffCourseImport,
   parseCourseExportFile,
-  serializeCourse,
-  suggestCopySlugs,
+  serializeCourse as serializeRows,
+  suggestCopyCourseUrl,
   type CourseExport,
   type ExistingCourseSnapshot
 } from './exportImport';
+
+// The fixtures are written in export shape; serializeCourse takes Prisma rows,
+// which only differ in how translations are stored.
+const serializeCourse = (course: unknown, exportedAt?: Date) =>
+  serializeRows(course as Parameters<typeof serializeRows>[0], exportedAt);
 
 function makeElement(overrides: Partial<CourseExport['lessons'][number]['elements'][number]> = {}) {
   return {
@@ -141,7 +146,7 @@ describe('parseCourseExportFile', () => {
   });
 
   it('rejects an unsupported format version', () => {
-    const parsed = parseCourseExportFile(JSON.stringify({ formatVersion: 2, course: {} }));
+    const parsed = parseCourseExportFile(JSON.stringify({ formatVersion: 99, course: {} }));
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) {
       expect(parsed.errors[0]).toContain('Formatversion');
@@ -186,19 +191,119 @@ describe('parseCourseExportFile', () => {
   });
 });
 
+describe('translations in the export', () => {
+  function makeTranslatedCourse() {
+    const course = makeCourse();
+    return {
+      ...course,
+      translations: [
+        { lang: 'en', active: 0, name: 'Test course', description: null, introDescription: null, introDescriptionSuffix: null, URL: 'test-course', sourceHashes: { name: 'abc' } }
+      ],
+      lessons: course.lessons.map((lesson) => ({
+        ...lesson,
+        translations: [{ lang: 'en', lessonName: 'Lesson 1', URL: 'lesson-1', sourceHashes: null }],
+        elements: lesson.elements.map((element) => ({
+          ...element,
+          translations: [{ lang: 'en', description: '<p>Hello</p>', sourceHashes: { description: 'def' } }]
+        })),
+        quizQuestions: lesson.quizQuestions.map((question) => ({
+          ...question,
+          translations: [{ lang: 'en', question: 'What is a prompt?', options: ['A (en)', 'B (en)'], sourceHashes: null }]
+        }))
+      }))
+    };
+  }
+
+  it('exports translations keyed by language and round-trips them', () => {
+    const serialized = serializeCourse(makeTranslatedCourse());
+
+    expect(serialized.formatVersion).toBe(2);
+    expect(serialized.course.translations).toEqual({
+      en: {
+        active: 0,
+        name: 'Test course',
+        description: null,
+        introDescription: null,
+        introDescriptionSuffix: null,
+        URL: 'test-course',
+        sourceHashes: { name: 'abc' }
+      }
+    });
+    expect(serialized.course.lessons[0].translations?.en.URL).toBe('lesson-1');
+    expect(serialized.course.lessons[0].elements[0].translations?.en).toMatchObject({
+      description: '<p>Hello</p>',
+      title: null,
+      sourceHashes: { description: 'def' }
+    });
+    expect(serialized.course.lessons[0].quizQuestions[0].translations?.en.options).toEqual(['A (en)', 'B (en)']);
+
+    const parsed = parseCourseExportFile(JSON.stringify(serialized));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course).toEqual(serialized.course);
+    }
+  });
+
+  it('keeps translations undefined for version 1 files so imports leave them alone', () => {
+    const v1 = JSON.parse(JSON.stringify(serializeCourse(makeCourse())));
+    v1.formatVersion = 1;
+    delete v1.course.translations;
+    for (const lesson of v1.course.lessons) {
+      delete lesson.translations;
+      for (const element of lesson.elements) delete element.translations;
+      for (const question of lesson.quizQuestions) delete question.translations;
+    }
+
+    const parsed = parseCourseExportFile(JSON.stringify(v1));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course.translations).toBeUndefined();
+      expect(parsed.data.course.lessons[0].elements[0].translations).toBeUndefined();
+    }
+  });
+
+  it('drops translated slugs that are invalid or lead to another lesson', () => {
+    const file = JSON.parse(JSON.stringify(serializeCourse(makeTranslatedCourse())));
+    file.course.translations.en.URL = 'Not a slug!';
+    const second = { ...file.course.lessons[0], URL: 'lektion-2', translations: { en: { lessonName: null, URL: 'lektion-1' } } };
+    file.course.lessons.push(second);
+
+    const parsed = parseCourseExportFile(JSON.stringify(file));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.data.course.translations?.en.URL).toBeNull();
+      expect(parsed.data.course.lessons[0].translations?.en.URL).toBe('lesson-1');
+      // "lektion-1" is the source URL of the first lesson.
+      expect(parsed.data.course.lessons[1].translations?.en.URL).toBeNull();
+    }
+  });
+
+  it('rejects unknown languages and more translated options than source options', () => {
+    const broken = JSON.parse(JSON.stringify(serializeCourse(makeTranslatedCourse())));
+    broken.course.translations.fr = { name: 'Cours' };
+    broken.course.lessons[0].quizQuestions[0].translations.en.options = ['1', '2', '3'];
+
+    const parsed = parseCourseExportFile(JSON.stringify(broken));
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) {
+      expect(parsed.errors.some((message) => message.includes('Übersetzung fr: unbekannte Sprache'))).toBe(true);
+      expect(parsed.errors.some((message) => message.includes('mehr übersetzte Antworten'))).toBe(true);
+    }
+  });
+});
+
 describe('diffCourseImport', () => {
   it('marks everything as new for an unknown course', () => {
-    const diff = diffCourseImport(makeCourse(), null, new Set());
+    const diff = diffCourseImport(makeCourse(), null);
 
     expect(diff.courseStatus).toBe('new');
     expect(diff.lessons[0].status).toBe('new');
     expect(diff.lessons[0].elements[0].status).toBe('new');
-    expect(diff.blocking).toEqual([]);
     expect(diff.removedLessons).toEqual([]);
   });
 
   it('reports unchanged when the file matches the snapshot', () => {
-    const diff = diffCourseImport(makeCourse(), makeSnapshot(), new Set());
+    const diff = diffCourseImport(makeCourse(), makeSnapshot());
 
     expect(diff.courseStatus).toBe('exists');
     expect(diff.changedCourseFields).toEqual([]);
@@ -210,7 +315,7 @@ describe('diffCourseImport', () => {
     const incoming = makeCourse({ name: 'Neuer Name' });
     incoming.lessons[0].starsNeeded = 3;
 
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.changedCourseFields).toEqual(['name']);
     expect(diff.lessons[0].status).toBe('changed');
@@ -224,7 +329,7 @@ describe('diffCourseImport', () => {
       makeElement({ position: 2 })
     ];
 
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.lessons[0].elements[0].status).toBe('changed');
     expect(diff.lessons[0].elements[0].typeChanged).toBe(true);
@@ -233,41 +338,24 @@ describe('diffCourseImport', () => {
 
     const removalIncoming = makeCourse();
     removalIncoming.lessons[0].elements = [];
-    const removalDiff = diffCourseImport(removalIncoming, makeSnapshot(), new Set());
+    const removalDiff = diffCourseImport(removalIncoming, makeSnapshot());
     expect(removalDiff.lessons[0].elementIdsToDelete).toEqual([111]);
-  });
-
-  it('blocks lesson URLs owned by another course', () => {
-    const diff = diffCourseImport(makeCourse(), null, new Set(['lektion-1']));
-
-    expect(diff.lessons[0].urlConflict).toBe(true);
-    expect(diff.blocking).toHaveLength(1);
-    expect(diff.blocking[0]).toContain('lektion-1');
   });
 
   it('lists lessons that exist in the database but not in the file', () => {
     const incoming = makeCourse({ lessons: [] });
-    const diff = diffCourseImport(incoming, makeSnapshot(), new Set());
+    const diff = diffCourseImport(incoming, makeSnapshot());
 
     expect(diff.removedLessons).toEqual([{ URL: 'lektion-1', lessonName: 'Lektion 1', id: 11 }]);
   });
 });
 
-describe('suggestCopySlugs', () => {
-  it('keeps free slugs and suffixes taken ones', () => {
-    const suggestion = suggestCopySlugs(makeCourse(), new Set(), new Set());
-    expect(suggestion.courseUrl).toBe('testkurs');
-    expect(suggestion.lessonUrls['lektion-1']).toBe('lektion-1');
+describe('suggestCopyCourseUrl', () => {
+  it('keeps a free course URL', () => {
+    expect(suggestCopyCourseUrl('testkurs', new Set())).toBe('testkurs');
   });
 
-  it('increments the suffix until a slug is free', () => {
-    const suggestion = suggestCopySlugs(
-      makeCourse(),
-      new Set(['testkurs', 'testkurs-kopie']),
-      new Set(['lektion-1'])
-    );
-
-    expect(suggestion.courseUrl).toBe('testkurs-kopie-2');
-    expect(suggestion.lessonUrls['lektion-1']).toBe('lektion-1-kopie');
+  it('increments the suffix until a course URL is free', () => {
+    expect(suggestCopyCourseUrl('testkurs', new Set(['testkurs', 'testkurs-kopie']))).toBe('testkurs-kopie-2');
   });
 });

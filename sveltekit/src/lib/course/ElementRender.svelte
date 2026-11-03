@@ -1,13 +1,14 @@
 <script lang="ts">
     import type { JwtUserPayload } from '$lib/server/jwt';
 
-  import { resolve } from '$app/paths';
 
-  import type { Element, Course, Lesson } from '@prisma/client';
+  import type { Element, Course, Lesson, User } from '@prisma/client';
 
   import { marked } from 'marked';
 
   import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
+  import { COURSE_TEXTS, type CourseLang } from '$lib/courseLang';
     
   
 
@@ -140,6 +141,9 @@
   export let element: Element;
   export let user: JwtUserPayload;
   export let updateUserStars: Function;
+  export let lang: CourseLang = 'de';
+
+  $: t = COURSE_TEXTS[lang];
   // export let isAdmin: Integer;
 
   let developer = "";
@@ -167,20 +171,15 @@
   let ai2completionTokens = 0;
 
   let betterPrompt = "";
-
-  type ConversationMessage = { role: 'user' | 'assistant'; content: string };
   let noMemoryInput = "";
   let memoryInput = "";
-  let noMemoryTranscript: ConversationMessage[] = [];
-  let memoryTranscript: ConversationMessage[] = [];
-  let memoryHistory: ConversationMessage[] = [];
+  let noMemorySummary = "";
+  let memorySummary = "";
   let noMemoryRunning = false;
   let memoryRunning = false;
   let noMemoryResult = "";
   let memoryResult = "";
 
-  // Both columns talk to the same element, the only difference being whether the
-  // previous turns are sent along. That contrast is the point of the lesson.
   async function sendPizzaMessage(condition: 'noMemory' | 'memory') {
     const input = condition === 'noMemory' ? noMemoryInput.trim() : memoryInput.trim();
     if (!input) return;
@@ -200,7 +199,7 @@
       action: isMemoryCondition ? 'memoryWithHistory' : 'memoryNoHistory',
       data: {
         message: input,
-        history: isMemoryCondition ? memoryHistory : [],
+        summary: isMemoryCondition ? memorySummary : '',
         userId: user.id,
         elementId: element.id,
         courseId: course.id,
@@ -216,43 +215,83 @@
         }
       },
       onFooter: () => {
-        const exchange: ConversationMessage[] = [
-          { role: 'user', content: input },
-          { role: 'assistant', content: responseText }
-        ];
-
         if (isMemoryCondition) {
-          memoryTranscript = [...memoryTranscript, ...exchange];
-          memoryHistory = [...memoryHistory, ...exchange];
           memoryInput = '';
-          memoryRunning = false;
         } else {
-          noMemoryTranscript = exchange;
           noMemoryInput = '';
-          noMemoryRunning = false;
         }
       },
       onError: (error) => {
-        const exchange: ConversationMessage[] = [
-          { role: 'user', content: input },
-          { role: 'assistant', content: error }
-        ];
-
         if (isMemoryCondition) {
-          memoryTranscript = [...memoryTranscript, ...exchange];
           memoryInput = '';
           memoryRunning = false;
           memoryResult = error;
         } else {
-          noMemoryTranscript = exchange;
           noMemoryInput = '';
           noMemoryRunning = false;
           noMemoryResult = error;
         }
       }
     });
+
+    if (responseText) {
+      const summary = await createMemorySummary(
+        isMemoryCondition ? memorySummary : '',
+        input,
+        responseText
+      );
+
+      if (summary) {
+        if (isMemoryCondition) {
+          memorySummary = summary;
+        } else {
+          noMemorySummary = summary;
+        }
+      }
+    }
+
+    if (isMemoryCondition) {
+      memoryRunning = false;
+    } else {
+      noMemoryRunning = false;
+    }
   }
 
+  async function createMemorySummary(previousSummary: string, message: string, assistantResponse: string): Promise<string | null> {
+    try {
+      const response = await fetch(resolve('/api/aiAnswer'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'memorySummarize',
+          lang,
+          data: {
+            summary: previousSummary,
+            message,
+            assistantResponse,
+            userId: user.id,
+            elementId: element.id,
+            courseId: course.id,
+            lessonId: lesson.id
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok && typeof result.summary === 'string') {
+        return result.summary;
+      }
+    } catch (error) {
+      console.error('Memory summary could not be updated:', error);
+    }
+
+    return null;
+  }
+
+  function clearMemory() {
+    memorySummary = '';
+  }
+  
 
   function startTimer (number: 1 | 2) {
     if (number == 1) {
@@ -351,18 +390,18 @@
 }) {
   startTimer(timerKey);
 
-  const response = await fetch(resolve('/api/en/aiAnswer'), {
+  const response = await fetch(resolve('/api/aiAnswer'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, data })
+    body: JSON.stringify({ action, data, lang })
   });
 
   if (!response.ok || !response.body) {
     
     if (response.status == 451) {
-      onError?.("<i>⚠️ Your input could not be processed because it violates content policies.</i>");
+      onError?.(t.policyViolation);
     } else {
-      onError?.('<i>Error loading response.</i>');
+      onError?.(t.loadError);
     }
 
     stopTimer(timerKey);
@@ -737,7 +776,8 @@ async function submitFormStar() {
     timerKey: 1,
     onChunk: (chunk) => {
       ai1RawText += chunk;
-      console.log(chunk)
+      // console.log(chunk)
+      // chunking
     },
     onFooter: ({ promptTokens, completionTokens }) => {
       try {
@@ -745,7 +785,7 @@ async function submitFormStar() {
         ai1Result = marked.parse(parsed.feedback || '', { async: false });
         showStar = parsed.star;
       } catch (e) {
-        ai1Result = 'Fehler beim Parsen der Rückgabe';
+        ai1Result = t.parseError;
         showStar = false;
       }
       ai1promptTokens = promptTokens;
@@ -760,11 +800,11 @@ async function submitFormStar() {
   });
 }
 
-
 function stripTagsAndDecode(html: string) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body.textContent || '';
 }
+
   
 function copyBetterPrompt() {
   ai1 = stripTagsAndDecode(betterPrompt);
@@ -779,17 +819,14 @@ if (element.type.includes('negativeMarginTop')) {
   sepcialClass += ' negativeMarginTop';
 }
 
-
 </script>
 
-<div class="{user.isAdmin > 0 ? 'adminView element' : 'element'}  {sepcialClass}">
+<div class="{user.isAdmin > 0 ? 'adminView element' : 'element'} {sepcialClass}">
  
   
   {#if element.type === "text" || element.type === "text-negativeMarginTop"}
     {@html element.description}
   {/if}
-
-  
 
   {#if element.type === "note"}
 
@@ -802,12 +839,11 @@ if (element.type.includes('negativeMarginTop')) {
       <label for="ai1" id="label-{element.id}">{element.taskA}  {#if ai1Result} - {@html ai1Result}
       {/if}</label>
             
-      <textarea class="prompt" bind:value={ai1} placeholder="Note for you" aria-labelledby="label-{element.id}" >
+      <textarea class="prompt" bind:value={ai1} placeholder={t.notePlaceholder} aria-labelledby="label-{element.id}" >
       </textarea>
-      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
-      <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Notiz für Sie" role="textbox" aria-labelledby="label-{element.id}" ></div> -->
+      <!-- <div contenteditable="plaintext-only" ></div> -->
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Save note">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.saveNote}>
         <i class="fas fa-save"></i>
       </button>
       
@@ -824,22 +860,20 @@ if (element.type.includes('negativeMarginTop')) {
   <div class="aiSide">
     <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('noMemory')}>
       <label for="no-memory-{element.id}">{element.taskA}</label>
-      <textarea id="no-memory-{element.id}" class="prompt" bind:value={noMemoryInput} placeholder="Enter message"></textarea>
-      <button type="submit" class="submit" disabled={noMemoryRunning} aria-label="Send without memory">
+      <textarea id="no-memory-{element.id}" class="prompt" bind:value={noMemoryInput} placeholder={t.enterMessage}></textarea>
+      <button type="submit" class="submit" disabled={noMemoryRunning} aria-label={t.sendWithoutMemory}>
         <i class="fas fa-paper-plane"></i>
       </button>
 
       <div class="generated memory-transcript">
-        <strong>Memory</strong>
-        {#each noMemoryTranscript as message}
-          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
-            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
-          </p>
-        {/each}
+        <strong>{t.memory}</strong>
+        {#if noMemorySummary}
+          <p>{noMemorySummary}</p>
+        {/if}
       </div>
 
       <div class="result">
-        <p class="result-label">Answer {#if noMemoryRunning}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if noMemoryRunning}{t.generating}{/if}</p>
         <div class="generated">
           {#if noMemoryResult}
             {@html noMemoryResult}
@@ -850,22 +884,28 @@ if (element.type.includes('negativeMarginTop')) {
 
     <form class="ai" on:submit|preventDefault={() => sendPizzaMessage('memory')}>
       <label for="memory-{element.id}">{element.taskB}</label>
-      <textarea id="memory-{element.id}" class="prompt" bind:value={memoryInput} placeholder="Enter the same message"></textarea>
-      <button type="submit" class="submit" disabled={memoryRunning} aria-label="Send with memory">
+      <textarea id="memory-{element.id}" class="prompt" bind:value={memoryInput} placeholder={t.enterSameMessage}></textarea>
+      <button type="submit" class="submit" disabled={memoryRunning} aria-label={t.sendWithMemory}>
         <i class="fas fa-paper-plane"></i>
       </button>
 
       <div class="generated memory-transcript">
-        <strong>Memory</strong>
-        {#each memoryTranscript as message}
-          <p class:memory-user={message.role === 'user'} class:memory-agent={message.role === 'assistant'}>
-            <strong>{message.role === 'user' ? 'You' : 'Agent'}:</strong> {@html marked.parse(message.content, { async: false })}
-          </p>
-        {/each}
+        <strong>{t.memory}</strong>
+        {#if memorySummary}
+          <p>{memorySummary}</p>
+        {/if}
+        <button
+          type="button"
+          class="clear-memory"
+          disabled={!memorySummary || memoryRunning}
+          on:click={clearMemory}
+        >
+          {t.clearMemory}
+        </button>
       </div>
 
       <div class="result">
-        <p class="result-label">Answer {#if memoryRunning}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if memoryRunning}{t.generating}{/if}</p>
         <div class="generated">
           {#if memoryResult}
             {@html memoryResult}
@@ -883,20 +923,20 @@ if (element.type.includes('negativeMarginTop')) {
 <section>
   {@html element.description}
   <div class="aiSide">
-
+    
   <form class="ai" on:submit|preventDefault={submitFormAiSide1}>
 
-      <label for="ai1">{element.taskA}</label>
+      <label for="ai1">{element.taskA} <i class="fas fa-pencil-alt"></i></label>
             
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -907,17 +947,16 @@ if (element.type.includes('negativeMarginTop')) {
     </form>
     
     <form class="ai" on:submit|preventDefault={submitFormAiSide2}>
-      <label for="ai2">{@html element.taskB}</label>
+      <label for="ai2">{@html element.taskB} <i class="fas fa-pencil-alt"></i></label>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt" ></div> -->
       <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
       
-
-      <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai2running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
 
       <div class="result">
-        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai2running}{t.generating}{/if}</p>
         <div class="clearfix"></div>
         <div class="generated">
           {#if ai2Result}
@@ -939,22 +978,22 @@ if (element.type.includes('negativeMarginTop')) {
     
   <form class="ai" on:submit|preventDefault={submitFormAi1}>
 
-      <label for="ai1">{element.taskA}</label>
+      <label for="ai1">{element.taskA} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
       <div class="ai1prompt2">
-      <label for="ai2">{@html element.taskB}</label>
+      <label for="ai2">{@html element.taskB} <i class="fas fa-pencil-ruler"></i></label>
       <div class="prompt" placeholder="Prompt">{@html element.devPromptB}</div>
       </div>
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -984,12 +1023,12 @@ if (element.type.includes('negativeMarginTop')) {
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
 
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1015,27 +1054,26 @@ if (element.type.includes('negativeMarginTop')) {
 
     
     <div class="ai2prompt1">
-      <label for="ai1">{@html element.taskA}</label>
+      <label for="ai1">{@html element.taskA} <i class="fas fa-pencil-ruler"></i></label>
       <div class="prompt" placeholder="Prompt">{@html element.devPromptB}</div>
       </div>
 
       <div class="ai2prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
-
     </div>
 
       
 
-      <button type="submit" class="submit" disabled={ai2running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai2running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai2running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai2running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai2Result}
@@ -1063,29 +1101,27 @@ if (element.type.includes('negativeMarginTop')) {
 
     
     <div class="ai12prompt1">
-      <label for="ai1">{@html element.taskA}</label>
+      <label for="ai1">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
-
     </div>
 
       <div class="ai12prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
-
     </div>
 
       
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1111,29 +1147,27 @@ if (element.type.includes('negativeMarginTop')) {
 
     
     <div class="aiDevPrompt1">
-      <label for="aiDev">{@html element.taskA}</label>
+      <label for="aiDev">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
-
     </div>
 
       <div class="prompt2">
 
-      <label for="ai1">{element.taskB}</label>
+      <label for="ai1">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
-
     </div>
 
       
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1completionTokens} {t.tokenInfo(ai1completionTokens, ai1promptTokens)} {/if} {#if ai1running} {t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1161,38 +1195,35 @@ if (element.type.includes('negativeMarginTop')) {
 
     
     <div class="aiDevPrompt1">
-      <label for="aiDev">{@html element.taskA}</label>
+      <label for="aiDev">{@html element.taskA} <i class="fas fa-pencil-alt"></i></label>
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={developer} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={developer} placeholder="Prompt"></textarea>
-
     </div>
 
       <div class="prompt2">
 
-      <label for="ai1">{element.taskB}</label>
+      <label for="ai1">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai1} placeholder="Prompt"></textarea>
-
     </div>
     
     <div class="prompt2">
 
-      <label for="ai2">{element.taskB}</label>
+      <label for="ai2">{element.taskB} <i class="fas fa-pencil-alt"></i></label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
       <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
-
     </div>
 
       
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Answer {#if ai1completionTokens} consists of {ai1completionTokens} tokens and {ai1promptTokens} request tokens {/if} {#if ai1running} is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1completionTokens} {t.tokenInfo(ai1completionTokens, ai1promptTokens)} {/if} {#if ai1running} {t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1221,14 +1252,14 @@ if (element.type.includes('negativeMarginTop')) {
       <label for="ai1">{element.taskA}</label>
 
       <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai1} placeholder="Antwort"></div> -->
-      <textarea class="prompt" bind:value={ai1} placeholder="Answer"></textarea>
+      <textarea class="prompt" bind:value={ai1} placeholder={t.answer}></textarea>
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Submit">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
       
       <div class="result">
-        <p class="result-label">Feedback {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.feedback} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1236,13 +1267,23 @@ if (element.type.includes('negativeMarginTop')) {
           {/if}
         </div>
       </div>
-
+       
       {#if showStar}
-      <div class="star-wrapper">
-      <div class="star-block">
-        You have received a star <i class="fas fa-star star-color"></i>
-      </div>
-      </div>
+
+        {#if course.displayType && course.displayType.includes("aufgabe")}
+          <div class="star-wrapper">
+          <div class="star-block">
+            {t.taskCompleted} <i class="fas fa-clipboard-check star-color"></i>
+          </div>
+          </div>
+        {:else}
+
+          <div class="star-wrapper">
+          <div class="star-block">
+            {t.starReceived} <i class="fas fa-star star-color"></i>
+          </div>
+          </div>
+        {/if}
     {/if}
 
     </form>
@@ -1272,7 +1313,7 @@ if (element.type.includes('negativeMarginTop')) {
 
      
 
-      <button type="submit" class="submit" disabled={ai1running} aria-label="Absenden">
+      <button type="submit" class="submit" disabled={ai1running} aria-label={t.submit}>
         <i class="fas fa-paper-plane"></i>
       </button>
 
@@ -1282,17 +1323,17 @@ if (element.type.includes('negativeMarginTop')) {
   
         <!-- <div contenteditable="plaintext-only" class="prompt" bind:innerHTML={ai2} placeholder="Prompt"></div> -->
         <textarea class="prompt" bind:value={ai2} placeholder="Prompt"></textarea>
-
+        
       </div>
   
 
       {#if betterPrompt}
       <div class="laborSide">
         <div class="aiLaborSide aiLaborBetter">
-          <label for="ai2">Better Prompt</label>
+          <label for="ai2">{t.betterPrompt}</label>
           <div class="prompt" placeholder="Prompt">{@html betterPrompt}</div>
 
-          <button type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt} aria-label="Use better prompt">
+          <button type="button" class="submit" disabled={ai2running} on:click={copyBetterPrompt} aria-label={t.useBetterPrompt}>
             <i class="fas fa-copy"></i>
           </button>
 
@@ -1301,10 +1342,10 @@ if (element.type.includes('negativeMarginTop')) {
 
         </div>
         <div class="aiLaborSide aiLaborWorse">
-          <label for="ai2">Worse Prompt</label>
+          <label for="ai2">{t.worsePrompt}</label>
           <div class="prompt" placeholder="...">{@html ai2Result}</div>
 
-          <button type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt} aria-label="Use worse prompt">
+          <button type="button" class="submit" disabled={ai2running} on:click={copyWorsePrompt} aria-label={t.useWorsePrompt}>
             <i class="fas fa-copy"></i>
           </button>
         </div>
@@ -1314,7 +1355,7 @@ if (element.type.includes('negativeMarginTop')) {
       {/if}
 
       <div class="result">
-        <p class="result-label">Answer {#if ai1running}is being generated{/if}</p>
+        <p class="result-label">{t.answer} {#if ai1running}{t.generating}{/if}</p>
         <!-- <div class="clearboth"></div> -->
         <div class="generated">
           {#if ai1Result}
@@ -1339,8 +1380,6 @@ if (element.type.includes('negativeMarginTop')) {
 
 
 <style>
-  /* The tool call blocks are injected by the aiSideTool response, so they need
-     to be global to survive Svelte's style scoping. */
   :global(.tool-call),
   :global(.tool-result) {
     background-color: #e7f6ea;
@@ -1362,12 +1401,32 @@ if (element.type.includes('negativeMarginTop')) {
     margin: 0.4rem 0;
   }
 
+  .memory-transcript h3 {
+    margin: 0 0 0.5rem;
+  }
+
   .memory-transcript .memory-user {
     color: #7a2448;
   }
 
   .memory-transcript .memory-agent {
     color: #4f4050;
+  }
+
+  .clear-memory {
+    background: transparent;
+    border: 1px solid #7a2448;
+    border-radius: 0.25rem;
+    color: #7a2448;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .clear-memory:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 
   .laborSide {

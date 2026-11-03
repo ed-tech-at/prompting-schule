@@ -143,7 +143,7 @@ export async function streamAiResponse({ messages, saveToDb, maxTokens = 1000, r
   }
 
   let fullText = '';
-  let lastChunk = null;
+  let lastChunk: OpenAI.Chat.Completions.ChatCompletionChunk | null = null;
   const encoder = new TextEncoder();
 
   const streamResponse = new ReadableStream({

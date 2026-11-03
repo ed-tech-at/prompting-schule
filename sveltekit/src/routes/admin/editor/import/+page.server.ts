@@ -1,6 +1,7 @@
 import { error, fail, isHttpError, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server/db';
+import { courseSlugTaken } from '$lib/server/editor/slugs';
 import {
   EDITOR_AUDIT_ACTIONS,
   editorAuditFailure,
@@ -13,12 +14,23 @@ import {
 import {
   diffCourseImport,
   parseCourseExportFile,
-  suggestCopySlugs,
+  suggestCopyCourseUrl,
   type CourseExport,
   type ExistingCourseSnapshot
 } from '$lib/server/editor/exportImport';
 
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+
+// Translations from the file as Prisma create rows. The source language of the
+// course is skipped: its texts live in the source rows themselves.
+function translationRows<T extends { sourceHashes: Record<string, string> | null }>(
+  translations: Record<string, T> | undefined,
+  sourceLang: string
+) {
+  return Object.entries(translations ?? {})
+    .filter(([lang]) => lang !== sourceLang)
+    .map(([lang, { sourceHashes, ...fields }]) => ({ lang, ...fields, sourceHashes: sourceHashes ?? undefined }));
+}
 
 export const load: PageServerLoad = async ({ cookies }) => {
   const actor = await requireEditor(cookies);
@@ -41,26 +53,14 @@ async function loadSnapshot(courseUrl: string): Promise<ExistingCourseSnapshot |
   return course;
 }
 
-async function loadForeignLessonUrls(ownCourseId: number | null): Promise<Set<string>> {
-  const lessons = await prisma.lesson.findMany({
-    where: ownCourseId === null ? {} : { courseId: { not: ownCourseId } },
-    select: { URL: true }
-  });
-  return new Set(lessons.map((lesson) => lesson.URL));
-}
-
 async function buildPreview(incoming: CourseExport) {
   const existing = await loadSnapshot(incoming.URL);
-  const foreignLessonUrls = await loadForeignLessonUrls(existing?.id ?? null);
-  const diff = diffCourseImport(incoming, existing, foreignLessonUrls);
+  const diff = diffCourseImport(incoming, existing);
 
   const allCourses = await prisma.course.findMany({ select: { URL: true } });
-  const allLessons = await prisma.lesson.findMany({ select: { URL: true } });
-  const suggested = suggestCopySlugs(
-    incoming,
-    new Set(allCourses.map((course) => course.URL)),
-    new Set(allLessons.map((lesson) => lesson.URL))
-  );
+  const suggested = {
+    courseUrl: suggestCopyCourseUrl(incoming.URL, new Set(allCourses.map((course) => course.URL)))
+  };
 
   return { existing, diff, suggested };
 }
@@ -139,12 +139,7 @@ export const actions: Actions = {
 
       // Re-diff against the current DB state: the preview may be stale.
       const existing = await loadSnapshot(incoming.URL);
-      const foreignLessonUrls = await loadForeignLessonUrls(existing?.id ?? null);
-      const diff = diffCourseImport(incoming, existing, foreignLessonUrls);
-
-      if (diff.blocking.length > 0) {
-        throw error(400, diff.blocking[0]);
-      }
+      const diff = diffCourseImport(incoming, existing);
 
       const counters = {
         lessonsCreated: 0,
@@ -155,6 +150,14 @@ export const actions: Actions = {
         elementsDeleted: 0
       };
 
+      // Translated course slugs must not lead to another course; clashing ones
+      // fall back to the source URL.
+      for (const translation of Object.values(incoming.translations ?? {})) {
+        if (translation.URL && (await courseSlugTaken(translation.URL, existing ? { courseId: existing.id } : undefined))) {
+          translation.URL = null;
+        }
+      }
+
       await prisma.$transaction(async (tx) => {
         const courseData = {
           name: incoming.name,
@@ -164,12 +167,21 @@ export const actions: Actions = {
           active: incoming.active,
           position: incoming.position,
           displayType: incoming.displayType,
-          lang: incoming.lang
+          // Exporte ohne Sprache stammen aus der Zeit vor der Ausgangssprache.
+          lang: incoming.lang ?? 'de'
         };
 
         const course = existing
           ? await tx.course.update({ where: { id: existing.id }, data: courseData })
           : await tx.course.create({ data: { ...courseData, URL: incoming.URL } });
+
+        // Files without translations (format version 1) leave them untouched.
+        if (incoming.translations !== undefined) {
+          await tx.courseTranslation.deleteMany({ where: { courseId: course.id } });
+          await tx.courseTranslation.createMany({
+            data: translationRows(incoming.translations, courseData.lang).map((row) => ({ ...row, courseId: course.id }))
+          });
+        }
 
         const existingLessonsByUrl = new Map(
           (existing?.lessons ?? []).map((lesson) => [lesson.URL, lesson])
@@ -199,6 +211,13 @@ export const actions: Actions = {
             counters.lessonsCreated += 1;
           }
 
+          if (incomingLesson.translations !== undefined) {
+            await tx.lessonTranslation.deleteMany({ where: { lessonId } });
+            await tx.lessonTranslation.createMany({
+              data: translationRows(incomingLesson.translations, courseData.lang).map((row) => ({ ...row, lessonId }))
+            });
+          }
+
           // Pair elements by position order so existing ids (and therefore
           // user progress) survive updates.
           const incomingElements = [...incomingLesson.elements].sort(
@@ -220,12 +239,22 @@ export const actions: Actions = {
             };
 
             const existingElement = existingElements[index];
+            let elementId: number;
             if (existingElement) {
               await tx.element.update({ where: { id: existingElement.id }, data: elementData });
+              elementId = existingElement.id;
               counters.elementsUpdated += 1;
             } else {
-              await tx.element.create({ data: { ...elementData, lessonId } });
+              elementId = (await tx.element.create({ data: { ...elementData, lessonId } })).id;
               counters.elementsCreated += 1;
+            }
+
+            const elementTranslations = incomingElements[index].translations;
+            if (elementTranslations !== undefined) {
+              await tx.elementTranslation.deleteMany({ where: { elementId } });
+              await tx.elementTranslation.createMany({
+                data: translationRows(elementTranslations, courseData.lang).map((row) => ({ ...row, elementId }))
+              });
             }
           }
 
@@ -237,18 +266,20 @@ export const actions: Actions = {
             counters.elementsDeleted += surplusElementIds.length;
           }
 
-          // Quiz questions carry no user data: replace wholesale.
+          // Quiz questions carry no user data: replace wholesale (with their
+          // translations, which cascade on delete).
           await tx.quizQuestion.deleteMany({ where: { lessonId } });
-          if (incomingLesson.quizQuestions.length > 0) {
-            await tx.quizQuestion.createMany({
-              data: incomingLesson.quizQuestions.map((question) => ({
+          for (const question of incomingLesson.quizQuestions) {
+            await tx.quizQuestion.create({
+              data: {
                 question: question.question,
                 type: question.type,
                 options: question.options,
                 correct: question.correct,
                 position: question.position,
-                lessonId
-              }))
+                lessonId,
+                translations: { create: translationRows(question.translations, courseData.lang) }
+              }
             });
           }
         }
@@ -307,18 +338,9 @@ export const actions: Actions = {
         throw error(400, 'Die neue Kurs-URL darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.');
       }
 
-      const existingCourse = await prisma.course.findUnique({ where: { URL: newCourseUrl } });
-      if (existingCourse) {
+      if (await courseSlugTaken(newCourseUrl)) {
         throw error(400, `Die Kurs-URL "${newCourseUrl}" ist bereits vergeben.`);
       }
-
-      // Regenerate lesson slugs against the current DB state.
-      const allLessons = await prisma.lesson.findMany({ select: { URL: true } });
-      const { lessonUrls } = suggestCopySlugs(
-        incoming,
-        new Set([newCourseUrl]),
-        new Set(allLessons.map((lesson) => lesson.URL))
-      );
 
       const maxPosition = await prisma.course.aggregate({ _max: { position: true } });
 
@@ -333,15 +355,25 @@ export const actions: Actions = {
           active: 0,
           position: (maxPosition._max.position ?? 0) + 1,
           displayType: incoming.displayType,
-          lang: incoming.lang,
+          lang: incoming.lang ?? 'de',
+          // Copied translations start hidden as well. Their course slug still
+          // belongs to the original course, so the copy uses its source URL.
+          translations: {
+            create: translationRows(incoming.translations, incoming.lang ?? 'de').map((row) => ({
+              ...row,
+              active: 0,
+              URL: null
+            }))
+          },
           lessons: {
             create: incoming.lessons.map((lesson) => ({
               lessonName: lesson.lessonName,
               lessonEmoji: lesson.lessonEmoji,
-              URL: lessonUrls[lesson.URL],
+              URL: lesson.URL,
               active: lesson.active,
               starsNeeded: lesson.starsNeeded,
               position: lesson.position,
+              translations: { create: translationRows(lesson.translations, incoming.lang ?? 'de') },
               elements: {
                 create: lesson.elements.map((element) => ({
                   type: element.type,
@@ -352,7 +384,8 @@ export const actions: Actions = {
                   taskB: element.taskB,
                   devPromptB: element.devPromptB,
                   devPromptC: element.devPromptC,
-                  position: element.position
+                  position: element.position,
+                  translations: { create: translationRows(element.translations, incoming.lang ?? 'de') }
                 }))
               },
               quizQuestions: {
@@ -361,7 +394,8 @@ export const actions: Actions = {
                   type: question.type,
                   options: question.options,
                   correct: question.correct,
-                  position: question.position
+                  position: question.position,
+                  translations: { create: translationRows(question.translations, incoming.lang ?? 'de') }
                 }))
               }
             }))

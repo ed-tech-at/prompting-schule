@@ -205,13 +205,10 @@ if (browser) {
       <a href={resolve('/login-sso/start-login')}  data-sveltekit-preload-data="false" class="button">SSO Login</a>
 
       <div class="checkbox-form">
-              <label>
-                Die Teilnahme ist freiwillig. 
-                <!-- Die eingegebenen Daten werden für wissenschaftliche Zwecke ausgewertet.<br> -->
-                  <!-- <input type="checkbox" bind:checked={agree} required> -->
-                  Sie stimmen den  <a href={resolve("/mehr/benutzerrichtlinien")} target="_blank">Benutzerrichtlinien</a> zu.
-
-              </label>
+              <p>
+                Die Teilnahme ist freiwillig.
+                Sie stimmen den <a href={resolve("/mehr/benutzerrichtlinien")} target="_blank">Benutzerrichtlinien</a> zu.
+              </p>
           </div>
 
 

@@ -6,6 +6,7 @@ import { prisma } from '$lib/server/db';
 import { json } from '@sveltejs/kit';
 
 import { requireLogin } from '$lib/server/jwt';
+import { answersToSourceOptions, gradeQuestion } from '$lib/server/quizGrading';
 
 
 export async function POST({ request, cookies }) {
@@ -24,58 +25,16 @@ export async function POST({ request, cookies }) {
     });
 
     const results = [];
+    const sourceAnswers: Record<string, string[]> = {};
     let totalPoints = 0;
 
     for (const question of quizQuestions) {
-      const userAnswer = answerData.answers[question.id];
-      const correctAnswers = question.correct;
-      let points = 0;
-      let userCorrectResponse = [];
+      const userAnswer = answersToSourceOptions(question.options, answerData.answers[question.id]);
+      sourceAnswers[question.id] = userAnswer;
 
-      if (question.type === 's') {
-        // Single choice: 1 point for correct, 0 for incorrect
-        if (userAnswer && userAnswer[0] === correctAnswers[0]) {
-          points = 1;
-          userCorrectResponse.push(userAnswer);
-        }
-
-      } else if (question.type === 'm') {
-        // Multiple choice: calculate fraction of correct answers
-        const correctSet = new Set(correctAnswers);
-        const userSet = new Set(userAnswer);
-
-
-        // const userCorrectResponse: string[] = [];
-        let correctCount = 0;
-        let wrongCount = 0;
-
-        // Loop through the user's answers
-        for (const answer of userSet) {
-          if (correctSet.has(answer)) {
-            userCorrectResponse.push(answer);
-            correctCount++;
-          } else {
-            wrongCount++;
-          }
-        }
-
-        // console.log('Correct answers given:', correctCount);
-        // console.log('Wrong answers given:', wrongCount);
-        // console.log('Correct user responses:', userCorrectResponse);
-
-        points = correctCount / (correctAnswers.length + wrongCount * 2);
-        points = Math.round(points * 100) / 100;
-            
-      }
-
-      totalPoints += points;
-
-      results.push({
-        questionId: question.id,
-        userCorrectResponse: userCorrectResponse,
-        points: points,
-        
-      });
+      const graded = gradeQuestion(question, userAnswer);
+      totalPoints += graded.points;
+      results.push(graded);
     }
     const maxPoints = quizQuestions.length;
     const percent = Math.ceil((totalPoints / maxPoints) * 100);
@@ -98,7 +57,7 @@ export async function POST({ request, cookies }) {
         course: {
           connect: { id: answerData.courseId } // Connect to the existing course by courseId
         },
-        answers: JSON.stringify(answerData.answers),
+        answers: JSON.stringify(sourceAnswers),
         // results: JSON.stringify(results),
         // totalPoints: totalPoints,
         // maxPoints: maxPoints,
