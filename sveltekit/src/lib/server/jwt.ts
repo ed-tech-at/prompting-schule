@@ -1,5 +1,5 @@
 // /src/lib/server/jwt.ts
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from '$env/dynamic/private';
 import { redirect, type Cookies } from '@sveltejs/kit';
 import { withBase } from '$lib/server/subfolder';
@@ -11,7 +11,7 @@ export interface JwtUserPayload {
   isAdmin: number;
 }
 
-export function createJWT(payload: JwtUserPayload, expiresIn = '7d') {
+export function createJWT(payload: JwtUserPayload, expiresIn: SignOptions['expiresIn'] = '7d') {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 

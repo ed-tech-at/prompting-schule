@@ -44,11 +44,31 @@ export async function parseBirthDateWithAi(input: string): Promise<ParsedBirthDa
   };
 }
 
+const MEMORY_SUMMARY_PROMPTS = {
+    de: {
+        instructions: 'Erstelle ein kurzes, sachliches Kurzzeitgedächtnis für eine Pizzabestellung. Behalte nur bestätigte Bestelldetails, Ergänzungen, Änderungen. Fasse frühere Angaben zusammen statt sie zu zitieren. Füge keine Informationen hinzu, es muss eine reine Zusammenfassung sein. Höchstens 80 Wörter.',
+        previous: 'Bisherige Zusammenfassung',
+        none: '(keine)',
+        message: 'Neue Nachricht',
+        response: 'Antwort des Assistenten'
+    },
+    en: {
+        instructions: 'Write a short, factual short-term memory for a pizza order. Keep only confirmed order details, additions and changes. Summarise earlier information instead of quoting it. Do not add any information; it must be a pure summary. At most 80 words.',
+        previous: 'Previous summary',
+        none: '(none)',
+        message: 'New message',
+        response: "Assistant's answer"
+    }
+};
+
 export async function summarizeConversationMemory(
     previousSummary: string,
     userMessage: string,
-    assistantResponse: string
+    assistantResponse: string,
+    lang: keyof typeof MEMORY_SUMMARY_PROMPTS = 'de'
 ): Promise<string> {
+    const prompt = MEMORY_SUMMARY_PROMPTS[lang];
+
     const client = new OpenAI({
         apiKey: OPENAI_API_KEY,
         baseURL: OPENAI_BASE_URL
@@ -56,8 +76,8 @@ export async function summarizeConversationMemory(
 
     const response = await client.responses.create({
         model: OPENAI_MODEL,
-        instructions: 'Erstelle ein kurzes, sachliches Kurzzeitgedächtnis für eine Pizzabestellung. Behalte nur bestätigte Bestelldetails, Ergänzungen, Änderungen. Fasse frühere Angaben zusammen statt sie zu zitieren. Füge keine Informationen hinzu, es muss eine reine Zusammenfassung sein. Höchstens 80 Wörter.',
-        input: `Bisherige Zusammenfassung:\n${previousSummary || '(keine)'}\n\nNeue Nachricht:\n${userMessage}\n\nAntwort des Assistenten:\n${assistantResponse}`,
+        instructions: prompt.instructions,
+        input: `${prompt.previous}:\n${previousSummary || prompt.none}\n\n${prompt.message}:\n${userMessage}\n\n${prompt.response}:\n${assistantResponse}`,
         reasoning: { effort: 'low' },
         text: { verbosity: 'low' } as never,
         max_output_tokens: 200
@@ -178,4 +198,24 @@ export async function streamAiResponse({
       'Transfer-Encoding': 'chunked'
     }
   });
+}
+
+// Pre-translation for the course translate view. Not streamed: the editor fills
+// one field at a time and needs the complete text.
+export async function translateWithAi(instructions: string, text: string): Promise<string> {
+  const client = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    baseURL: OPENAI_BASE_URL
+  });
+
+  const response = await client.responses.create({
+    model: OPENAI_MODEL,
+    instructions,
+    input: text,
+    reasoning: { effort: 'low' },
+    text: { verbosity: 'low' } as never,
+    max_output_tokens: 16000
+  });
+
+  return response.output_text.trim();
 }

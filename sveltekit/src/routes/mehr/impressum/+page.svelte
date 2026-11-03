@@ -34,7 +34,7 @@
   <p>Bundesministerium für Bildung, Wissenschaft und Forschung<br>Web: <a href="https://www.bmbwf.gv.at/" target="_blank" rel="noreferrer noopener">https://www.bmbwf.gv.at</a></p>
 
   
-  Datenschutzinformationen finden Sie auf <a href={resolve("/mehr/datenschutz/")}>/mehr/datenschutz/</a>.
+  Datenschutzinformationen finden Sie auf <a href={resolve("/mehr/datenschutz")}>/mehr/datenschutz/</a>.
 
   <br>
   Weitere Informationen finden Sie auf <a href="https://ed-tech.at/imprint/">https://ed-tech.at/imprint/</a>.

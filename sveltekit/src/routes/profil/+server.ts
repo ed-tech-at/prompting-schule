@@ -17,6 +17,9 @@ export async function POST({ request, params, cookies }) {
           const user = requireLogin(cookies);
         
           const userDb = await prisma.user.findUnique({ where: { id: user.id } });
+          if (!userDb) {
+              return json({ success: false, error: "Benutzer nicht gefunden" }, { status: 404 });
+          }
 
           const pwStatus = await comparePasswordV2(formData.oldPassword, userDb.password, user.id);
 
@@ -42,7 +45,7 @@ export async function POST({ request, params, cookies }) {
         
           const userDb = await prisma.user.findUnique({ where: { id: user.id } });
 
-          if (userDb?.email != formData.email) {
+          if (!userDb || userDb.email != formData.email) {
               return json({ success: false, error: "E-Mail stimmt nicht überein" }, { status: 401 });
           }
 
@@ -70,6 +73,6 @@ export async function POST({ request, params, cookies }) {
 
     } 
   } catch (error) {
-      return json({ success: false, error: error.message }, { status: 500 });
+      return json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

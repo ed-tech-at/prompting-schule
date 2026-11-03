@@ -74,6 +74,6 @@ export async function POST({ request, params }) {
 
     } 
   } catch (error) {
-      return json({ success: false, error: error.message }, { status: 500 });
+      return json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

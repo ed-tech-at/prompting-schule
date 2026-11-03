@@ -9,7 +9,7 @@
 <main>
 <div class="container">
   <div class="badge-shadow">
-    <h1>{page.status} {page.error.message}</h1>
+    <h1>{page.status} {page.error?.message}</h1>
     <!-- <h1>{pageError?.status ?? 500}</h1> -->
     <!-- <div class="subtitle">Uups – das ging schief.</div> -->
 
